@@ -3,14 +3,21 @@
 import numpy as np
 from qiskit import QuantumCircuit
 from matplotlib import pyplot as plt
+from qiskit.quantum_info import Statevector
+from qiskit.quantum_info import Operator
+from qiskit.quantum_info import Pauli
+from qiskit.circuit.random import random_circuit
+from mymodule import my_random_circuit
+
+# Create random cirquit
 
 if __name__ == "__main__":
-    print("hello")
-    circ = QuantumCircuit(5)
-    circ.h(0)
-    circ.h(3)
-    circ.cx(0,1)
-    circ.cx(0,2)
-    circ.cx(3,4)
+    #Random circuit using H, CNOT, S, T
+    circ=my_random_circuit(5,30,2)
+    print(circ)
     circ.draw('mpl')
     plt.show()
+    #Qiskit random circuit
+    # circ2=random_circuit(5,10,2)
+    # circ2.draw('mpl')
+    # plt.show()
