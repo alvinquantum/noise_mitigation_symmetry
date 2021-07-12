@@ -1,3 +1,5 @@
+# This code has been modified from Qiskit
+
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2017.
@@ -25,7 +27,7 @@ from qiskit.circuit.library.standard_gates import (IGate, U1Gate, U2Gate, U3Gate
 from qiskit.circuit.exceptions import CircuitError
 
 
-def my_random_circuit(num_qubits, depth, max_operands=3, measure=False,
+def my_random_circuit(num_qubits, depth, max_operands=2, measure=False,
                    conditional=False, reset=False, seed=None):
     """Generate random circuit of arbitrary size and form.
 
