@@ -14,7 +14,7 @@ from mymodule import my_random_circuit
 if __name__ == "__main__":
     #Program parameters
     number_of_qubits=5
-    depth=20
+    depth=10
     number_of_circuits=1
 
     #Create +1 phase pauli group
@@ -44,23 +44,23 @@ if __name__ == "__main__":
         count=0
 
         for idx1, p1 in enumerate(pauli_group):
-            #U.p1=p2.U ---->U.p1.U^\dagger=p2.
+            #U.p1=p2.U ---->U.p1.U^\dagger=p2. Operator class so we need .data to access numpy array.
             p2=unitary.dot(p1).dot(unitary.adjoint()).data
             #Only need p2 with +1 phase since the global phase can be absorbed into p1. Faster this way.
             for idx2, element in enumerate(pauli_group_positive):
                 # allclose checks if the values are within tolerance of 10^-8.
-                if np.allclose(p2.data, element):
+                if np.allclose(p2, element):
                     #Have to check which part of the table p1 belongs to so we can output the correct phase.
                     if idx1-table_length<=0:
-                        print("p1:", pauli_table[idx1 % table_length])
+                        print("p1: +1", pauli_table[idx1 % table_length])
                     elif idx1-2*table_length<=0:
-                        print("p1:","-",pauli_table[idx1 % table_length])
+                        print("p1: -1",pauli_table[idx1 % table_length])
                     elif idx1-3*table_length<=0:
-                        print("p1:", "+j", pauli_table[idx1 % table_length])
+                        print("p1: +j", pauli_table[idx1 % table_length])
                     else:
-                        print("p1:", "-j", pauli_table[idx1 % table_length])
+                        print("p1: -j", pauli_table[idx1 % table_length])
 
-                    print("p2:",pauli_table[idx2])
+                    print("p2: +1",pauli_table[idx2])
                     print()
                     found=True
                     count+=1
