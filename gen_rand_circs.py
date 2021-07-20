@@ -17,7 +17,7 @@ import pickle
 
 #Program parameters
 NUMBER_OF_QUBITS=5
-DEPTH=10
+DEPTH=40
 NUMBER_OF_CIRCUITS=1
 #Paths for outputs and pickle file of circuit
 code_dir=os.path.dirname(os.path.realpath('__file__'))
