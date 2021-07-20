@@ -1,0 +1,43 @@
+     ┌───┐
+q_0: ┤ S ├
+     ├───┤
+q_1: ┤ T ├
+     └───┘
+OrderedDict([('t', 1), ('s', 1)])
+p1:  +1II
+p2:  +1II
+Pauli weight P2:  0
+
+p1:  +1IX
+p2:  +1IY
+Pauli weight P2:  1
+
+p1:  +1IZ
+p2:  +1IZ
+Pauli weight P2:  1
+
+p1:  +1ZI
+p2:  +1ZI
+Pauli weight P2:  1
+
+p1:  +1ZX
+p2:  +1ZY
+Pauli weight P2:  2
+
+p1:  +1ZZ
+p2:  +1ZZ
+Pauli weight P2:  2
+
+p1:  -1IY
+p2:  +1IX
+Pauli weight P2:  1
+
+p1:  -1ZY
+p2:  +1ZX
+Pauli weight P2:  2
+
+Found Matches:  8
+CNOT count: 0
+Max Weight:  2
+P1 that creates max P2:  +1ZX
+Max P2:  +1ZY

@@ -1,0 +1,17 @@
+     ┌───┐┌───┐
+q_0: ┤ S ├┤ T ├
+     └───┘└───┘
+OrderedDict([('s', 1), ('t', 1)])
+p1:  +1I
+p2:  +1I
+Pauli weight P2:  0
+
+p1:  +1Z
+p2:  +1Z
+Pauli weight P2:  1
+
+Found Matches:  2
+CNOT count: 0
+Max Weight:  1
+P1 that creates max P2:  +1Z
+Max P2:  +1Z
