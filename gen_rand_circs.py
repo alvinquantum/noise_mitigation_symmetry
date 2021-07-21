@@ -71,7 +71,6 @@ if __name__ == "__main__":
         # circ=random_circuit(5,10)
 
         unitary = Operator(circ)
-        # found=False
         max_pauli_weight=0
         max_pauli_str_p1=""
         max_pauli_str_p2=""
@@ -124,16 +123,13 @@ if __name__ == "__main__":
                             max_pauli_weight=p2_weight
                             max_pauli_str_p1=p1_str
                             max_pauli_str_p2=p2_str
-                        # control_p1=create_controlU(p1, NUMBER_OF_QUBITS)
-                        # control_p2=create_controlU(p2, NUMBER_OF_QUBITS)
                         print(file=file)
                         print()
-                        # print(control_p1)
-                        # print(control_p2)
                         #Sanity check. Can comment out.
+                        # control_p1=create_controlU(p1, NUMBER_OF_QUBITS)
+                        # control_p2=create_controlU(p2, NUMBER_OF_QUBITS)
                         # check_p2(control_p1, control_p2, unitary, NUMBER_OF_QUBITS)
 
-                        # found=True
                         count+=1
                         break
 
