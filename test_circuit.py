@@ -24,8 +24,8 @@ from qiskit.circuit.library.standard_gates import (IGate, U1Gate, U2Gate, U3Gate
                                                    CCXGate, CSwapGate)
 
 #Program parameters
-NUMBER_OF_QUBITS=2
-DEPTH=1
+NUMBER_OF_QUBITS=5
+DEPTH=40
 NUMBER_OF_CIRCUITS=3
 #Paths for outputs and pickle file of circuit
 code_dir=os.path.dirname(os.path.realpath('__file__'))
@@ -34,11 +34,15 @@ base_file_path=code_dir+subdir+"depth"+ str(DEPTH) +"_"
 
 if __name__ == "__main__":
     # print(base_file_path)
-    circ_file=open(base_file_path+"0.obj", "rb")
-    circ=pickle.load(circ_file)
+    circ_file=open(base_file_path+"1.obj", "rb")
+    circ_info=pickle.load(circ_file)
+    circ=circ_info["circ"]
     ancilla=QuantumRegister(size=1, name="q_a")
     circ.add_register(ancilla)
     print(circ)
+    print(circ_info["max_pauli_weight"])
+    print(circ_info["max_pauli_str_p1"])
+    print(circ_info["max_pauli_str_p2"])
 
     zero_state=Statevector.from_int(0, 2**(NUMBER_OF_QUBITS+1))
     # rand_state=zero_state.evolve(RXGate)

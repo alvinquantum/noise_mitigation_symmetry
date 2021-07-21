@@ -16,8 +16,8 @@ import pickle
 # from qiskit.extensions import UnitaryGate
 
 #Program parameters
-NUMBER_OF_QUBITS=5
-DEPTH=40
+NUMBER_OF_QUBITS=2
+DEPTH=6
 NUMBER_OF_CIRCUITS=1
 #Paths for outputs and pickle file of circuit
 code_dir=os.path.dirname(os.path.realpath('__file__'))
@@ -67,8 +67,6 @@ if __name__ == "__main__":
 
         #Modified Random circuit using H, CNOT, S, T.
         circ=my_random_circuit(NUMBER_OF_QUBITS,DEPTH)
-        circ_file=open(circ_file_path, "wb")
-        pickle.dump(circ, circ_file)
         # Don't delete! Qiskit random circuit
         # circ=random_circuit(5,10)
 
@@ -99,7 +97,7 @@ if __name__ == "__main__":
                 for idx2, element in enumerate(pauli_group_positive):
                     # allclose checks if the values are within tolerance of 10^-8.
                     if np.allclose(p2, element):
-                        #Have to check which part of the table p1 belongs to so we can output the correct phase.
+                        #Have to check which part of the table p1 belongs to so we can print the correct phase.
                         if idx1-table_length<=0:
                             p1_str="+1"+pauli_labels[idx1 % table_length]
                         elif idx1-2*table_length<=0:
@@ -146,17 +144,18 @@ if __name__ == "__main__":
             else:
                 print("Found Matches: ", count, file=file)
                 print("Found Matches: ", count)
+                cnot_count=0
                 if "cx" in circ_operations:
-                    print("CNOT count: ", circ_operations["cx"], file=file)
-                    print("CNOT count: ", circ_operations["cx"])
-
-                else:
-                    print("CNOT count: 0", file=file)
-                    print("CNOT count: 0")
+                    cnot_count=circ_operations["cx"]
+                print("CNOT count: ", cnot_count, file=file)
+                print("CNOT count: ", cnot_count)
                 print("Max Weight: ", max_pauli_weight, file=file)
                 print("Max Weight: ", max_pauli_weight)
                 print("P1 that creates max P2: ", max_pauli_str_p1, file=file)
                 print("P1 that creates max P2: ", max_pauli_str_p1)
                 print("Max P2: ", max_pauli_str_p2, file=file)
                 print("Max P2: ", max_pauli_str_p2)
+        # Dump all the info into a pickle
+        circ_file=open(circ_file_path, "wb")
+        pickle.dump({"circ": circ, "max_pauli_weight": max_pauli_weight, "max_pauli_str_p1": max_pauli_str_p1, "max_pauli_str_p2": max_pauli_str_p2}, circ_file)
     print("done")
