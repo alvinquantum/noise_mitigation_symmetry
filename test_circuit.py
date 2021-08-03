@@ -41,7 +41,7 @@ def add_controlU(circ, pauli_str, number_of_qubits, quantum_register, ancilla_re
     if len(pauli_str)>number_of_qubits:
         phase=pauli_str[:2]
         pauli_str=pauli_str[2:]
-        qubit_pos=0
+        qubit_pos=number_of_qubits-1
         for pos, char in enumerate(pauli_str):
             if char=="X":
                 circ.cx(ancilla_register, quantum_register[qubit_pos])
@@ -53,13 +53,15 @@ def add_controlU(circ, pauli_str, number_of_qubits, quantum_register, ancilla_re
                 circ.h(quantum_register[qubit_pos])
                 circ.cx(ancilla_register, quantum_register[qubit_pos])
                 circ.h(quantum_register[qubit_pos])
-            qubit_pos+=1
+            # print("pos ", pos)
+            # print("qubit_pos ", qubit_pos)
+            qubit_pos-=1
         # print(pauli_str)
     return circ
 
 #Program parameters
 NUMBER_OF_QUBITS=5
-DEPTH=20
+DEPTH=10
 NUMBER_OF_CIRCUITS=3
 #Paths for outputs and pickle file of circuit
 code_dir=os.path.dirname(os.path.realpath('__file__'))
@@ -67,14 +69,12 @@ subdir="/data/"
 base_file_path=code_dir+subdir+"depth"+ str(DEPTH) +"_"
 
 #Error probabilities
-one_qubit_err=0.0 #025
-two_qubit_err=0.0 #25
-
-
+one_qubit_err=0.0025
+two_qubit_err=0.025
 
 if __name__ == "__main__":
     #Get the pickle info
-    circ_file=open(base_file_path+"6.obj", "rb")
+    circ_file=open(base_file_path+"8.obj", "rb")
     circ_info=pickle.load(circ_file)
     circ=circ_info["circ"]
     max_pauli_weight=circ_info["max_pauli_weight"]
@@ -120,11 +120,11 @@ if __name__ == "__main__":
     circ_full.barrier(all_qubits)
     circ_full=add_controlU(circ_full, max_pauli_str_p2, NUMBER_OF_QUBITS, quantum_register, ancilla_register)
     circ_full.h(ancilla_register[0])
-    print(circ_full.decompose())
+    # print(circ_full.decompose())
 
     #Finish the circuit with no checks
-    circ_no_checks.append(circ, qargs=[0,1,2,3,4])
-    print(circ_no_checks.decompose())
+    circ_no_checks.append(circ, qargs=quantum_register)
+    # print(circ_no_checks.decompose())
 
     # zero_state=Statevector.from_int(0, 2**(NUMBER_OF_QUBITS+1))
 
@@ -143,7 +143,6 @@ if __name__ == "__main__":
     final_state_no_errors_no_checks=zero_state.evolve(circ_no_checks)
     # print("No errors full state no checks: ", final_state_no_errors_no_checks)
     # print("No errors full state with checks: ", final_state_no_errors_checks)
-    print("Fidelity no errors with checks: ", state_fidelity(final_state_no_errors_checks,final_state_no_errors_no_checks))
     #Reduced final since we will be conducting tomography excluding the ancilla.
     reduced_correct_state=partial_trace(final_state_no_errors_checks, [5])
 
@@ -168,9 +167,9 @@ if __name__ == "__main__":
     for circ_temp in circ_full_with_ancilla:
         circ_temp.add_register(classical_register)
         circ_temp.measure(ancilla_register[0], classical_register)
-    print(circ_no_checks[0])
-    print(circ_full_no_ancilla[0])
-    print(circ_full_with_ancilla[0])
+    print(circ_no_checks[0].decompose())
+    print(circ_full_no_ancilla[0].decompose())
+    print(circ_full_with_ancilla[0].decompose())
 
     #No checks
     print("running job...")
@@ -196,4 +195,6 @@ if __name__ == "__main__":
     tomo_fitter_checks = StateTomographyFitter(result_with_checks, circ_full_no_ancilla)
     rho_fit_checks = tomo_fitter_checks.fit(method='lstsq')
     print('State fidelity with checks and errors', state_fidelity(DensityMatrix(rho_fit_checks), reduced_correct_state))
+    # Sanity check
+    print("Sanity check fidelity no errors with checks: ", state_fidelity(final_state_no_errors_checks,final_state_no_errors_no_checks))
     print(circ.count_ops())
