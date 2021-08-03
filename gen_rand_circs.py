@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+import math
 from qiskit import QuantumCircuit
 from matplotlib import pyplot as plt
 from qiskit.quantum_info import Statevector
@@ -16,8 +17,8 @@ import pickle
 # from qiskit.extensions import UnitaryGate
 
 #Program parameters
-NUMBER_OF_QUBITS=2
-DEPTH=6
+NUMBER_OF_QUBITS=5
+DEPTH=20
 NUMBER_OF_CIRCUITS=1
 #Paths for outputs and pickle file of circuit
 code_dir=os.path.dirname(os.path.realpath('__file__'))
@@ -26,7 +27,7 @@ base_file_path=code_dir+subdir+"depth"+ str(DEPTH) +"_"
 
 def create_controlU(npmat, number_of_qubits):
     '''Returns a controlled operation. Type is np.array'''
-    return np.kron(np.eye(2**number_of_qubits),np.array([[1/2,1/2],[1/2,1/2]]))+np.kron(npmat, np.array([[1/2,-1/2],[-1/2,1/2]]))
+    return np.kron(np.array([[1,0],[0,0]]),np.eye(2**number_of_qubits))+np.kron(np.array([[0,0],[0,1]]),npmat)
 
 def get_weight(pauli_string):
     '''Gets the weight of a Pauli string.'''
@@ -38,7 +39,7 @@ def get_weight(pauli_string):
 
 def check_p2(control_p1, control_p2, unitary, number_of_qubits):
     '''Sanity check for p2. U\otimes I- ControlP2^\dagger(U\otimes I)ControlP1==0'''
-    assert np.allclose(np.kron(unitary.data,np.eye(2))-control_p2.T.conjugate().dot(np.kron(unitary.data,np.eye(2))).dot(control_p1), np.zeros(2**(number_of_qubits+1))), "wrong p2"
+    assert np.allclose(np.kron(np.eye(2),unitary.data)-control_p2.dot(np.kron(np.eye(2),unitary.data)).dot(control_p1), np.zeros(2**(number_of_qubits+1))), "wrong p2"
 
 if __name__ == "__main__":
     print("running...")
@@ -67,6 +68,10 @@ if __name__ == "__main__":
 
         #Modified Random circuit using H, CNOT, S, T.
         circ=my_random_circuit(NUMBER_OF_QUBITS,DEPTH)
+        # # Load circuit.
+        # circ_file=open(base_file_path+"3.obj", "rb")
+        # circ=pickle.load(circ_file)["circ"]
+        # circ_file.close()
         # Don't delete! Qiskit random circuit
         # circ=random_circuit(5,10)
 
@@ -82,76 +87,86 @@ if __name__ == "__main__":
         circuit_drawer(circ, filename=output_file_path)
         print(circ)
         
-        with open(output_file_path, "a") as file:
-            print(file=file)
-            # Count the number of CNOT gates
-            circ_operations=circ.count_ops()
-            print(circ_operations, file=file)
-            print(circ_operations)
-            #We need to iterate through the entire pauli group for p1.
-            for idx1, p1 in enumerate(pauli_group):
-                #U.p1=p2.U ---->U.p1.U^\dagger=p2. Operator class so we need .data to access numpy array.
-                p2=unitary.dot(p1).dot(unitary.adjoint()).data
-                #Only need p2 with +1 phase since the global phase can be absorbed into p1. Faster this way.
-                for idx2, element in enumerate(pauli_group_positive):
-                    # allclose checks if the values are within tolerance of 10^-8.
-                    if np.allclose(p2, element):
-                        #Have to check which part of the table p1 belongs to so we can print the correct phase.
-                        if idx1-table_length<=0:
-                            p1_str="+1"+pauli_labels[idx1 % table_length]
-                        elif idx1-2*table_length<=0:
-                            p1_str="-1"+pauli_labels[idx1 % table_length]
-                        elif idx1-3*table_length<=0:
-                            p1_str="+j"+pauli_labels[idx1 % table_length]
-                        else:
-                            p1_str="-j"+pauli_labels[idx1 % table_length]
-                        
-                        #The phase for p2 can be passed to p1.
-                        p2_str="+1"+pauli_labels[idx2]
-                        print("p1: ", p1_str, file=file)
-                        print("p1: ", p1_str)
-                        # print(p1, file=file)
-                        print("p2: ", p2_str, file=file)
-                        print("p2: ", p2_str)
-                        # print(p2, file=file)
+        output_file=open(output_file_path, "a")
+        # with open(output_file_path, "a") as file:
+        print(file=output_file)
+        # Count the number of CNOT gates
+        circ_operations=circ.count_ops()
+        print(circ_operations, file=output_file)
+        print(circ_operations)
+        #We need to iterate through the entire pauli group for p1.
+        for idx1, p1 in enumerate(pauli_group):
+            #U.p1=p2.U ---->U.p1.U^\dagger=p2. Operator class so we need .data to access numpy array.
+            p2=unitary.dot(p1).dot(unitary.adjoint()).data
+            #Check if p2 is traceless. All elements of the pauli group are traceless.
+            if not math.isclose(np.trace(p2),0.0, abs_tol=0.01):
+                continue
+            #Only need p2 with +1 phase since the global phase can be absorbed into p1. Faster this way.
+            for idx2, element in enumerate(pauli_group_positive):
+                # allclose checks if the values are within tolerance of 10^-8.
+                if np.allclose(p2, element):
+                    #Have to check which part of the table p1 belongs to so we can print the correct phase.
+                    if idx1-table_length<=0:
+                        p1_str="+1"+pauli_labels[idx1 % table_length]
+                    elif idx1-2*table_length<=0:
+                        p1_str="-1"+pauli_labels[idx1 % table_length]
+                    elif idx1-3*table_length<=0:
+                        p1_str="+j"+pauli_labels[idx1 % table_length]
+                    else:
+                        p1_str="-j"+pauli_labels[idx1 % table_length]
+                    
+                    #The phase for p2 can be passed to p1.
+                    p2_str="+1"+pauli_labels[idx2]
+                    print("p1: ", p1_str, file=output_file)
+                    print("p1: ", p1_str)
+                    # print(p1, file=file)
+                    print("p2: ", p2_str, file=output_file)
+                    print("p2: ", p2_str)
+                    # print(p2, file=file)
 
-                        # Print the weight. We care about P2 weight since we commute p1 through U.
-                        p2_weight=get_weight(pauli_labels[idx2])
-                        print("Pauli weight P2: ", p2_weight, file=file)
-                        print("Pauli weight P2: ", p2_weight)
-                        if p2_weight>max_pauli_weight:
-                            max_pauli_weight=p2_weight
-                            max_pauli_str_p1=p1_str
-                            max_pauli_str_p2=p2_str
-                        print(file=file)
-                        print()
-                        #Sanity check. Can comment out.
-                        # control_p1=create_controlU(p1, NUMBER_OF_QUBITS)
-                        # control_p2=create_controlU(p2, NUMBER_OF_QUBITS)
-                        # check_p2(control_p1, control_p2, unitary, NUMBER_OF_QUBITS)
+                    # Print the weight. We care about P2 weight since we commute p1 through U.
+                    p2_weight=get_weight(pauli_labels[idx2])
+                    print("Pauli weight P2: ", p2_weight, file=output_file)
+                    print("Pauli weight P2: ", p2_weight)
+                    if p2_weight>max_pauli_weight:
+                        max_pauli_weight=p2_weight
+                        max_pauli_str_p1=p1_str
+                        max_pauli_str_p2=p2_str
+                    print(file=output_file)
+                    print()
+                    #Sanity check. Can comment out.
+                    control_p1=create_controlU(p1, NUMBER_OF_QUBITS)
+                    control_p2=create_controlU(p2, NUMBER_OF_QUBITS)
+                    check_p2(control_p1, control_p2, unitary, NUMBER_OF_QUBITS)
 
-                        count+=1
-                        break
+                    count+=1
+                    #We found it so just break.
+                    break
 
-            #Outputs
-            if count==1:
-                print("nothing found: trivial solution", file=file)
-                print("nothing found: trivial solution")
-            else:
-                print("Found Matches: ", count, file=file)
-                print("Found Matches: ", count)
-                cnot_count=0
-                if "cx" in circ_operations:
-                    cnot_count=circ_operations["cx"]
-                print("CNOT count: ", cnot_count, file=file)
-                print("CNOT count: ", cnot_count)
-                print("Max Weight: ", max_pauli_weight, file=file)
-                print("Max Weight: ", max_pauli_weight)
-                print("P1 that creates max P2: ", max_pauli_str_p1, file=file)
-                print("P1 that creates max P2: ", max_pauli_str_p1)
-                print("Max P2: ", max_pauli_str_p2, file=file)
-                print("Max P2: ", max_pauli_str_p2)
+        #Outputs
+        if count==0:
+            print("nothing found: trivial solution", file=output_file)
+            print("nothing found: trivial solution")
+        else:
+            print("Found Matches: ", count, file=output_file)
+            print("Found Matches: ", count)
+            print("Max Weight: ", max_pauli_weight, file=output_file)
+            print("Max Weight: ", max_pauli_weight)
+            print("P1 that creates max P2: ", max_pauli_str_p1, file=output_file)
+            print("P1 that creates max P2: ", max_pauli_str_p1)
+            print("Max P2: ", max_pauli_str_p2, file=output_file)
+            print("Max P2: ", max_pauli_str_p2)
+        print("Circuit depth: ", DEPTH)
+        cnot_count=0
+        if "cx" in circ_operations:
+            cnot_count=circ_operations["cx"]
+        print("CNOT count: ", cnot_count, file=output_file)
+        print("CNOT count: ", cnot_count)
+
         # Dump all the info into a pickle
         circ_file=open(circ_file_path, "wb")
         pickle.dump({"circ": circ, "max_pauli_weight": max_pauli_weight, "max_pauli_str_p1": max_pauli_str_p1, "max_pauli_str_p2": max_pauli_str_p2}, circ_file)
+        # Close the files. 
+        circ_file.close()
+        output_file.close()
     print("done")

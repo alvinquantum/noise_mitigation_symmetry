@@ -12,8 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Utility functions for generating random circuits."""
 
+from copy import deepcopy
 import numpy as np
 
 from qiskit.circuit import QuantumRegister, ClassicalRegister, QuantumCircuit
@@ -119,6 +119,32 @@ def my_random_circuit(num_qubits, depth, max_operands=2, measure=False,
         qc.measure(qr, cr)
 
     return qc
+
+def post_select_on_ancilla(res, ancilla_value, new_nqubits):
+    """
+    strip the results where ancilla was not equal to `ancilla_value`
+    This is some voodoo copied from 
+    https://qiskit.org/documentation/tutorials/noise/8_tomography.html#2-Qubit-Conditional-State-Tomography  
+    """
+    assert(isinstance(ancilla_value, str))
+    res_new = deepcopy(res)
+    for resultidx, _ in enumerate(res.results):
+        old_counts = res.get_counts(resultidx)
+        new_counts = {}
+        # print(res_new.results[resultidx].header.clbit_labels)
+        res_new.results[resultidx].header.creg_sizes = [res_new.results[resultidx].header.creg_sizes[0]]
+        res_new.results[resultidx].header.clbit_labels = res_new.results[resultidx].header.clbit_labels[0:-1]
+        # print(res_new.results[resultidx].header.clbit_labels)
+        res_new.results[resultidx].header.memory_slots = new_nqubits 
+        for reg_key in old_counts:
+            # print(reg_key)
+            reg_bits = reg_key.split(' ')
+            assert(len(reg_bits) == 2)
+            assert(len(reg_bits[0]) == 1)
+            if reg_bits[0]==ancilla_value:
+                new_counts[reg_bits[1]]=old_counts[reg_key]
+            res_new.results[resultidx].data.counts = new_counts
+    return res_new
 
 if __name__ == "__main__":
     pass

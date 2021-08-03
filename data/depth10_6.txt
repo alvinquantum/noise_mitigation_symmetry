@@ -1,0 +1,93 @@
+     ┌───┐┌───┐     ┌───┐┌───┐                              ┌───┐          ┌───┐          ┌───┐
+q_0: ┤ H ├┤ T ├─────┤ X ├┤ X ├────────────■────■────────────┤ X ├───────■──┤ X ├──────────┤ X ├
+     ├───┤├───┤┌───┐└─┬─┘└─┬─┘     ┌───┐  │    │  ┌───┐     └─┬─┘┌───┐  │  └─┬─┘┌───┐┌───┐└─┬─┘
+q_1: ┤ H ├┤ T ├┤ T ├──┼────■───────┤ X ├──┼────┼──┤ T ├──■────┼──┤ S ├──┼────┼──┤ T ├┤ X ├──┼──
+     ├───┤├───┤├───┤  │  ┌───┐┌───┐└─┬─┘  │  ┌─┴─┐└───┘  │    │  ├───┤  │    │  ├───┤└─┬─┘  │  
+q_2: ┤ H ├┤ X ├┤ S ├──┼──┤ X ├┤ H ├──┼────┼──┤ X ├───────┼────■──┤ X ├──┼────■──┤ H ├──┼────┼──
+     ├───┤└─┬─┘└───┘  │  └─┬─┘├───┤  │    │  ├───┤     ┌─┴─┐     └─┬─┘┌─┴─┐┌───┐└───┘  │    │  
+q_3: ┤ T ├──■─────────■────┼──┤ H ├──■────┼──┤ X ├─────┤ X ├───────┼──┤ X ├┤ T ├───────┼────■──
+     ├───┤┌───┐┌───┐       │  └───┘     ┌─┴─┐└─┬─┘┌───┐└───┘       │  ├───┤└───┘       │       
+q_4: ┤ T ├┤ T ├┤ H ├───────■────────────┤ X ├──■──┤ T ├────────────■──┤ S ├────────────■───────
+     └───┘└───┘└───┘                    └───┘     └───┘               └───┘                    
+OrderedDict([('cx', 15), ('t', 10), ('h', 7), ('s', 3)])
+p1:  +1IIYIX
+p2:  +1IIIIZ
+Pauli weight P2:  1
+
+p1:  +1XIXYI
+p2:  +1IZXIY
+Pauli weight P2:  3
+
+p1:  +1XZZZI
+p2:  +1ZIXIY
+Pauli weight P2:  3
+
+p1:  +1ZIXYX
+p2:  +1IZIXX
+Pauli weight P2:  3
+
+p1:  +1ZIXZX
+p2:  +1ZZXXY
+Pauli weight P2:  5
+
+p1:  +1ZIZYX
+p2:  +1IIXIY
+Pauli weight P2:  2
+
+p1:  +1ZZXZI
+p2:  +1ZIIXY
+Pauli weight P2:  3
+
+p1:  +1ZZZYI
+p2:  +1IZIIY
+Pauli weight P2:  2
+
+p1:  +1ZZZZX
+p2:  +1ZIIXX
+Pauli weight P2:  3
+
+p1:  -1XIZZI
+p2:  +1ZIXXY
+Pauli weight P2:  4
+
+p1:  -1XZXYI
+p2:  +1IZXXY
+Pauli weight P2:  4
+
+p1:  -1YIIII
+p2:  +1IZIIZ
+Pauli weight P2:  2
+
+p1:  -1YZYXI
+p2:  +1ZIIIZ
+Pauli weight P2:  2
+
+p1:  -1ZIXZI
+p2:  +1ZIIIY
+Pauli weight P2:  2
+
+p1:  -1ZIZYI
+p2:  +1IZIXY
+Pauli weight P2:  3
+
+p1:  -1ZIZZX
+p2:  +1ZIIIX
+Pauli weight P2:  2
+
+p1:  -1ZZXYX
+p2:  +1IZIIX
+Pauli weight P2:  2
+
+p1:  -1ZZXZX
+p2:  +1ZZXIY
+Pauli weight P2:  4
+
+p1:  -1ZZZYX
+p2:  +1IIXXY
+Pauli weight P2:  3
+
+Found Matches:  19
+CNOT count:  15
+Max Weight:  5
+P1 that creates max P2:  +1ZIXZX
+Max P2:  +1ZZXXY
