@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister, execute, Aer, transpile
 from matplotlib import pyplot as plt
-from qiskit.quantum_info import Statevector, state_fidelity
+from qiskit.quantum_info import Statevector, state_fidelity, DensityMatrix, partial_trace
 from qiskit.circuit.random import random_circuit
 from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
 from qiskit.visualization import circuit_drawer
@@ -59,7 +59,7 @@ def add_controlU(circ, pauli_str, number_of_qubits, quantum_register, ancilla_re
 
 #Program parameters
 NUMBER_OF_QUBITS=5
-DEPTH=10
+DEPTH=20
 NUMBER_OF_CIRCUITS=3
 #Paths for outputs and pickle file of circuit
 code_dir=os.path.dirname(os.path.realpath('__file__'))
@@ -67,14 +67,14 @@ subdir="/data/"
 base_file_path=code_dir+subdir+"depth"+ str(DEPTH) +"_"
 
 #Error probabilities
-one_qubit_err=0.0025
-two_qubit_err=0.025
+one_qubit_err=0.0 #025
+two_qubit_err=0.0 #25
 
 
 
 if __name__ == "__main__":
     #Get the pickle info
-    circ_file=open(base_file_path+"8.obj", "rb")
+    circ_file=open(base_file_path+"6.obj", "rb")
     circ_info=pickle.load(circ_file)
     circ=circ_info["circ"]
     max_pauli_weight=circ_info["max_pauli_weight"]
@@ -144,6 +144,8 @@ if __name__ == "__main__":
     # print("No errors full state no checks: ", final_state_no_errors_no_checks)
     # print("No errors full state with checks: ", final_state_no_errors_checks)
     print("Fidelity no errors with checks: ", state_fidelity(final_state_no_errors_checks,final_state_no_errors_no_checks))
+    #Reduced final since we will be conducting tomography excluding the ancilla.
+    reduced_correct_state=partial_trace(final_state_no_errors_checks, [5])
 
     #Add measurements to the cricuits.
     # circ_full.measure(ancilla_register[0], classical_register)
@@ -159,33 +161,39 @@ if __name__ == "__main__":
     basis_gates=noise_model.basis_gates
     simulator=Aer.get_backend('qasm_simulator')
     # No checks tomography
-    circ_no_checks=state_tomography_circuits(circ_no_checks, all_qubits)
+    circ_no_checks=state_tomography_circuits(circ_no_checks, quantum_register)
     # With Checks tomography with classical register
     circ_full_no_ancilla=state_tomography_circuits(circ_full, quantum_register)
     circ_full_with_ancilla=deepcopy(circ_full_no_ancilla)
     for circ_temp in circ_full_with_ancilla:
         circ_temp.add_register(classical_register)
         circ_temp.measure(ancilla_register[0], classical_register)
+    print(circ_no_checks[0])
+    print(circ_full_no_ancilla[0])
     print(circ_full_with_ancilla[0])
 
     #No checks
-    # print("running job...")
-    # result_no_checks=execute(circ_no_checks, Aer.get_backend('qasm_simulator'),
-    #              basis_gates=basis_gates,
-    #              noise_model=noise_model, shots=5).result()
-    # print("job done.")
-    # tomo_fitter_no_checks = StateTomographyFitter(result_no_checks, circ_no_checks)
-    # rho_fit_no_checks = tomo_fitter_no_checks.fit(method='lstsq')
-    # print('State Fidelity: ', state_fidelity(rho_fit_no_checks, final_state_no_errors_no_checks))
+    print("running job...")
+    result_no_checks=execute(circ_no_checks, Aer.get_backend('qasm_simulator'),
+                 basis_gates=basis_gates,
+                 noise_model=noise_model, 
+                 shots=10000).result()
+    print("job done.")
+    tomo_fitter_no_checks = StateTomographyFitter(result_no_checks, circ_no_checks)
+    rho_fit_no_checks = tomo_fitter_no_checks.fit(method='lstsq')
+    print('State fidelity no checks with errors: ', state_fidelity(DensityMatrix(rho_fit_no_checks), reduced_correct_state))
 
     # With Checks
     print("running job...")
     result_with_checks=execute(circ_full_with_ancilla, Aer.get_backend('qasm_simulator'),
                  basis_gates=basis_gates,
-                 noise_model=noise_model, shots=10).result()
+                 noise_model=noise_model, 
+                 shots=10000).result()
     print("job done.")
-    print(result_with_checks.results[0])
-    result_with_checks=mymodule.post_select_on_ancilla(result_with_checks, "1", 5)
+    # print(result_with_checks.get_counts())
+    result_with_checks=mymodule.post_select_on_ancilla(result_with_checks, "0", 5)
+    # print(result_with_checks.get_counts())
     tomo_fitter_checks = StateTomographyFitter(result_with_checks, circ_full_no_ancilla)
     rho_fit_checks = tomo_fitter_checks.fit(method='lstsq')
-    print('State Fidelity: ', state_fidelity(rho_fit_checks, final_state_no_errors_no_checks))
+    print('State fidelity with checks and errors', state_fidelity(DensityMatrix(rho_fit_checks), reduced_correct_state))
+    print(circ.count_ops())
