@@ -26,6 +26,8 @@ from qiskit.circuit.library.standard_gates import (IGate, U1Gate, U2Gate, U3Gate
                                                    CCXGate, CSwapGate)
 from qiskit.circuit.exceptions import CircuitError
 
+def split_circ():
+    pass
 
 def my_random_circuit(num_qubits, depth, max_operands=2, measure=False,
                    conditional=False, reset=False, seed=None):

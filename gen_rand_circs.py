@@ -13,13 +13,16 @@ from mymodule import my_random_circuit
 from qiskit.visualization import circuit_drawer
 import os
 import pickle
+from multiprocessing import Pool
+import psutil
 # from qiskit.circuit import ControlledGate
 # from qiskit.extensions import UnitaryGate
 
 #Program parameters
 NUMBER_OF_QUBITS=5
-DEPTH=20
+DEPTH=10
 NUMBER_OF_CIRCUITS=1
+# POOL=Pool(psutil.cpu_count(logical=False))
 #Paths for outputs and pickle file of circuit
 code_dir=os.path.dirname(os.path.realpath('__file__'))
 subdir="/data/"

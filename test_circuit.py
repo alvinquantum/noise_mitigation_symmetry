@@ -15,11 +15,12 @@ import qiskit.providers.aer.noise as noise
 from qiskit.opflow import X,Y,Z
 from qiskit.ignis.verification.tomography import state_tomography_circuits, StateTomographyFitter
 import mymodule
+from math import pi
 # from qiskit.circuit import ControlledGate
 # from qiskit.extensions import UnitaryGate
 
 #Error Stuff
-
+from qiskit.circuit.library import CRXGate
 from qiskit.circuit.library.standard_gates import (IGate, U1Gate, U2Gate, U3Gate, XGate,
                                                    YGate, ZGate, HGate, SGate, SdgGate, TGate,
                                                    TdgGate, RXGate, RYGate, RZGate, CXGate,
@@ -38,21 +39,100 @@ def check_p2(control_p1, control_p2, unitary, number_of_qubits):
 def add_controlU(circ, pauli_str, number_of_qubits, quantum_register, ancilla_register):
     '''Adds a controlled Pauli to circ.'''
     print(pauli_str)
+    c_minus_x = QuantumCircuit.from_qasm_str("""
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    u3(1.0592554e-13,3.288277,2.8116442) q[0];
+    u3(pi,5.8991791,2.7575864) q[1];
+    cx q[0],q[1];
+    u3(2*pi,5.4995268,4.1085153) q[0];
+    u3(pi,0.38400625,3.5255989) q[1];
+    """.strip())
+
+    c_minus_j_x = QuantumCircuit.from_qasm_str("""
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    u3(6.9759301e-13,4.3371506,0.076820611) q[0];
+    u3(6.9089241e-09,5.477472,3.947306) q[1];
+    cx q[0],q[1];
+    u3(2*pi,0.60772643,2.832284) q[0];
+    u3(5.5644668e-09,5.4477338,3.9770441) q[1];
+    """.strip())
+
+    c_plus_j_x =QuantumCircuit.from_qasm_str("""
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    u3(pi,4.6477413,6.258122) q[0];
+    u3(1.7599424,3*pi/2,3*pi/2) q[1];
+    cx q[0],q[1];
+    u3(pi,3.1666559,3.2062404) q[0];
+    u3(4.9015351,3*pi/2,3*pi/2) q[1];
+    """.strip())
+
     if len(pauli_str)>number_of_qubits:
         phase=pauli_str[:2]
         pauli_str=pauli_str[2:]
         qubit_pos=number_of_qubits-1
+        phase_added=False
         for pos, char in enumerate(pauli_str):
-            if char=="X":
-                circ.cx(ancilla_register, quantum_register[qubit_pos])
-            elif char=="Y":
-                circ.sdg(quantum_register[qubit_pos])
-                circ.cx(ancilla_register, quantum_register[qubit_pos])
-                circ.s(quantum_register[qubit_pos])
-            elif char=="Z":
-                circ.h(quantum_register[qubit_pos])
-                circ.cx(ancilla_register, quantum_register[qubit_pos])
-                circ.h(quantum_register[qubit_pos])
+            # First case is most common
+            if phase_added or phase=="+1":
+                if char=="X":
+                    circ.cx(ancilla_register, quantum_register[qubit_pos])
+                elif char=="Y":
+                    circ.sdg(quantum_register[qubit_pos])
+                    circ.cx(ancilla_register, quantum_register[qubit_pos])
+                    circ.s(quantum_register[qubit_pos])
+                elif char=="Z":
+                    circ.h(quantum_register[qubit_pos])
+                    circ.cx(ancilla_register, quantum_register[qubit_pos])
+                    circ.h(quantum_register[qubit_pos])
+            # -1 phase
+            elif phase=="-1":
+                # circ.cz(ancilla_register, quantum_register[qubit_pos])
+                if char=="X":
+                    circ.compose(c_minus_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                elif char=="Y":
+                    circ.sdg(quantum_register[qubit_pos])
+                    circ.compose(c_minus_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                    circ.s(quantum_register[qubit_pos])
+                elif char=="Z":
+                    # print(RXGate(pi*j).to_matrix())
+                    circ.h(quantum_register[qubit_pos])
+                    circ.compose(c_minus_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                    # circ.crx(-j*pi,ancilla_register, quantum_register[qubit_pos])
+                    circ.h(quantum_register[qubit_pos])
+                # circ.cz(ancilla_register, quantum_register[qubit_pos])
+                phase_added=True
+            # +j phase
+            elif phase=="+j":
+                if char=="X":
+                    circ.compose(c_plus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                elif char=="Y":
+                    circ.sdg(quantum_register[qubit_pos])
+                    circ.compose(c_plus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                    circ.s(quantum_register[qubit_pos])
+                elif char=="Z":
+                    circ.h(quantum_register[qubit_pos])
+                    circ.compose(c_plus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                    circ.h(quantum_register[qubit_pos])
+                phase_added=True
+            # -j phase
+            elif phase=="-j":
+                if char=="X":
+                    circ.compose(c_minus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                elif char=="Y":
+                    circ.sdg(quantum_register[qubit_pos])
+                    circ.compose(c_minus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                    circ.s(quantum_register[qubit_pos])
+                elif char=="Z":
+                    circ.h(quantum_register[qubit_pos])
+                    circ.compose(c_minus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                    circ.h(quantum_register[qubit_pos])
+                phase_added=True
             # print("pos ", pos)
             # print("qubit_pos ", qubit_pos)
             qubit_pos-=1
@@ -61,10 +141,11 @@ def add_controlU(circ, pauli_str, number_of_qubits, quantum_register, ancilla_re
 
 #Program parameters
 NUMBER_OF_QUBITS=5
-DEPTH=10
+DEPTH=20
 NUMBER_OF_CIRCUITS=3
 #Paths for outputs and pickle file of circuit
 code_dir=os.path.dirname(os.path.realpath('__file__'))
+file_number="2"
 subdir="/data/"
 base_file_path=code_dir+subdir+"depth"+ str(DEPTH) +"_"
 
@@ -72,9 +153,12 @@ base_file_path=code_dir+subdir+"depth"+ str(DEPTH) +"_"
 one_qubit_err=0.0025
 two_qubit_err=0.025
 
+error_space=np.logspace(0, 1, base=1)
+
 if __name__ == "__main__":
+    # print(error_space)
     #Get the pickle info
-    circ_file=open(base_file_path+"8.obj", "rb")
+    circ_file=open(base_file_path+ file_number + ".obj", "rb")
     circ_info=pickle.load(circ_file)
     circ=circ_info["circ"]
     max_pauli_weight=circ_info["max_pauli_weight"]
@@ -114,6 +198,7 @@ if __name__ == "__main__":
     circ_full.h(ancilla_register[0])
     # p1=Pauli(max_pauli_str_p1)
     # p2=Pauli(max_pauli_str_p2)
+    circ_full.barrier(all_qubits)
     circ_full=add_controlU(circ_full, max_pauli_str_p1, NUMBER_OF_QUBITS, quantum_register, ancilla_register)
     circ_full.barrier(all_qubits)
     circ_full.append(circ, qargs=quantum_register)
@@ -167,8 +252,8 @@ if __name__ == "__main__":
     for circ_temp in circ_full_with_ancilla:
         circ_temp.add_register(classical_register)
         circ_temp.measure(ancilla_register[0], classical_register)
-    print(circ_no_checks[0].decompose())
-    print(circ_full_no_ancilla[0].decompose())
+    # print(circ_no_checks[0].decompose())
+    # print(circ_full_no_ancilla[0].decompose())
     print(circ_full_with_ancilla[0].decompose())
 
     #No checks
@@ -198,3 +283,29 @@ if __name__ == "__main__":
     # Sanity check
     print("Sanity check fidelity no errors with checks: ", state_fidelity(final_state_no_errors_checks,final_state_no_errors_no_checks))
     print(circ.count_ops())
+
+    #Pickle the results
+    temp_file_number=0
+    output_file_obj=base_file_path+ file_number+"_"+ str(temp_file_number) +"_result.obj"
+    while os.path.isfile(output_file_obj):
+        temp_file_number+=1
+        output_file_obj=base_file_path+ file_number+ "_" + str(temp_file_number) +"_result.obj"
+    output_file_txt_path=base_file_path+ file_number+ "_" + str(temp_file_number) +"_result.txt"
+    # Dump all the info into a pickle
+    circ_file=open(output_file_obj, "wb")
+    pickle.dump({"circ": circ, "circ_no_checks": circ_no_checks, "circ_full_no_ancilla": circ_full_no_ancilla, 
+    "circ_full_with_ancilla": circ_full_with_ancilla, "rho_fit_checks": DensityMatrix(rho_fit_checks), 
+    "rho_fit_no_checks":DensityMatrix(rho_fit_no_checks), "reduced_correct_state": reduced_correct_state,
+    "max_pauli_weight": max_pauli_weight, "max_pauli_str_p1": max_pauli_str_p1, "max_pauli_str_p2": max_pauli_str_p2}, circ_file)
+    circ_file.close()
+
+    #Print text results to file
+    circ.draw('mpl')
+    circuit_drawer(circ_full_with_ancilla[0].decompose(), filename=output_file_txt_path)
+    output_file_txt=open(output_file_txt_path, "a")
+    print(file=output_file_txt)
+    print('State fidelity no checks with errors: ', state_fidelity(DensityMatrix(rho_fit_no_checks), reduced_correct_state), file=output_file_txt)
+    print('State fidelity with checks and errors', state_fidelity(DensityMatrix(rho_fit_checks), reduced_correct_state), file=output_file_txt)
+    print("Sanity check fidelity no errors with checks: ", state_fidelity(final_state_no_errors_checks,final_state_no_errors_no_checks), file=output_file_txt)
+    print(circ.count_ops(), file=output_file_txt)
+    output_file_txt.close()
