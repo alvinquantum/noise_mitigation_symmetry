@@ -141,11 +141,11 @@ def add_controlU(circ, pauli_str, number_of_qubits, quantum_register, ancilla_re
 
 #Program parameters
 NUMBER_OF_QUBITS=5
-DEPTH=20
+DEPTH=10
 NUMBER_OF_CIRCUITS=3
 #Paths for outputs and pickle file of circuit
 code_dir=os.path.dirname(os.path.realpath('__file__'))
-file_number="2"
+file_number="32"
 subdir="/data/"
 base_file_path=code_dir+subdir+"depth"+ str(DEPTH) +"_"
 
