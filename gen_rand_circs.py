@@ -5,11 +5,9 @@ import numpy as np
 import math
 from qiskit import QuantumCircuit
 from matplotlib import pyplot as plt
-from qiskit.quantum_info import Statevector
-from qiskit.quantum_info import Operator
+from qiskit.quantum_info import Statevector, Pauli, Operator
 from qiskit.circuit.random import random_circuit
 from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
-from qiskit.quantum_info import Pauli
 from mymodule import my_random_circuit
 from qiskit.visualization import circuit_drawer
 import os
@@ -39,7 +37,7 @@ def check_p2(control_p1, control_p2, unitary, number_of_qubits):
 
 def find_p1s_p2s(pauli_group_tuple):
     '''For multiprocessing.'''
-    global NUMBER_OF_QUBITS, DEPTH, NUMBER_OF_CIRCUITS, code_dir, subdir, base_file_path
+    global NUMBER_OF_QUBITS, DEPTH, NUMBER_OF_CIRCUITS, ABS_TOL, code_dir, subdir, base_file_path
     global pauli_labels, pauli_group_positive, pauli_group, table_length
     global count, max_pauli_str_p1, max_pauli_str_p2, max_pauli_weight
     global unitary
@@ -48,8 +46,8 @@ def find_p1s_p2s(pauli_group_tuple):
     # for idx1, p1 in enumerate(pauli_group):
     #U.p1=p2.U ---->U.p1.U^\dagger=p2. Operator class so we need .data to access numpy array.
     p2=unitary.dot(p1).dot(unitary.adjoint()).data
-    #Check if p2 is traceless. All elements of the pauli group are traceless.
-    if not math.isclose(np.trace(p2),0.0, abs_tol=0.1):
+    #Check if p2 is traceless. All elements of the pauli group are traceless except identity.
+    if not math.isclose(np.trace(p2),0.0, abs_tol=ABS_TOL):
         return
     #Only need p2 with +1 phase since the global phase can be absorbed into p1. Faster this way.
     for idx2, element in enumerate(pauli_group_positive):
@@ -78,12 +76,17 @@ def find_p1s_p2s(pauli_group_tuple):
             p2_weight=get_weight(pauli_labels[idx2])
             # print("Pauli weight P2: ", p2_weight, file=output_file)
             print("Pauli weight P2: ", p2_weight)
-            #Need to lock the value so it doesn't change while checking.
-            with max_pauli_weight.get_lock():
-                if p2_weight>max_pauli_weight.value:
-                    max_pauli_weight.value=p2_weight
+            #Need to lock the value so it doesn't change while checking. Since we write only
+            #after locking the weight we don't need to lock the other values.
+            with count.get_lock():
+                count.value+=1
+                if p2_weight>max_pauli_weight[0]:
+                    max_pauli_weight[0]=p2_weight
                     max_pauli_str_p1[0]=p1_str
                     max_pauli_str_p2[0]=p2_str
+                max_pauli_str_p1.append(p1_str)
+                max_pauli_str_p2.append(p2_str)
+                max_pauli_weight.append(p2_weight)
             # print(file=output_file)
             print()
             #Sanity check. Can comment out.
@@ -91,17 +94,17 @@ def find_p1s_p2s(pauli_group_tuple):
             control_p2=create_controlU(p2, NUMBER_OF_QUBITS)
             check_p2(control_p1, control_p2, unitary, NUMBER_OF_QUBITS)
 
-            #Need to lock the value so it doesn't change. Nonatomic operation.
-            with count.get_lock():
-                count.value+=1
+            # #Need to lock the value so it doesn't change. Nonatomic operation.
+            # with count.get_lock():
+            #     count.value+=1
             #We found p2 so just return.
-            return
+            return (p1_str, p2_str, p2_weight)
 
-def initialize(unitary_arg, NUMBER_OF_QUBITS_ARG, DEPTH_ARG, NUMBER_OF_CIRCUITS_ARG,
+def initialize(unitary_arg, NUMBER_OF_QUBITS_ARG, DEPTH_ARG, NUMBER_OF_CIRCUITS_ARG, ABS_TOL_ARG,
     pauli_labels_arg, pauli_group_positive_arg, pauli_group_arg, table_length_arg, count_arg,
     max_pauli_weight_arg, max_pauli_str_p1_arg, max_pauli_str_p2_arg):
     '''Initialize globals for pool'''
-    global NUMBER_OF_QUBITS, DEPTH, NUMBER_OF_CIRCUITS, code_dir, subdir, base_file_path
+    global NUMBER_OF_QUBITS, DEPTH, NUMBER_OF_CIRCUITS, ABS_TOL, code_dir, subdir, base_file_path
     global pauli_labels, pauli_group_positive, pauli_group, table_length
     global count, max_pauli_str_p1, max_pauli_str_p2, max_pauli_weight
     global unitary
@@ -125,6 +128,8 @@ def initialize(unitary_arg, NUMBER_OF_QUBITS_ARG, DEPTH_ARG, NUMBER_OF_CIRCUITS_
     max_pauli_str_p2=max_pauli_str_p2_arg
     # Number of found p2 matrices.
     count=count_arg
+    # Absolute tolerance for checking if the trace of p2 is close to zero with the isclose function.
+    ABS_TOL=ABS_TOL_ARG
 
 
 if __name__ == "__main__":
@@ -133,10 +138,13 @@ if __name__ == "__main__":
     NUMBER_OF_QUBITS=5
     DEPTH=10
     NUMBER_OF_CIRCUITS=1
+    # Absolute tolerance for checking if the trace of p2 is close to zero with the isclose function.
+    ABS_TOL=.2*2**(NUMBER_OF_QUBITS-1)
     #Paths for outputs and pickle file of circuit
     code_dir=os.path.dirname(os.path.realpath('__file__'))
     subdir="/data/"
-    base_file_path=code_dir+subdir+"depth"+ str(DEPTH) +"_"
+    # base_file_path=code_dir+subdir+"depth"+ str(DEPTH) +"_"
+    base_file_path=code_dir+subdir+"qubits"+str(NUMBER_OF_QUBITS)+"_depth"+ str(DEPTH) +"_"
 
     #Create +1 phase pauli group
     pauli_table=pauli_basis(NUMBER_OF_QUBITS)
@@ -170,6 +178,7 @@ if __name__ == "__main__":
         # Don't delete! Qiskit random circuit
         # circ=random_circuit(5,10)
 
+        # We use this to find P1 and P2.
         unitary = Operator(circ)
 
         #Draw
@@ -187,7 +196,9 @@ if __name__ == "__main__":
         output_file.write(json.dumps(circ_operations))
         print(circ_operations)
         #We need to use these types for locking and persistence.
-        max_pauli_weight=Value("i",0)
+        managerp0=Manager()
+        # max_pauli_weight=Value("i",0)
+        max_pauli_weight=managerp0.list([0])
         count=Value("i",0)
         # max_pauli_str_p2=Array(ctypes.c_char, "+1"+"I"*NUMBER_OF_QUBITS)
 
@@ -201,7 +212,7 @@ if __name__ == "__main__":
         max_pauli_str_p1=managerp1.list([""])
         max_pauli_str_p2=managerp2.list([""])
 
-        with Pool(psutil.cpu_count(logical=False), initialize, initargs=(unitary, NUMBER_OF_QUBITS, DEPTH, NUMBER_OF_CIRCUITS, 
+        with Pool(psutil.cpu_count(logical=False), initialize, initargs=(unitary, NUMBER_OF_QUBITS, DEPTH, NUMBER_OF_CIRCUITS, ABS_TOL,
             pauli_labels, pauli_group_positive, pauli_group, table_length, count, max_pauli_weight, max_pauli_str_p1, 
             max_pauli_str_p2)) as pool:
             pool.map(find_p1s_p2s, enumerate(pauli_group))
@@ -213,14 +224,20 @@ if __name__ == "__main__":
             output_file.write("nothing found: trivial solution")
             print("nothing found: trivial solution")
         else:
+            for index1, strp1 in enumerate(max_pauli_str_p1):
+                if index1!=0:
+                    output_file.write("\n")
+                    output_file.write("p1: "+ str(strp1)+ "\n")
+                    output_file.write("p2: "+ str(max_pauli_str_p2[index1])+ "\n")
+                    output_file.write("Pauli weight P2: "+ str(max_pauli_weight[index1])+ "\n")
             # print("Found Matches: ", count.value, file=output_file)
+            output_file.write("\n")
             output_file.write("Found Matches: "+ str(count.value)+ "\n")
             print("Found Matches: ", count.value)
             # print("Max Weight: ", max_pauli_weight.value, file=output_file)
-            output_file.write("Max Weight: "+ str(max_pauli_weight.value) + "\n")
-            print("Max Weight: ", max_pauli_weight.value)
+            output_file.write("Max Weight: "+ str(max_pauli_weight[0]) + "\n")
+            print("Max Weight: ", max_pauli_weight[0])
             # print("P1 that creates max P2: ", max_pauli_str_p1[0], file=output_file)
-            output_file.write("P1 that creates max P2: "+ str(max_pauli_str_p1[0])+ "\n")
             # print("P1 that creates max P2: ", max_pauli_str_p1[0])
             output_file.write("P1 that creates max P2: "+ str(max_pauli_str_p1[0])+ "\n")
             # print("Max P2: ", max_pauli_str_p2[0], file=output_file)
@@ -236,8 +253,9 @@ if __name__ == "__main__":
 
         # Dump all the info into a pickle
         circ_file=open(circ_file_path, "wb")
-        pickle.dump({"circ": circ, "max_pauli_weight": max_pauli_weight.value, "max_pauli_str_p1": max_pauli_str_p1[0], "max_pauli_str_p2": max_pauli_str_p2[0]}, circ_file)
+        pickle.dump({"circ": circ, "max_pauli_weight": max_pauli_weight[0], "max_pauli_str_p1": max_pauli_str_p1[0], "max_pauli_str_p2": max_pauli_str_p2[0]}, circ_file)
         # Close the files. 
         circ_file.close()
         output_file.close()
+
     print("done")
