@@ -1,0 +1,269 @@
+          ┌───┐┌───┐┌───┐                                   ┌───┐┌───┐┌───┐     
+q_0: ──■──┤ X ├┤ S ├┤ S ├──────────────────────■────■────■──┤ H ├┤ H ├┤ X ├─────
+     ┌─┴─┐└─┬─┘└───┘├───┤                      │  ┌─┴─┐┌─┴─┐├───┤├───┤└─┬─┘     
+q_1: ┤ X ├──┼────■──┤ T ├───────■────■─────────┼──┤ X ├┤ X ├┤ X ├┤ X ├──■───────
+     ├───┤  │  ┌─┴─┐├───┤       │    │  ┌───┐  │  └───┘├───┤└─┬─┘└─┬─┘┌───┐     
+q_2: ┤ S ├──┼──┤ X ├┤ H ├──■────┼────┼──┤ S ├──┼────■──┤ H ├──■────■──┤ T ├─────
+     ├───┤  │  ├───┤└───┘  │  ┌─┴─┐  │  └───┘┌─┴─┐  │  ├───┤┌───┐┌───┐├───┤┌───┐
+q_3: ┤ X ├──■──┤ S ├───────┼──┤ X ├──┼───────┤ X ├──┼──┤ H ├┤ T ├┤ X ├┤ H ├┤ S ├
+     └─┬─┘┌───┐├───┤     ┌─┴─┐└───┘┌─┴─┐     └───┘┌─┴─┐├───┤└───┘└─┬─┘├───┤├───┤
+q_4: ──■──┤ S ├┤ H ├─────┤ X ├─────┤ X ├──────────┤ X ├┤ H ├───────■──┤ S ├┤ T ├
+          └───┘└───┘     └───┘     └───┘          └───┘└───┘          └───┘└───┘
+{"cx": 15, "s": 8, "h": 8, "t": 4}
+p1: +1ZYIII
+p2: +1IIIIX
+Pauli weight P2: 1
+
+p1: +1IYIII
+p2: +1ZIIIX
+Pauli weight P2: 2
+
+p1: +1ZIIII
+p2: +1ZIIII
+Pauli weight P2: 1
+
+p1: +1IIIYY
+p2: +1ZYIZX
+Pauli weight P2: 4
+
+p1: +1IYIYY
+p2: +1IYIZI
+Pauli weight P2: 2
+
+p1: +1ZYIYY
+p2: +1ZYIZI
+Pauli weight P2: 3
+
+p1: +1ZIIYY
+p2: +1IYIZX
+Pauli weight P2: 3
+
+p1: +1IIIZZ
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIXII
+p2: +1IIZZI
+Pauli weight P2: 2
+
+p1: +1ZYIZZ
+p2: +1IIIZX
+Pauli weight P2: 2
+
+p1: +1ZYXII
+p2: +1IIZZX
+Pauli weight P2: 3
+
+p1: +1IYIZZ
+p2: +1ZIIZX
+Pauli weight P2: 3
+
+p1: +1IYXII
+p2: +1ZIZZX
+Pauli weight P2: 4
+
+p1: +1ZIIZZ
+p2: +1ZIIZI
+Pauli weight P2: 2
+
+p1: +1ZIXII
+p2: +1ZIZZI
+Pauli weight P2: 3
+
+p1: +1IIXYY
+p2: +1ZYZIX
+Pauli weight P2: 4
+
+p1: +1IYXYY
+p2: +1IYZII
+Pauli weight P2: 2
+
+p1: +1ZYXYY
+p2: +1ZYZII
+Pauli weight P2: 3
+
+p1: +1ZIXYY
+p2: +1IYZIX
+Pauli weight P2: 3
+
+p1: +1IIXZZ
+p2: +1IIZII
+Pauli weight P2: 1
+
+p1: +1ZYXZZ
+p2: +1IIZIX
+Pauli weight P2: 2
+
+p1: +1IYXZZ
+p2: +1ZIZIX
+Pauli weight P2: 3
+
+p1: +1ZIXZZ
+p2: +1ZIZII
+Pauli weight P2: 2
+
+p1: +1ZZIIZ
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IZIIZ
+p2: +1ZIIZZ
+Pauli weight P2: 3
+
+p1: +1ZZIZI
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IZIZI
+p2: +1ZIIIZ
+Pauli weight P2: 2
+
+p1: +1ZZXIZ
+p2: +1IIZIZ
+Pauli weight P2: 2
+
+p1: +1IZXIZ
+p2: +1ZIZIZ
+Pauli weight P2: 3
+
+p1: +1ZZXZI
+p2: +1IIZZZ
+Pauli weight P2: 3
+
+p1: +1IZXZI
+p2: +1ZIZZZ
+Pauli weight P2: 4
+
+p1: -1IIIXX
+p2: +1ZYIIX
+Pauli weight P2: 3
+
+p1: -1IYIXX
+p2: +1IYIII
+Pauli weight P2: 1
+
+p1: -1ZIIXX
+p2: +1IYIIX
+Pauli weight P2: 2
+
+p1: -1ZYIXX
+p2: +1ZYIII
+Pauli weight P2: 2
+
+p1: -1IIXXX
+p2: +1ZYZZX
+Pauli weight P2: 5
+
+p1: -1IYXXX
+p2: +1IYZZI
+Pauli weight P2: 3
+
+p1: -1ZIXXX
+p2: +1IYZZX
+Pauli weight P2: 4
+
+p1: -1ZYXXX
+p2: +1ZYZZI
+Pauli weight P2: 4
+
+p1: -1IXIIZ
+p2: +1IIIZY
+Pauli weight P2: 2
+
+p1: -1IXIXY
+p2: +1ZYIZZ
+Pauli weight P2: 4
+
+p1: -1IZIXY
+p2: +1IYIZY
+Pauli weight P2: 3
+
+p1: -1IXIYX
+p2: +1ZYIIZ
+Pauli weight P2: 3
+
+p1: -1IZIYX
+p2: +1IYIIY
+Pauli weight P2: 2
+
+p1: -1ZXIIZ
+p2: +1ZIIZY
+Pauli weight P2: 3
+
+p1: -1IXIZI
+p2: +1IIIIY
+Pauli weight P2: 1
+
+p1: -1ZXIXY
+p2: +1IYIZZ
+Pauli weight P2: 3
+
+p1: -1ZXIYX
+p2: +1IYIIZ
+Pauli weight P2: 2
+
+p1: -1IXXIZ
+p2: +1IIZIY
+Pauli weight P2: 2
+
+p1: -1ZXIZI
+p2: +1ZIIIY
+Pauli weight P2: 2
+
+p1: -1ZZIXY
+p2: +1ZYIZY
+Pauli weight P2: 4
+
+p1: -1IXXXY
+p2: +1ZYZIZ
+Pauli weight P2: 4
+
+p1: -1ZZIYX
+p2: +1ZYIIY
+Pauli weight P2: 3
+
+p1: -1IZXXY
+p2: +1IYZIY
+Pauli weight P2: 3
+
+p1: -1IXXYX
+p2: +1ZYZZZ
+Pauli weight P2: 5
+
+p1: -1IZXYX
+p2: +1IYZZY
+Pauli weight P2: 4
+
+p1: -1ZXXIZ
+p2: +1ZIZIY
+Pauli weight P2: 3
+
+p1: -1IXXZI
+p2: +1IIZZY
+Pauli weight P2: 3
+
+p1: -1ZXXXY
+p2: +1IYZIZ
+Pauli weight P2: 3
+
+p1: -1ZXXYX
+p2: +1IYZZZ
+Pauli weight P2: 4
+
+p1: -1ZXXZI
+p2: +1ZIZZY
+Pauli weight P2: 4
+
+p1: -1ZZXXY
+p2: +1ZYZIY
+Pauli weight P2: 4
+
+p1: -1ZZXYX
+p2: +1ZYZZY
+Pauli weight P2: 5
+
+Found Matches: 63
+Max Weight: 5
+P1 that creates max P2: -1IIXXX
+Max P2: +1ZYZZX
+CNOT count: 15

@@ -2,7 +2,7 @@
 
 from re import M
 import numpy as np
-import math
+import math, sys, os, pickle, ctypes, psutil, json
 from qiskit import QuantumCircuit
 from matplotlib import pyplot as plt
 from qiskit.quantum_info import Statevector, Pauli, Operator
@@ -10,12 +10,7 @@ from qiskit.circuit.random import random_circuit
 from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
 from mymodule import my_random_circuit
 from qiskit.visualization import circuit_drawer
-import os
-import pickle
 from multiprocessing import Pool, Value, Array, Manager
-import ctypes
-import psutil
-import json
 # from qiskit.circuit import ControlledGate
 # from qiskit.extensions import UnitaryGate
 
@@ -46,6 +41,7 @@ def find_p1s_p2s(pauli_group_tuple):
     # for idx1, p1 in enumerate(pauli_group):
     #U.p1=p2.U ---->U.p1.U^\dagger=p2. Operator class so we need .data to access numpy array.
     p2=unitary.dot(p1).dot(unitary.adjoint()).data
+    # print(idx1)
     #Check if p2 is traceless. All elements of the pauli group are traceless except identity.
     if not math.isclose(np.trace(p2),0.0, abs_tol=ABS_TOL):
         return
@@ -54,15 +50,17 @@ def find_p1s_p2s(pauli_group_tuple):
         # allclose checks if the values are within tolerance of 10^-8.
         if np.allclose(p2, element):
             #Have to check which part of the table p1 belongs to so we can print the correct phase.
-            if idx1-table_length<=0:
+            if idx1-table_length<0:
                 p1_str="+1"+pauli_labels[idx1 % table_length]
-            elif idx1-2*table_length<=0:
-                p1_str="-1"+pauli_labels[idx1 % table_length]
-            elif idx1-3*table_length<=0:
-                p1_str="+j"+pauli_labels[idx1 % table_length]
             else:
-                p1_str="-j"+pauli_labels[idx1 % table_length]
-            
+                p1_str="-1"+pauli_labels[idx1 % table_length]
+            # elif idx1-2*table_length<0:
+            #     p1_str="-1"+pauli_labels[idx1 % table_length]
+            # elif idx1-3*table_length<0:
+            #     p1_str="+j"+pauli_labels[idx1 % table_length]
+            # else:
+            #     p1_str="-j"+pauli_labels[idx1 % table_length]
+             
             #The phase for p2 can be passed to p1.
             p2_str="+1"+pauli_labels[idx2]
             # print("p1: ", p1_str, file=output_file)
@@ -98,7 +96,7 @@ def find_p1s_p2s(pauli_group_tuple):
             # with count.get_lock():
             #     count.value+=1
             #We found p2 so just return.
-            return (p1_str, p2_str, p2_weight)
+            return
 
 def initialize(unitary_arg, NUMBER_OF_QUBITS_ARG, DEPTH_ARG, NUMBER_OF_CIRCUITS_ARG, ABS_TOL_ARG,
     pauli_labels_arg, pauli_group_positive_arg, pauli_group_arg, table_length_arg, count_arg,
@@ -136,12 +134,12 @@ if __name__ == "__main__":
     print("running...")
     #Program parameters
     NUMBER_OF_QUBITS=5
-    DEPTH=10
-    NUMBER_OF_CIRCUITS=1
+    DEPTH=1
+    NUMBER_OF_CIRCUITS=20
     # Absolute tolerance for checking if the trace of p2 is close to zero with the isclose function.
     ABS_TOL=.2*2**(NUMBER_OF_QUBITS-1)
     #Paths for outputs and pickle file of circuit
-    code_dir=os.path.dirname(os.path.realpath('__file__'))
+    code_dir=sys.path[0]
     subdir="/data/"
     # base_file_path=code_dir+subdir+"depth"+ str(DEPTH) +"_"
     base_file_path=code_dir+subdir+"qubits"+str(NUMBER_OF_QUBITS)+"_depth"+ str(DEPTH) +"_"
@@ -158,7 +156,12 @@ if __name__ == "__main__":
     pauli_group_negative=[element * -1 for element in pauli_group_positive]
     pauli_group_positiveI=[element * 1j for element in pauli_group_positive]
     pauli_group_negativeI=[element * -1j for element in pauli_group_positive]
-    pauli_group=pauli_group_positive+pauli_group_negative+pauli_group_positiveI+pauli_group_negativeI
+    # Note that we can restrict the search for p1 to the +/-1 phases. This is due to passing the phase
+    # from p2 to p1 and then realizing that the eigenvalues of p2 is restricted to +/-1. The unitary
+    # conjugating p1 only rotates the eigenvectors. Therefore, the eigenvalues of p1 must also be +/-1
+    # which eliminates the need to check for +/-j phases. This is explained in the paper.
+    pauli_group=pauli_group_positive+pauli_group_negative
+    # pauli_group=pauli_group_positive+pauli_group_negative+pauli_group_positiveI+pauli_group_negativeI
     table_length=len(pauli_table)
 
     #main loop
@@ -212,6 +215,9 @@ if __name__ == "__main__":
         max_pauli_str_p1=managerp1.list([""])
         max_pauli_str_p2=managerp2.list([""])
 
+        # unitary_arg, NUMBER_OF_QUBITS_ARG, DEPTH_ARG, NUMBER_OF_CIRCUITS_ARG, ABS_TOL_ARG,
+        # pauli_labels_arg, pauli_group_positive_arg, pauli_group_arg, table_length_arg, count_arg,
+        # max_pauli_weight_arg, max_pauli_str_p1_arg, max_pauli_str_p2_arg
         with Pool(psutil.cpu_count(logical=False), initialize, initargs=(unitary, NUMBER_OF_QUBITS, DEPTH, NUMBER_OF_CIRCUITS, ABS_TOL,
             pauli_labels, pauli_group_positive, pauli_group, table_length, count, max_pauli_weight, max_pauli_str_p1, 
             max_pauli_str_p2)) as pool:
@@ -238,8 +244,8 @@ if __name__ == "__main__":
             output_file.write("Max Weight: "+ str(max_pauli_weight[0]) + "\n")
             print("Max Weight: ", max_pauli_weight[0])
             # print("P1 that creates max P2: ", max_pauli_str_p1[0], file=output_file)
-            # print("P1 that creates max P2: ", max_pauli_str_p1[0])
             output_file.write("P1 that creates max P2: "+ str(max_pauli_str_p1[0])+ "\n")
+            print("P1 that creates max P2: ", max_pauli_str_p1[0])
             # print("Max P2: ", max_pauli_str_p2[0], file=output_file)
             output_file.write("Max P2: " + str(max_pauli_str_p2[0])+ "\n")
             print("Max P2: ", max_pauli_str_p2[0])
