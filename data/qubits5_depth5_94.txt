@@ -1,0 +1,141 @@
+     ┌───┐┌───┐┌───┐┌───┐┌───┐               
+q_0: ┤ T ├┤ S ├┤ X ├┤ S ├┤ T ├───────────────
+     ├───┤├───┤└─┬─┘├───┤├───┤               
+q_1: ┤ T ├┤ H ├──┼──┤ T ├┤ S ├────────────■──
+     ├───┤├───┤  │  ├───┤├───┤┌───┐       │  
+q_2: ┤ S ├┤ S ├──┼──┤ S ├┤ X ├┤ T ├───────┼──
+     ├───┤├───┤  │  ├───┤└─┬─┘├───┤┌───┐  │  
+q_3: ┤ H ├┤ X ├──┼──┤ S ├──┼──┤ H ├┤ S ├──┼──
+     ├───┤└─┬─┘  │  └───┘  │  └───┘└───┘┌─┴─┐
+q_4: ┤ S ├──■────■─────────■────────────┤ X ├
+     └───┘                              └───┘
+{"s": 9, "t": 5, "cx": 4, "h": 3}
+p1: +1IZIII
+p2: +1IXIII
+Pauli weight P2: 1
+
+p1: +1IYZII
+p2: +1IZZII
+Pauli weight P2: 2
+
+p1: +1IXZII
+p2: +1IYZII
+Pauli weight P2: 2
+
+p1: +1IIZII
+p2: +1ZIZZI
+Pauli weight P2: 3
+
+p1: +1IXIII
+p2: +1ZYIZI
+Pauli weight P2: 3
+
+p1: +1IZZII
+p2: +1ZXZZI
+Pauli weight P2: 4
+
+p1: +1IYIII
+p2: +1ZZIZI
+Pauli weight P2: 3
+
+p1: +1IYZIZ
+p2: +1ZZZZZ
+Pauli weight P2: 5
+
+p1: +1IZIIZ
+p2: +1ZXIZZ
+Pauli weight P2: 4
+
+p1: +1IXZIZ
+p2: +1ZYZZZ
+Pauli weight P2: 5
+
+p1: +1IIZIZ
+p2: +1IIZIZ
+Pauli weight P2: 2
+
+p1: +1IZZIZ
+p2: +1IXZIZ
+Pauli weight P2: 3
+
+p1: +1IXIIZ
+p2: +1IYIIZ
+Pauli weight P2: 2
+
+p1: +1IYIIZ
+p2: +1IZIIZ
+Pauli weight P2: 2
+
+p1: +1IIIIZ
+p2: +1ZIIZZ
+Pauli weight P2: 3
+
+p1: +1ZIZII
+p2: +1IIZII
+Pauli weight P2: 1
+
+p1: +1ZXIII
+p2: +1IYIII
+Pauli weight P2: 1
+
+p1: +1ZIIII
+p2: +1ZIIZI
+Pauli weight P2: 2
+
+p1: +1ZYIII
+p2: +1IZIII
+Pauli weight P2: 1
+
+p1: +1ZXZII
+p2: +1ZYZZI
+Pauli weight P2: 4
+
+p1: +1ZZZII
+p2: +1IXZII
+Pauli weight P2: 2
+
+p1: +1ZZIII
+p2: +1ZXIZI
+Pauli weight P2: 3
+
+p1: +1ZYZII
+p2: +1ZZZZI
+Pauli weight P2: 4
+
+p1: +1ZIIIZ
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1ZXIIZ
+p2: +1ZYIZZ
+Pauli weight P2: 4
+
+p1: +1ZIZIZ
+p2: +1ZIZZZ
+Pauli weight P2: 4
+
+p1: +1ZYIIZ
+p2: +1ZZIZZ
+Pauli weight P2: 4
+
+p1: +1ZXZIZ
+p2: +1IYZIZ
+Pauli weight P2: 3
+
+p1: +1ZZIIZ
+p2: +1IXIIZ
+Pauli weight P2: 2
+
+p1: +1ZYZIZ
+p2: +1IZZIZ
+Pauli weight P2: 3
+
+p1: +1ZZZIZ
+p2: +1ZXZZZ
+Pauli weight P2: 5
+
+Found Matches: 31
+Max Weight: 5
+P1 that creates max P2: +1IYZIZ
+Max P2: +1ZZZZZ
+CNOT count: 4
