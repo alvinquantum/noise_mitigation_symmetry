@@ -134,9 +134,9 @@ def initialize(unitary_arg, NUMBER_OF_QUBITS_ARG, DEPTH_ARG, NUMBER_OF_CIRCUITS_
 if __name__ == "__main__":
     print("running...")
     #Program parameters
-    NUMBER_OF_QUBITS=5
-    DEPTH=5
-    NUMBER_OF_CIRCUITS=50
+    NUMBER_OF_QUBITS=int(sys.argv[1])
+    DEPTH=int(sys.argv[2])
+    NUMBER_OF_CIRCUITS=int(sys.argv[3])
     # Absolute tolerance for checking if the trace of p2 is close to zero with the isclose function.
     ABS_TOL=.2*2**(NUMBER_OF_QUBITS-1)
     #Paths for outputs and pickle file of circuit. sys.path[0] on laptop and the other on hpc.

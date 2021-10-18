@@ -13,4 +13,5 @@
 #SBATCH --time=01:00:00
 
 # Run My Program
-srun python -u gen_rand_circs.py
+# number of qubits, depth, number of circuits
+srun python gen_rand_circs.py 5 30 100
