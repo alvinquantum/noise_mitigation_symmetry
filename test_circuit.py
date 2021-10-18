@@ -251,7 +251,7 @@ def get_results(file):
     result_no_checks=execute(circ_no_checks, Aer.get_backend('qasm_simulator'),
                 basis_gates=basis_gates,
                 noise_model=noise_model, 
-                shots=10000).result()
+                shots=10000, backend_properties={"max_parallel_threads": 1, "max_parallel_shots": 1, "max_parallel_experiments": 1}).result()
     print("job done.")
     tomo_fitter_no_checks = StateTomographyFitter(result_no_checks, circ_no_checks)
     rho_fit_no_checks = tomo_fitter_no_checks.fit(method='lstsq')
@@ -262,7 +262,7 @@ def get_results(file):
     result_with_checks=execute(circ_full_with_ancilla, Aer.get_backend('qasm_simulator'),
                 basis_gates=basis_gates,
                 noise_model=noise_model, 
-                shots=10000).result()
+                shots=10000, backend_properties={"max_parallel_threads": 1, "max_parallel_shots": 1, "max_parallel_experiments": 1}).result()
     print("job done.")
     # print(result_with_checks.get_counts())
     result_with_checks=mymodule.post_select_on_ancilla(result_with_checks, "0", 5)
@@ -293,7 +293,7 @@ def get_results(file):
         circ_file.close()
 
         #Print text results to file
-        circ.draw('mpl')
+        # circ.draw('mpl')
         circuit_drawer(circ_full_with_ancilla[0].decompose(), filename=output_file_txt_path)
         output_file_txt=open(output_file_txt_path, "a")
         output_file_txt.write("\n")
@@ -346,13 +346,14 @@ one_qubit_error_space=np.logspace(-3, 0, num=21)
 
 if __name__ == "__main__":
     # print(error_space)
+    #Disable parallel. Qiskit aer uses parallel inside which clashes with the outer pool when running in Linux.
+    os.environ['QISKIT_IN_PARALLEL'] = 'TRUE'
     #Get the pickle info
     for error_idx, one_qubit_err in enumerate(one_qubit_error_space):
         two_qubit_err = one_qubit_err*10
         with Pool(psutil.cpu_count(logical=False), initialize, initargs=(NUMBER_OF_QUBITS, subdir, code_dir,
             rand_circ_files, one_qubit_error_space, one_qubit_err, two_qubit_err, error_idx, MY_LOCK)) as pool:
             pool.map(get_results, rand_circ_files)
-    print("Finished.")
         # for file in rand_circ_files:
         #     #get the file information of the circuit. Len 3 list: qubits#, depth#, file_number. The first
         #     #two elements include the words qubit and depth
@@ -502,7 +503,7 @@ if __name__ == "__main__":
         #     circ_file.close()
 
         #     #Print text results to file
-        #     circ.draw('mpl')
+        #     # circ.draw('mpl')
         #     circuit_drawer(circ_full_with_ancilla[0].decompose(), filename=output_file_txt_path)
         #     output_file_txt=open(output_file_txt_path, "a")
         #     output_file_txt.write("\n")
@@ -520,3 +521,5 @@ if __name__ == "__main__":
         #     output_file_txt.write(json.dumps(circ.count_ops()))
         #     # print(circ.count_ops(), file=output_file_txt)
         #     output_file_txt.close()
+    print("Finished.")
+    
