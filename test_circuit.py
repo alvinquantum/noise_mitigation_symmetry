@@ -91,7 +91,7 @@ def add_controlU(circ, pauli_str, number_of_qubits, quantum_register, ancilla_re
                     circ.cx(ancilla_register, quantum_register[qubit_pos])
                     circ.h(quantum_register[qubit_pos])
             # -1 phase
-            elif phase=="-1":
+            else:
                 # circ.cz(ancilla_register, quantum_register[qubit_pos])
                 if char=="X":
                     circ.compose(c_minus_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
@@ -107,32 +107,32 @@ def add_controlU(circ, pauli_str, number_of_qubits, quantum_register, ancilla_re
                     circ.h(quantum_register[qubit_pos])
                 # circ.cz(ancilla_register, quantum_register[qubit_pos])
                 phase_added=True
-            # +j phase
-            elif phase=="+j":
-                if char=="X":
-                    circ.compose(c_plus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
-                elif char=="Y":
-                    circ.sdg(quantum_register[qubit_pos])
-                    circ.compose(c_plus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
-                    circ.s(quantum_register[qubit_pos])
-                elif char=="Z":
-                    circ.h(quantum_register[qubit_pos])
-                    circ.compose(c_plus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
-                    circ.h(quantum_register[qubit_pos])
-                phase_added=True
-            # -j phase
-            elif phase=="-j":
-                if char=="X":
-                    circ.compose(c_minus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
-                elif char=="Y":
-                    circ.sdg(quantum_register[qubit_pos])
-                    circ.compose(c_minus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
-                    circ.s(quantum_register[qubit_pos])
-                elif char=="Z":
-                    circ.h(quantum_register[qubit_pos])
-                    circ.compose(c_minus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
-                    circ.h(quantum_register[qubit_pos])
-                phase_added=True
+            # # +j phase
+            # elif phase=="+j":
+            #     if char=="X":
+            #         circ.compose(c_plus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+            #     elif char=="Y":
+            #         circ.sdg(quantum_register[qubit_pos])
+            #         circ.compose(c_plus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+            #         circ.s(quantum_register[qubit_pos])
+            #     elif char=="Z":
+            #         circ.h(quantum_register[qubit_pos])
+            #         circ.compose(c_plus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+            #         circ.h(quantum_register[qubit_pos])
+            #     phase_added=True
+            # # -j phase
+            # elif phase=="-j":
+            #     if char=="X":
+            #         circ.compose(c_minus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+            #     elif char=="Y":
+            #         circ.sdg(quantum_register[qubit_pos])
+            #         circ.compose(c_minus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+            #         circ.s(quantum_register[qubit_pos])
+            #     elif char=="Z":
+            #         circ.h(quantum_register[qubit_pos])
+            #         circ.compose(c_minus_j_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+            #         circ.h(quantum_register[qubit_pos])
+            #     phase_added=True
             # print("pos ", pos)
             # print("qubit_pos ", qubit_pos)
             qubit_pos-=1
@@ -326,14 +326,15 @@ def initialize(NUMBER_OF_QUBITS_ARGS, subdir_arg, code_dir_arg, rand_circ_files_
     error_idx=error_idx_arg
     MY_LOCK=MY_LOCK_ARG
 
-#Program parameters. These are globals in the parallel program
-NUMBER_OF_QUBITS=5
+#Program parameters. These are globals in the parallel program passed from shell.
+NUMBER_OF_QUBITS=int(sys.argv[1])
+DEPTH=int(sys.argv[2])
 # File stuff
 subdir="/data/"
 # Gets the file path of the script
 code_dir=sys.path[0]
 # Gets the files that match the string. Files include the path
-rand_circ_files=glob.glob(code_dir+subdir+"qubits"+str(NUMBER_OF_QUBITS)+"*.obj")
+rand_circ_files=[elem for elem in glob.glob(code_dir+subdir+"qubits"+str(NUMBER_OF_QUBITS)+"_depth"+ str(DEPTH)+"*.obj") if "result" not in elem]
 # For locking the file output stuff
 MY_LOCK=Value("i",0)
 # # #Error probabilities

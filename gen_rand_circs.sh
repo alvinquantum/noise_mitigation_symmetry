@@ -14,4 +14,4 @@
 
 # Run My Program
 # number of qubits, depth, number of circuits
-srun python gen_rand_circs.py 5 30 100
+srun python gen_rand_circs.py 5 25 1

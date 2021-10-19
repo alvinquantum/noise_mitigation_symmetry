@@ -1,5 +1,2 @@
-  File "test_circuit.sh", line 15
-    srun python test_circuit.sh
-              ^
-SyntaxError: invalid syntax
-srun: error: knld-0032: task 0: Exited with exit code 1
+/home/agonzales/.local/lib/python3.6/site-packages/qiskit/__init__.py:66: DeprecationWarning: Using Qiskit with Python 3.6 is deprecated as of qiskit-terra 0.17.0. Support for running Qiskit with Python 3.6 will be removed in qiskit-terra 0.20.0.
+  DeprecationWarning,
