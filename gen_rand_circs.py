@@ -29,7 +29,7 @@ def get_weight(pauli_string):
 
 def check_p2(control_p1, control_p2, unitary, number_of_qubits):
     '''Sanity check for p2. I\otimes U- ControlP2^\dagger(I\otimes U)ControlP1==0'''
-    assert np.allclose(np.kron(np.eye(2),unitary.data)-control_p2.dot(np.kron(np.eye(2),unitary.data)).dot(control_p1), np.zeros(2**(number_of_qubits+1))), "wrong p2"
+    return np.allclose(np.kron(np.eye(2),unitary.data)-control_p2.dot(np.kron(np.eye(2),unitary.data)).dot(control_p1), np.zeros(2**(number_of_qubits+1)))
 
 def find_p1s_p2s(pauli_group_tuple):
     '''For multiprocessing.'''
@@ -43,6 +43,11 @@ def find_p1s_p2s(pauli_group_tuple):
     #U.p1=p2.U ---->U.p1.U^\dagger=p2. Operator class so we need .data to access numpy array.
     p2=unitary.dot(p1).dot(unitary.adjoint()).data
     # print(idx1)
+    #Sanity check. Can comment out.
+    control_p1=create_controlU(p1, NUMBER_OF_QUBITS)
+    control_p2=create_controlU(p2, NUMBER_OF_QUBITS)
+    if not check_p2(control_p1, control_p2, unitary, NUMBER_OF_QUBITS):
+        return
     #Check if p2 is traceless. All elements of the pauli group are traceless except identity.
     if not math.isclose(np.trace(p2),0.0, abs_tol=ABS_TOL):
         return
@@ -88,10 +93,6 @@ def find_p1s_p2s(pauli_group_tuple):
                 max_pauli_weight.append(p2_weight)
             # print(file=output_file)
             print()
-            #Sanity check. Can comment out.
-            # control_p1=create_controlU(p1, NUMBER_OF_QUBITS)
-            # control_p2=create_controlU(p2, NUMBER_OF_QUBITS)
-            # check_p2(control_p1, control_p2, unitary, NUMBER_OF_QUBITS)
 
             # #Need to lock the value so it doesn't change. Nonatomic operation.
             # with count.get_lock():
@@ -231,7 +232,8 @@ if __name__ == "__main__":
         #Outputs
         if count.value==0:
             # print("nothing found: trivial solution", file=output_file)
-            output_file.write("nothing found: trivial solution")
+            output_file.write("\n")
+            output_file.write("nothing found: trivial solution\n")
             print("nothing found: trivial solution")
         else:
             for index1, strp1 in enumerate(max_pauli_str_p1):
