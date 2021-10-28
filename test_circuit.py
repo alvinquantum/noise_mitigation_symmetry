@@ -21,13 +21,13 @@ import random
 # from qiskit.extensions import UnitaryGate
 
 #Error Stuff
-from qiskit.circuit.library import CRXGate
-from qiskit.circuit.library.standard_gates import (IGate, U1Gate, U2Gate, U3Gate, XGate,
-                                                   YGate, ZGate, HGate, SGate, SdgGate, TGate,
-                                                   TdgGate, RXGate, RYGate, RZGate, CXGate,
-                                                   CYGate, CZGate, CHGate, CRZGate, CU1Gate,
-                                                   CU3Gate, SwapGate, RZZGate,
-                                                   CCXGate, CSwapGate)
+# from qiskit.circuit.library import CRXGate
+# from qiskit.circuit.library.standard_gates import (IGate, U1Gate, U2Gate, U3Gate, XGate,
+#                                                    YGate, ZGate, HGate, SGate, SdgGate, TGate,
+#                                                    TdgGate, RXGate, RYGate, RZGate, CXGate,
+#                                                    CYGate, CZGate, CHGate, CRZGate, CU1Gate,
+#                                                    CU3Gate, SwapGate, RZZGate,
+#                                                    CCXGate, CSwapGate)
 
 def create_controlU(npmat, number_of_qubits):
     '''Returns a controlled operation. Type is np.array'''
@@ -155,9 +155,6 @@ def get_results(error_tuple):
     error_idx=error_tuple[0]
     one_qubit_err=error_tuple[1]
     two_qubit_err = one_qubit_err*10
-    #If the file exists we already did this so just skip. Later on we can remove this other initial states.
-    if result_exists(code_dir, subdir, file_info, error_idx):
-        return
 
     # Depolarizing quantum errors
     error_1 = noise.depolarizing_error(one_qubit_err, 1)
@@ -169,6 +166,7 @@ def get_results(error_tuple):
     noise_model.add_all_qubit_quantum_error(error_2, ['cx'])
     basis_gates=noise_model.basis_gates
     # simulator=Aer.get_backend('qasm_simulator')
+    # simulator.set_option("method", "statevector")
     # No checks tomography
     circ_no_checks_tomo=state_tomography_circuits(circ_no_checks, quantum_register)
     # With Checks tomography with classical register
@@ -303,6 +301,9 @@ if __name__ == "__main__":
         file_info=file.strip(code_dir+subdir).strip(".obj").split("_")
         file_number=file_info[2]
         # print(file.strip(code_dir+subdir).strip(".obj").split("_")[2])
+        #If the file exists we already did this so just skip. Later on we can remove this for other initial states.
+        if result_exists(code_dir, subdir, file_info, 0):
+            continue
         circ_info=circ=None
         with open(file, "rb") as circ_file:
             circ_info=pickle.load(circ_file)
@@ -382,103 +383,8 @@ if __name__ == "__main__":
                 final_state_no_errors_checks, final_state_no_errors_no_checks, reduced_correct_state)) as pool:
                 pool.map(get_results, enumerate(one_qubit_error_space))
         else:
-            # Code below is non parallel.
+            # Non parallel.
             for error_idx, one_qubit_err in enumerate(one_qubit_error_space):
-                two_qubit_err = one_qubit_err*10
-                #If the file exists we already did this so just skip. Later on we can remove this other initial states.
-                if result_exists(code_dir, subdir, file_info, error_idx):
-                    continue
-
-                #Add measurements to the cricuits.
-                # circ_full.measure(ancilla_register[0], classical_register)
-
-                # Depolarizing quantum errors
-                error_1 = noise.depolarizing_error(one_qubit_err, 1)
-                error_2 = noise.depolarizing_error(two_qubit_err, 2)
-
-                # Add errors to noise model
-                # print("One_qubit_err:", one_qubit_err)
-                noise_model = noise.NoiseModel()
-                noise_model.add_all_qubit_quantum_error(error_1, ['id','rz','sx'])
-                noise_model.add_all_qubit_quantum_error(error_2, ['cx'])
-                basis_gates=noise_model.basis_gates
-                # simulator=Aer.get_backend('qasm_simulator')
-                # No checks tomography
-                circ_no_checks_tomo=state_tomography_circuits(circ_no_checks, quantum_register)
-                # With Checks tomography with classical register
-                circ_full_no_ancilla_tomo=state_tomography_circuits(circ_full, quantum_register)
-                circ_full_with_ancilla_tomo=deepcopy(circ_full_no_ancilla_tomo)
-                classical_register=ClassicalRegister(1)
-                for circ_temp in circ_full_with_ancilla_tomo:
-                    circ_temp.add_register(classical_register)
-                    circ_temp.measure(ancilla_register[0], classical_register)
-                # print(circ_no_checks[0].decompose())
-                # print(circ_full_no_ancilla[0].decompose())
-                print(circ_full_with_ancilla_tomo[0].decompose())
-
-                #No checks
-                print("running job...")
-                result_no_checks=execute(circ_no_checks_tomo, Aer.get_backend('qasm_simulator'),
-                            basis_gates=basis_gates,
-                            noise_model=noise_model, 
-                            shots=10000).result()
-                print("job done.")
-                tomo_fitter_no_checks = StateTomographyFitter(result_no_checks, circ_no_checks_tomo)
-                rho_fit_no_checks = tomo_fitter_no_checks.fit(method='lstsq')
-                print('State fidelity no checks with errors: ', state_fidelity(DensityMatrix(rho_fit_no_checks), reduced_correct_state))
-
-                # With Checks
-                print("running job...")
-                result_with_checks=execute(circ_full_with_ancilla_tomo, Aer.get_backend('qasm_simulator'),
-                            basis_gates=basis_gates,
-                            noise_model=noise_model, 
-                            shots=10000).result()
-                print("job done.")
-                # print(result_with_checks.get_counts())
-                result_with_checks=mymodule.post_select_on_ancilla(result_with_checks, "0", NUMBER_OF_QUBITS)
-                tomo_fitter_checks = StateTomographyFitter(result_with_checks, circ_full_no_ancilla_tomo)
-                rho_fit_checks = tomo_fitter_checks.fit(method='lstsq')
-                print('State fidelity with checks and errors: ', state_fidelity(DensityMatrix(rho_fit_checks), reduced_correct_state))
-                # Sanity check
-                print("Sanity check fidelity no errors with checks: ", state_fidelity(final_state_no_errors_checks,final_state_no_errors_no_checks))
-                print("One qubit error: "+str(one_qubit_err))
-                # print("One_qubit_err:", one_qubit_err)
-                print(circ.count_ops())
-
-                #File naming stuff. 
-                temp_file_number=0
-                base_file=code_dir+subdir+file_info[0]+"_"+file_info[1]+"_"
-                output_file_obj=base_file+file_number+"_erroridx"+str(error_idx)+"_result"+ str(temp_file_number) +".obj"
-                while os.path.isfile(output_file_obj):
-                    temp_file_number+=1
-                    output_file_obj=base_file+ file_number+"_erroridx"+str(error_idx)+"_result"+str(temp_file_number)+ ".obj"
-                output_file_txt_path=base_file+ file_number+"_erroridx"+str(error_idx)+ "_result"+str(temp_file_number) +".txt"
-                # Dump all the info into a pickle
-                circ_file=open(output_file_obj, "wb")
-                pickle.dump({"circ": circ, "circ_no_checks": circ_no_checks_tomo, "circ_full_no_ancilla": circ_full_no_ancilla_tomo, 
-                "circ_full_with_ancilla": circ_full_with_ancilla_tomo, "rho_fit_checks": DensityMatrix(rho_fit_checks), 
-                "rho_fit_no_checks":DensityMatrix(rho_fit_no_checks), "reduced_correct_state": reduced_correct_state,
-                "max_pauli_weight": max_pauli_weight, "max_pauli_str_p1": max_pauli_str_p1, "max_pauli_str_p2": max_pauli_str_p2, "one_qubit_err": one_qubit_err}, circ_file)
-                circ_file.close()
-
-                #Print text results to file
-                # circ.draw('mpl')
-                circuit_drawer(circ_full_with_ancilla_tomo[0].decompose(), filename=output_file_txt_path)
-                output_file_txt=open(output_file_txt_path, "a")
-                output_file_txt.write("\n")
-                # print(file=output_file_txt)
-                output_file_txt.write("One qubit error: "+str(one_qubit_err)+"\n")
-                # print("One_qubit_err:", one_qubit_err)
-                output_file_txt.write("Two qubit error: "+str(two_qubit_err)+"\n")
-                # print("Two qubit error:", two_qubit_err)
-                output_file_txt.write("State fidelity no checks with errors: "+str(state_fidelity(DensityMatrix(rho_fit_no_checks), reduced_correct_state))+"\n")
-                # print('State fidelity no checks with errors: ', state_fidelity(DensityMatrix(rho_fit_no_checks), reduced_correct_state), file=output_file_txt)
-                output_file_txt.write("State fidelity with checks and errors: "+str(state_fidelity(DensityMatrix(rho_fit_checks), reduced_correct_state))+"\n")
-                # print('State fidelity with checks and errors', state_fidelity(DensityMatrix(rho_fit_checks), reduced_correct_state), file=output_file_txt)
-                output_file_txt.write("Sanity check fidelity no errors with checks: "+str(state_fidelity(final_state_no_errors_checks,final_state_no_errors_no_checks))+"\n")
-                # print("Sanity check fidelity no errors with checks: ", state_fidelity(final_state_no_errors_checks,final_state_no_errors_no_checks), file=output_file_txt)
-                output_file_txt.write(json.dumps(circ.count_ops()))
-                # print(circ.count_ops(), file=output_file_txt)
-                output_file_txt.close()
+                get_results((error_idx, one_qubit_err))
     print("Finished.")
     

@@ -223,11 +223,12 @@ if __name__ == "__main__":
         # unitary_arg, NUMBER_OF_QUBITS_ARG, DEPTH_ARG, NUMBER_OF_CIRCUITS_ARG, ABS_TOL_ARG,
         # pauli_labels_arg, pauli_group_positive_arg, pauli_group_arg, table_length_arg, count_arg,
         # max_pauli_weight_arg, max_pauli_str_p1_arg, max_pauli_str_p2_arg
+        # Doing pool this way is faster when the circuits become large since the cpus will be fully utilized
+        # each time. If we parallelize across individual circuits, each generation of circuit will be slow.
         with Pool(psutil.cpu_count(logical=False), initialize, initargs=(unitary, NUMBER_OF_QUBITS, DEPTH, NUMBER_OF_CIRCUITS, ABS_TOL,
             pauli_labels, pauli_group_positive, pauli_group, table_length, count, max_pauli_weight, max_pauli_str_p1, 
             max_pauli_str_p2)) as pool:
             pool.map(find_p1s_p2s, enumerate(pauli_group))
-        # print("hereeeeeeeeeeeeeeeeeeeeeeeeeee")
         # print("Max P2: ", max_pauli_str_p2[0].decode())
         #Outputs
         if count.value==0:

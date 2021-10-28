@@ -76,6 +76,7 @@ def create_fidelity_plot():
         depth_files=[elem for elem in rand_circ_files if depth_str_check in elem]    
         # fidelity_no_checks=[]
         # fidelity_with_checks=[]
+        # Average all the circuits with that depth for each error.
         for erroridx in range (21):
             erroridx_str_check="erroridx"+str(erroridx)
             idx_files=[elem for elem in depth_files if erroridx_str_check in elem]
