@@ -12,6 +12,8 @@ from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
 from mymodule import my_random_circuit
 from qiskit.visualization import circuit_drawer
 from multiprocessing import Pool, Value, Array, Manager
+from copy import deepcopy
+from pprint import pprint
 # from qiskit.circuit import ControlledGate
 # from qiskit.extensions import UnitaryGate
 
@@ -33,12 +35,14 @@ def check_p2(control_p1, control_p2, unitary, number_of_qubits):
 
 def find_p1s_p2s(pauli_group_tuple):
     '''For multiprocessing.'''
-    global NUMBER_OF_QUBITS, DEPTH, NUMBER_OF_CIRCUITS, ABS_TOL, code_dir, subdir, base_file_path
+    global NUMBER_OF_QUBITS, CNOT_COUNT, NUMBER_OF_CIRCUITS, ABS_TOL, code_dir, subdir, base_file_path
     global pauli_labels, pauli_group_positive, pauli_group, table_length
     global count, max_pauli_str_p1, max_pauli_str_p2, max_pauli_weight
     global unitary
     idx1=pauli_group_tuple[0]
-    p1=pauli_group_tuple[1]
+    p1=pauli_group_tuple[1].to_matrix()[0]
+    # print(type(p1))
+    # print(p1)
     # for idx1, p1 in enumerate(pauli_group):
     #U.p1=p2.U ---->U.p1.U^\dagger=p2. Operator class so we need .data to access numpy array.
     p2=unitary.dot(p1).dot(unitary.adjoint()).data
@@ -52,8 +56,11 @@ def find_p1s_p2s(pauli_group_tuple):
     if not math.isclose(np.trace(p2),0.0, abs_tol=ABS_TOL):
         return
     #Only need p2 with +1 phase since the global phase can be absorbed into p1. Faster this way.
-    for idx2, element in enumerate(pauli_group_positive):
+    for idx2, label_element in enumerate(pauli_group_positive):
         # allclose checks if the values are within tolerance of 10^-8.
+        element=label_element.to_matrix()[0]
+        if idx2 >= table_length:
+            element = element*-1
         if np.allclose(p2, element):
             #Have to check which part of the table p1 belongs to so we can print the correct phase.
             if idx1-table_length<0:
@@ -100,11 +107,11 @@ def find_p1s_p2s(pauli_group_tuple):
             #We found p2 so just return.
             return
 
-def initialize(unitary_arg, NUMBER_OF_QUBITS_ARG, DEPTH_ARG, NUMBER_OF_CIRCUITS_ARG, ABS_TOL_ARG,
+def initialize(unitary_arg, NUMBER_OF_QUBITS_ARG, CNOT_COUNT_ARG, NUMBER_OF_CIRCUITS_ARG, ABS_TOL_ARG,
     pauli_labels_arg, pauli_group_positive_arg, pauli_group_arg, table_length_arg, count_arg,
     max_pauli_weight_arg, max_pauli_str_p1_arg, max_pauli_str_p2_arg):
     '''Initialize globals for pool'''
-    global NUMBER_OF_QUBITS, DEPTH, NUMBER_OF_CIRCUITS, ABS_TOL, code_dir, subdir, base_file_path
+    global NUMBER_OF_QUBITS, CNOT_COUNT, NUMBER_OF_CIRCUITS, ABS_TOL, code_dir, subdir, base_file_path
     global pauli_labels, pauli_group_positive, pauli_group, table_length
     global count, max_pauli_str_p1, max_pauli_str_p2, max_pauli_weight
     global unitary
@@ -112,7 +119,7 @@ def initialize(unitary_arg, NUMBER_OF_QUBITS_ARG, DEPTH_ARG, NUMBER_OF_CIRCUITS_
     unitary=unitary_arg
     #Program parameters passed from main
     NUMBER_OF_QUBITS=NUMBER_OF_QUBITS_ARG
-    DEPTH=DEPTH_ARG
+    CNOT_COUNT=CNOT_COUNT_ARG
     NUMBER_OF_CIRCUITS=NUMBER_OF_CIRCUITS_ARG
     # POOL=Pool(psutil.cpu_count(logical=False))
 
@@ -135,9 +142,9 @@ def initialize(unitary_arg, NUMBER_OF_QUBITS_ARG, DEPTH_ARG, NUMBER_OF_CIRCUITS_
 if __name__ == "__main__":
     print("running...")
     #Program parameters
-    NUMBER_OF_QUBITS=int(sys.argv[1])
-    DEPTH=int(sys.argv[2])
-    NUMBER_OF_CIRCUITS=int(sys.argv[3])
+    NUMBER_OF_QUBITS=5#int(sys.argv[1])
+    CNOT_COUNT=50#int(sys.argv[2])
+    NUMBER_OF_CIRCUITS=1#int(sys.argv[3])
     # Absolute tolerance for checking if the trace of p2 is close to zero with the isclose function.
     ABS_TOL=.2*2**(NUMBER_OF_QUBITS-1)
     #Paths for outputs and pickle file of circuit. sys.path[0] on laptop and the other on hpc.
@@ -147,38 +154,48 @@ if __name__ == "__main__":
     # print(code_dir2)
     subdir="/data/"
     # base_file_path=code_dir+subdir+"depth"+ str(DEPTH) +"_"
-    base_file_path=code_dir+subdir+"qubits"+str(NUMBER_OF_QUBITS)+"_depth"+ str(DEPTH) +"_"
+    base_file_path=code_dir+subdir+"qubits_"+str(NUMBER_OF_QUBITS)+"_CNOTS_"+ str(CNOT_COUNT) +"_"
 
     #Create +1 phase pauli group
     pauli_table=pauli_basis(NUMBER_OF_QUBITS)
+    pauli_group_positive=list(deepcopy(pauli_table))
     #Labels will be used to print pauli strings in the loop
     pauli_labels=pauli_table.to_labels()
+    pauli_group=list(pauli_table._add(pauli_table))
+    # print(type(pauli_group))
+    # print(pauli_group_positive)
+    # print(pauli_group)
+    # print(pauli_table)
+    # print(len(pauli_table))
+    # print(len(pauli_table._add(pauli_table)))
+    # print(pauli_table._add(pauli_table))
     #Convert to matrices
-    pauli_group_positive=list(map(lambda x:x.to_matrix(),pauli_table))
+    # pauli_group_positive=list(map(lambda x:x.to_matrix(),pauli_table))
     #Flatten the list
-    pauli_group_positive=[val for sublist in pauli_group_positive for val in sublist]
+    # pauli_group_positive=[val for sublist in pauli_group_positive for val in sublist]
     # Make the other phases and merge
-    pauli_group_negative=[element * -1 for element in pauli_group_positive]
+    # pauli_group_negative=[element * -1 for element in pauli_group_positive]
     # pauli_group_positiveI=[element * 1j for element in pauli_group_positive]
     # pauli_group_negativeI=[element * -1j for element in pauli_group_positive]
     # Note that we can restrict the search for p1 to the +/-1 phases. This is due to passing the phase
     # from p2 to p1 and then realizing that the eigenvalues of p2 is restricted to +/-1. The unitary
     # conjugating p1 only rotates the eigenvectors. Therefore, the eigenvalues of p1 must also be +/-1
     # which eliminates the need to check for +/-j phases. This is explained in the paper.
-    pauli_group=pauli_group_positive+pauli_group_negative
+    # pauli_group=pauli_group_positive+pauli_group_negative
     # pauli_group=pauli_group_positive+pauli_group_negative+pauli_group_positiveI+pauli_group_negativeI
-    table_length=len(pauli_table)
 
+
+    table_length=len(pauli_table)
     #main loop
     file_number=0
     for idx in range(NUMBER_OF_CIRCUITS):
-        output_file_path=base_file_path+ str(file_number) +".txt"
+        output_file_path=base_file_path+ "circuit_" + str(file_number) +"_.txt"
         while os.path.isfile(output_file_path):
             file_number+=1
-            output_file_path=base_file_path+ str(file_number) +".txt"
-        circ_file_path=base_file_path+ str(file_number)+".obj"
+            output_file_path=base_file_path+ "circuit_" + str(file_number) +"_.txt"
+        circ_file_path=base_file_path+ "circuit_" + str(file_number)+"_.obj"
         #Modified Random circuit using H, CNOT, S, T.
-        circ=my_random_circuit(NUMBER_OF_QUBITS,DEPTH)
+        circ=my_random_circuit(NUMBER_OF_QUBITS, CNOT_COUNT)
         # # Load circuit.
         # circ_file=open(base_file_path+"3.obj", "rb")
         # circ=pickle.load(circ_file)["circ"]
@@ -192,6 +209,7 @@ if __name__ == "__main__":
         # circ.draw(filename=output_file_path)
         circuit_drawer(circ, filename=output_file_path)
         # print("here1")
+        # pprint(vars(circ.data))
         print(circ)
         
         output_file=open(output_file_path, "a")
@@ -225,7 +243,7 @@ if __name__ == "__main__":
         # max_pauli_weight_arg, max_pauli_str_p1_arg, max_pauli_str_p2_arg
         # Doing pool this way is faster when the circuits become large since the cpus will be fully utilized
         # each time. If we parallelize across individual circuits, each generation of circuit will be slow.
-        with Pool(psutil.cpu_count(logical=False), initialize, initargs=(unitary, NUMBER_OF_QUBITS, DEPTH, NUMBER_OF_CIRCUITS, ABS_TOL,
+        with Pool(psutil.cpu_count(logical=False), initialize, initargs=(unitary, NUMBER_OF_QUBITS, CNOT_COUNT, NUMBER_OF_CIRCUITS, ABS_TOL,
             pauli_labels, pauli_group_positive, pauli_group, table_length, count, max_pauli_weight, max_pauli_str_p1, 
             max_pauli_str_p2)) as pool:
             pool.map(find_p1s_p2s, enumerate(pauli_group))
@@ -256,7 +274,6 @@ if __name__ == "__main__":
             # print("Max P2: ", max_pauli_str_p2[0], file=output_file)
             output_file.write("Max P2: " + str(max_pauli_str_p2[0])+ "\n")
             print("Max P2: ", max_pauli_str_p2[0])
-        print("Circuit depth: ", DEPTH)
         cnot_count=0
         if "cx" in circ_operations:
             cnot_count=circ_operations["cx"]

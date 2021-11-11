@@ -1,9 +1,0 @@
-2021-08-19 13:03:51.598877 > 	There are 8 processors available to Pool.
-2021-08-19 13:03:51.719817 > 	The branching factor is 1.
-2021-08-19 13:03:51.873307 > 	The beam factor is 8.
-2021-08-19 13:03:52.046204 > 	New best! 0.29289326181604725 at depth 0
-2021-08-19 13:03:52.407452 > 	Popped a node with score: 0.29289326181604725 at depth: 0
-2021-08-19 13:04:00.764432 > 	New best! score: 1.1102230246251565e-16 at depth: 1
-2021-08-19 13:04:01.117212 > 	Layer completed after 8.5721628 seconds
-2021-08-19 13:04:01.749947 > 	Finished compilation at depth 1 with score 1.1102230246251565e-16 after 10.309087 seconds.
-2021-08-19 13:04:02.081207 > 	Finished all sub-compilations at depth 1 with score 1.1102230246251565e-16 after 10.655471499999999 seconds.

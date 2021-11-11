@@ -24,137 +24,12 @@ from qiskit.circuit.library.standard_gates import (IGate, U1Gate, U2Gate, U3Gate
                                                    CYGate, CZGate, CHGate, CRZGate, CU1Gate,
                                                    CU3Gate, SwapGate, RZZGate,
                                                    CCXGate, CSwapGate)
-from qiskit.converters.dag_to_circuit import dag_to_circuit
-from qiskit.dagcircuit.dagcircuit import DAGCircuit
-from qiskit.quantum_info import random_clifford, decompose_clifford
-from qiskit.converters import circuit_to_dag
+from qiskit.circuit.exceptions import CircuitError
 
 def split_circ():
     pass
 
-def random_circuit_cnot(num_qubits, num_cnots_required, seed=None):
-    """ Generates a random circuit with num_qubits and num_cnots. 
-    The circuit uses h, s, t, cx gates and no measurements.
-
-    Returns:
-        QuantumCircuit: constructed circuit
-    """
-    if seed is None:
-        seed = np.random.randint(0, np.iinfo(np.int32).max)
-    rng = np.random.default_rng(seed)
-
-    qc=QuantumCircuit(QuantumRegister(num_qubits))
-    cnot_count=0
-    #Randomly generate cliffords until we have more than enough cnots
-    #then truncate
-    while cnot_count < num_cnots_required:
-        qc_temp=decompose_clifford(random_clifford(num_qubits))
-        gate_counts=qc_temp.count_ops()
-        if "cx" in dict(gate_counts):
-            cnot_count+=dict(gate_counts)["cx"]
-        qc.compose(qc_temp, inplace=True)
-    
-    # Too many cnots so trim.
-    if cnot_count> num_cnots_required:
-        qc=trim(qc, cnot_count, num_cnots_required)
-        assert dict(qc.count_ops())["cx"] == num_cnots_required, "the circuit doesn't have the required cnots"
-    qc=add_rz_gates(num_qubits, qc, rng)
-    return qc
-
-def trim(qc, cnot_count, num_cnots_required):
-    '''Helper function. Remove the end of the circuit until we have enough cnots'''
-    assert cnot_count > num_cnots_required, "Number of cnots required is greater than actual. Cannot trim."
-    qc_dag = circuit_to_dag(qc)
-    layers= list(qc_dag.multigraph_layers())
-    # Remove the necessary cnots.
-    for layer in layers.reverse():
-        for node in layer:
-            # Check if the node is cnot and reduce the cnot count
-            if node.name=="cx":
-                cnot_count-=1
-            # Remove the node as long as it's an operation.
-            if node.type=="op":
-                qc_dag.remove_op_node(node)
-            # We've reduced the circuit to required cnot so return.
-            if cnot_count==num_cnots_required:
-                return dag_to_circuit(qc_dag)
-
-
-def add_rz_gates(num_qubits, qc, rng):
-    '''Helper function. Add rz gates randomly to the circuit'''
-    CONST= 5 #Vary this parameter.
-    LENGTH=len(qc)
-    PROB=CONST/LENGTH
-
-    qc_dag=circuit_to_dag(qc)
-    new_qc=QuantumCircuit(QuantumRegister(num_qubits))
-    # # Insert rz gates in the beginning with some probability
-    # remaining_qubits = list(range(num_qubits))
-    # while remaining_qubits:
-    #     print("here")
-    #     rng.shuffle(remaining_qubits)
-    #     operands=[remaining_qubits[0]]
-    #     remaining_qubits = [q for q in remaining_qubits if q not in operands]
-    #     if rng.random()<=PROB:
-    #         #Add a random rz to the operand
-    #         angle=rng.uniform(0, 2 * np.pi)
-    #         new_qc.rz(angle, operands)
-
-    layers=list(qc_dag.multigraph_layers())
-    for layer in layers:
-        for node in layer:
-            # print(node.type)
-            # The number of qubits that the node/gate is operating on can be greater than 1.
-            if len(node.qargs)==1:
-                # Add an rz with some probability
-                if rng.random()<=PROB:
-                    #Add a random rz to the operand
-                    angle=rng.uniform(0, 2 * np.pi)
-                    new_qc.rz(angle, node.qargs[0].index)
-            else:
-                #Apply an rz gate to each qubit with some probability.
-                remaining_qubits=[map(lambda x: x[0].index, node.qargs)]
-                while remaining_qubits:
-                    rng.shuffle(remaining_qubits)
-                    operands=[remaining_qubits[0]]
-                    remaining_qubits = [q for q in remaining_qubits if q not in operands]
-                    if rng.random()<=PROB:
-                        #Add a random rz to the operand
-                        angle=rng.uniform(0, 2 * np.pi)
-                        new_qc.rz(angle, operands)
-
-            # Copy the nodes.
-            if node.type=="op":
-                # print(node.name)
-                if node.name=="x":
-                    new_qc.x(node.qargs[0].index)
-                elif node.name=="y":
-                    new_qc.y(node.qargs[0].index)
-                elif node.name=="z":
-                    new_qc.z(node.qargs[0].index)
-                elif node.name=="h":
-                    new_qc.h(node.qargs[0].index)
-                elif node.name=="s":
-                    new_qc.s(node.qargs[0].index)
-                elif node.name=="cx":
-                    # print(len(node.qargs))
-                    new_qc.cx(node.qargs[0].index, node.qargs[1].index)
-                elif node.name=="swap":
-                    # print(len(node.qargs))
-                    new_qc.swap(node.qargs[0].index, node.qargs[1].index)
-                else:
-                    assert False, "Gate wasn't matched in the DAG."
-    assert len(new_qc)>= len(qc), "Inserting RZ gates wasn't done properly."
-    return new_qc
-    # print(qc)
-    # print()
-    # print(new_qc)
-    # print(len(qc))
-    # print(len(new_qc))
-
-
-
-def random_circuit_depth(num_qubits, depth, seed=None):
+def my_random_circuit(num_qubits, depth, seed=None):
     """ Generates a random circuit with num_qubits and depth (each wire has the specified depth). 
     The circuit uses h, s, t, cx gates and no measurements.
     Derived from https://qiskit.org/documentation/_modules/qiskit/circuit/random/utils.html#random_circuit.
@@ -174,6 +49,9 @@ def random_circuit_depth(num_qubits, depth, seed=None):
     # Any modifications or derivative works of this code must retain this
     # copyright notice, and modified files need to carry a notice indicating
     # that they have been altered from the originals.
+
+    # if max_operands < 1 or max_operands > 3:
+    #     raise CircuitError("max_operands must be between 1 and 3")
 
     max_operands=2 
     # measure=False

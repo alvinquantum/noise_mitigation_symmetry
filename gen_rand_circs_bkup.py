@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from re import M
 import numpy as np
@@ -27,8 +28,8 @@ def get_weight(pauli_string):
     return count    
 
 def check_p2(control_p1, control_p2, unitary, number_of_qubits):
-    '''Sanity check for p2. U\otimes I- ControlP2^\dagger(U\otimes I)ControlP1==0'''
-    assert np.allclose(np.kron(np.eye(2),unitary.data)-control_p2.dot(np.kron(np.eye(2),unitary.data)).dot(control_p1), np.zeros(2**(number_of_qubits+1))), "wrong p2"
+    '''Sanity check for p2. I\otimes U- ControlP2^\dagger(I\otimes U)ControlP1==0'''
+    return np.allclose(np.kron(np.eye(2),unitary.data)-control_p2.dot(np.kron(np.eye(2),unitary.data)).dot(control_p1), np.zeros(2**(number_of_qubits+1)))
 
 def find_p1s_p2s(pauli_group_tuple):
     '''For multiprocessing.'''
@@ -42,6 +43,11 @@ def find_p1s_p2s(pauli_group_tuple):
     #U.p1=p2.U ---->U.p1.U^\dagger=p2. Operator class so we need .data to access numpy array.
     p2=unitary.dot(p1).dot(unitary.adjoint()).data
     # print(idx1)
+    #Sanity check. Can comment out.
+    control_p1=create_controlU(p1, NUMBER_OF_QUBITS)
+    control_p2=create_controlU(p2, NUMBER_OF_QUBITS)
+    if not check_p2(control_p1, control_p2, unitary, NUMBER_OF_QUBITS):
+        return
     #Check if p2 is traceless. All elements of the pauli group are traceless except identity.
     if not math.isclose(np.trace(p2),0.0, abs_tol=ABS_TOL):
         return
@@ -87,10 +93,6 @@ def find_p1s_p2s(pauli_group_tuple):
                 max_pauli_weight.append(p2_weight)
             # print(file=output_file)
             print()
-            #Sanity check. Can comment out.
-            control_p1=create_controlU(p1, NUMBER_OF_QUBITS)
-            control_p2=create_controlU(p2, NUMBER_OF_QUBITS)
-            check_p2(control_p1, control_p2, unitary, NUMBER_OF_QUBITS)
 
             # #Need to lock the value so it doesn't change. Nonatomic operation.
             # with count.get_lock():
@@ -133,13 +135,16 @@ def initialize(unitary_arg, NUMBER_OF_QUBITS_ARG, DEPTH_ARG, NUMBER_OF_CIRCUITS_
 if __name__ == "__main__":
     print("running...")
     #Program parameters
-    NUMBER_OF_QUBITS=5
-    DEPTH=1
-    NUMBER_OF_CIRCUITS=2
+    NUMBER_OF_QUBITS=int(sys.argv[1])
+    DEPTH=int(sys.argv[2])
+    NUMBER_OF_CIRCUITS=int(sys.argv[3])
     # Absolute tolerance for checking if the trace of p2 is close to zero with the isclose function.
     ABS_TOL=.2*2**(NUMBER_OF_QUBITS-1)
-    #Paths for outputs and pickle file of circuit
+    #Paths for outputs and pickle file of circuit. sys.path[0] on laptop and the other on hpc.
+    # code_dir1=os.path.dirname(os.path.realpath("__file__"))
     code_dir=sys.path[0]
+    # print(code_dir1)
+    # print(code_dir2)
     subdir="/data/"
     # base_file_path=code_dir+subdir+"depth"+ str(DEPTH) +"_"
     base_file_path=code_dir+subdir+"qubits"+str(NUMBER_OF_QUBITS)+"_depth"+ str(DEPTH) +"_"
@@ -154,8 +159,8 @@ if __name__ == "__main__":
     pauli_group_positive=[val for sublist in pauli_group_positive for val in sublist]
     # Make the other phases and merge
     pauli_group_negative=[element * -1 for element in pauli_group_positive]
-    pauli_group_positiveI=[element * 1j for element in pauli_group_positive]
-    pauli_group_negativeI=[element * -1j for element in pauli_group_positive]
+    # pauli_group_positiveI=[element * 1j for element in pauli_group_positive]
+    # pauli_group_negativeI=[element * -1j for element in pauli_group_positive]
     # Note that we can restrict the search for p1 to the +/-1 phases. This is due to passing the phase
     # from p2 to p1 and then realizing that the eigenvalues of p2 is restricted to +/-1. The unitary
     # conjugating p1 only rotates the eigenvectors. Therefore, the eigenvalues of p1 must also be +/-1
@@ -183,10 +188,10 @@ if __name__ == "__main__":
 
         # We use this to find P1 and P2.
         unitary = Operator(circ)
-
         #Draw
-        circ.draw('mpl')
+        # circ.draw(filename=output_file_path)
         circuit_drawer(circ, filename=output_file_path)
+        # print("here1")
         print(circ)
         
         output_file=open(output_file_path, "a")
@@ -218,16 +223,18 @@ if __name__ == "__main__":
         # unitary_arg, NUMBER_OF_QUBITS_ARG, DEPTH_ARG, NUMBER_OF_CIRCUITS_ARG, ABS_TOL_ARG,
         # pauli_labels_arg, pauli_group_positive_arg, pauli_group_arg, table_length_arg, count_arg,
         # max_pauli_weight_arg, max_pauli_str_p1_arg, max_pauli_str_p2_arg
+        # Doing pool this way is faster when the circuits become large since the cpus will be fully utilized
+        # each time. If we parallelize across individual circuits, each generation of circuit will be slow.
         with Pool(psutil.cpu_count(logical=False), initialize, initargs=(unitary, NUMBER_OF_QUBITS, DEPTH, NUMBER_OF_CIRCUITS, ABS_TOL,
             pauli_labels, pauli_group_positive, pauli_group, table_length, count, max_pauli_weight, max_pauli_str_p1, 
             max_pauli_str_p2)) as pool:
             pool.map(find_p1s_p2s, enumerate(pauli_group))
-        # print("hereeeeeeeeeeeeeeeeeeeeeeeeeee")
         # print("Max P2: ", max_pauli_str_p2[0].decode())
         #Outputs
         if count.value==0:
             # print("nothing found: trivial solution", file=output_file)
-            output_file.write("nothing found: trivial solution")
+            output_file.write("\n")
+            output_file.write("nothing found: trivial solution\n")
             print("nothing found: trivial solution")
         else:
             for index1, strp1 in enumerate(max_pauli_str_p1):

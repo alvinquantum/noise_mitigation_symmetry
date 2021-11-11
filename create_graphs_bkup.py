@@ -71,61 +71,52 @@ def get_fidelities(erroridx_files, check_string):
             #     #     # print(float(fidelity_no_checks_temp))
     return fidelities
 
-def get_file_info(fn):
-    '''returns a list of qubit_no, depth_no, circuit_no, [erroridx, result_no]'''
-    temp_file=[elem for elem in fn.split("_") if elem.isdigit()]
-    return temp_file
-
 def create_fidelity_plot_depth():
     global NUMBER_OF_QUBITS, SUBDIR, PATH, ONE_QUBIT_ERROR_SPACE, NUMBER_OF_ERROR_POINTS
     # Gets the file path of the script.
     code_dir=sys.path[0]
     # Get all the result txt files.
-    rand_circ_files=glob.glob("*.txt")
-    for file_name in rand_circ_files:
-        file_info=get_file_info(file_name)
-        print(file_info)
-    # print(rand_circ_files)
-    # depths=(1,5,10,15,20,25)
-    # #For each depth we plot fidelities vs single qubit error.
-    # for depth in depths:
-    #     plot_avg_fidelity_gain=[]
-    #     plot_avg_fidelity_checks=[]
-    #     plot_avg_fidelity_no_checks=[]
-    #     erroridx_list=[]
-    #     error_points=[]
-    #     depth_str_check="depth"+str(depth)+"_"
-    #     # Separate the current depth files.
-    #     depth_files=[elem for elem in rand_circ_files if depth_str_check in elem]    
-    #     for erroridx in range (NUMBER_OF_ERROR_POINTS):
-    #         erroridx_str_check="erroridx"+str(erroridx)+"_"
-    #         # Separate the current erroridx files.
-    #         erroridx_files=[elem for elem in depth_files if erroridx_str_check in elem]
-    #         # print(len(erroridx_files))
-    #         if len(erroridx_files)!=0:
-    #             # The error point has data.
-    #             erroridx_list.append(erroridx)
-    #             # get average gain
-    #             fidelity_checks_temp=get_fidelities(erroridx_files, "State fidelity with checks and errors: ")
-    #             fidelity_no_checks_temp=get_fidelities(erroridx_files, "State fidelity no checks with errors: ")
+    rand_circ_files=[elem for elem in glob.glob(code_dir+SUBDIR+"qubits"+str(NUMBER_OF_QUBITS)+"*result*.txt")]
+    depths=(1,5,10,15,20,25)
+    #For each depth we plot fidelities vs single qubit error.
+    for depth in depths:
+        plot_avg_fidelity_gain=[]
+        plot_avg_fidelity_checks=[]
+        plot_avg_fidelity_no_checks=[]
+        erroridx_list=[]
+        error_points=[]
+        depth_str_check="depth"+str(depth)+"_"
+        # Separate the current depth files.
+        depth_files=[elem for elem in rand_circ_files if depth_str_check in elem]    
+        for erroridx in range (NUMBER_OF_ERROR_POINTS):
+            erroridx_str_check="erroridx"+str(erroridx)+"_"
+            # Separate the current erroridx files.
+            erroridx_files=[elem for elem in depth_files if erroridx_str_check in elem]
+            # print(len(erroridx_files))
+            if len(erroridx_files)!=0:
+                # The error point has data.
+                erroridx_list.append(erroridx)
+                # get average gain
+                fidelity_checks_temp=get_fidelities(erroridx_files, "State fidelity with checks and errors: ")
+                fidelity_no_checks_temp=get_fidelities(erroridx_files, "State fidelity no checks with errors: ")
 
-    #             assert len(fidelity_checks_temp)==len(fidelity_no_checks_temp), "Number of fidelities do not match."
-    #             plot_avg_fidelity_checks.append(sum(fidelity_checks_temp)/len(fidelity_checks_temp))
-    #             plot_avg_fidelity_no_checks.append(sum(fidelity_no_checks_temp)/len(fidelity_no_checks_temp))
-    #             plot_avg_fidelity_gain.append(plot_avg_fidelity_checks[-1]-plot_avg_fidelity_no_checks[-1])
+                assert len(fidelity_checks_temp)==len(fidelity_no_checks_temp), "Number of fidelities do not match."
+                plot_avg_fidelity_checks.append(sum(fidelity_checks_temp)/len(fidelity_checks_temp))
+                plot_avg_fidelity_no_checks.append(sum(fidelity_no_checks_temp)/len(fidelity_no_checks_temp))
+                plot_avg_fidelity_gain.append(plot_avg_fidelity_checks[-1]-plot_avg_fidelity_no_checks[-1])
 
-    #     #Convert the erroridx to error values.
-    #     for elem in erroridx_list:
-    #         error_points.append(ONE_QUBIT_ERROR_SPACE[elem])
-    #     # print(error_points)        
+        #Convert the erroridx to error values.
+        for elem in erroridx_list:
+            error_points.append(ONE_QUBIT_ERROR_SPACE[elem])
+        # print(error_points)        
 
-    #     plt.plot(error_points, plot_avg_fidelity_gain)
-    #     plt.title("Qubits: "+str(NUMBER_OF_QUBITS)+ " Depth: " +str(depth))
-    #     plt.xscale("log")
-    #     plt.xlabel("1 Qubit Error")
-    #     plt.ylabel("Average Fidelity Gain")
-    #     plt.savefig(PATH+"Qubits"+str(NUMBER_OF_QUBITS)+ "_Depth" +str(depth)+".png")
-    #     plt.show()
+        plt.plot(error_points, plot_avg_fidelity_gain)
+        plt.title("Qubits: "+str(NUMBER_OF_QUBITS)+ " Depth: " +str(depth))
+        plt.xscale("log")
+        plt.xlabel("1 Qubit Error")
+        plt.ylabel("Average Fidelity Gain")
+        plt.savefig(PATH+"Qubits"+str(NUMBER_OF_QUBITS)+ "_Depth" +str(depth)+".png")
+        plt.show()
 
 
 def create_fidelity_plot_cnots():
@@ -245,7 +236,7 @@ def get_cnot_count(gate_count):
 if __name__ == "__main__":
     # File path stuff
     CODE_DIR=sys.path[0]
-    SUBDIR="/qubits5_depth_generated_renamed/"
+    SUBDIR="/qubits5_depth_generated/"
     PATH=CODE_DIR+SUBDIR
     os.chdir(PATH)
     NUMBER_OF_QUBITS=5

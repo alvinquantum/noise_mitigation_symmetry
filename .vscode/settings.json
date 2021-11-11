@@ -1,3 +1,4 @@
 {
-    "terminal.integrated.cwd": "c:\\users"
+    "terminal.integrated.cwd": "c:\\users",
+    "git.ignoreLimitWarning": true
 }
