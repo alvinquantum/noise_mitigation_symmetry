@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
-import os, sys, glob
+import os, sys, glob, pickle, operator
 import matplotlib.pyplot as plt
-import operator
 import numpy as np
+from os import listdir
+from os.path import isfile
+
+from qiskit.quantum_info.synthesis import one_qubit_decompose
 
 def get_lines(file_path):
     '''Return the lines of file but in reverse order.'''
@@ -129,45 +132,96 @@ def create_fidelity_plot_depth():
 
 
 def create_fidelity_plot_cnots():
-    global NUMBER_OF_QUBITS, SUBDIR, PATH, ONE_QUBIT_ERROR_SPACE, NUMBER_OF_ERROR_POINTS
+    global CNOT_COUNT, NUMBER_OF_QUBITS, SUBDIR, BASE_PATH, ONE_QUBIT_ERROR_SPACE, NUMBER_OF_ERROR_POINTS, ONE_QUBIT_ERROR_SPACE
     # Gets the file path of the script.
     code_dir=sys.path[0]
-    rand_circ_files=[elem for elem in glob.glob(code_dir+SUBDIR+"qubits"+str(NUMBER_OF_QUBITS)+"*result*.txt")]
-    cnots1to5=[] #idx 0
-    cnots6to10=[] #idx 1
-    cnots11to15=[] #idx 2
-    cnots16to20=[] #idx 3
-    cnots21to25=[] #idx 4
-    cnots26to30=[] #idx 5
-    cnots31to35=[] #idx 6
-    cnots36to40=[] #idx 7
-    cnots41to45=[] #idx 8
-    grouped_files=[cnots1to5,cnots6to10,cnots11to15,cnots16to20,cnots21to25,cnots26to30,cnots31to35,cnots36to40,cnots41to45]
-    for file in rand_circ_files:
-        lines=get_lines(file)
-        gate_count=get_line_str_stripped(lines , "{").split(",")
-        cnot_count=get_cnot_count(gate_count)
-        if 1<=cnot_count<=5: 
-            cnots1to5.append(file)
-        elif 6<=cnot_count<=10:
-            cnots6to10.append(file)
-        elif 11<=cnot_count<=15:
-            cnots11to15.append(file)
-        elif 16<=cnot_count<=20:
-            cnots16to20.append(file)
-        elif 21<=cnot_count<=25:
-            cnots21to25.append(file)
-        elif 26<=cnot_count<=30:
-            cnots26to30.append(file)
-        elif 31<=cnot_count<=35:
-            cnots31to35.append(file)
-        elif 36<=cnot_count<=40:
-            cnots36to40.append(file)
-        elif 41<=cnot_count<=45:
-            cnots41to45.append(file)
-        elif cnot_count>45:
-            print("cnot count of "+ str(cnot_count) + " wasn't included.")
-    plot_from_grouped_cnots(grouped_files)
+    all_files=[f for f in listdir(BASE_PATH) if isfile(os.path.join(BASE_PATH, f))]
+    # print(all_files)
+    circ_result_property_files=[]
+    for file in all_files:
+        name_split=file.split("_")
+        # Get the digits in the names
+        name_split_nums=[int(num) for num in name_split if num.isdigit()]
+        # print(name_split)
+        # print(name_split_nums)
+        if ".obj" in name_split and "result" in name_split and name_split_nums[1]==CNOT_COUNT: #and start_circ_number<=name_split_nums[2]<=end_circ_number:
+            circ_result_property_files.append(file)
+    
+    # Load the results
+    all_circs_results_sorted=[]
+    for file_name in circ_result_property_files:
+        #We're looking at one circuit
+        # Load data from each pickle and get the results object for the circuit. 
+        with open(os.path.join(BASE_PATH, file_name), "rb") as circ_file:
+                circ_results=pickle.load(circ_file)["results"]
+        
+        # for info in circ_infos:
+        #     circ_results.append(info["results"])
+        
+        # # Get the results in order. 
+        circ_results_sorted=sorted(circ_results, key=lambda d: d['error_idx'])
+        assert len(circ_results_sorted)==len(circ_results), "error when sorting outcomes."
+        all_circs_results_sorted.append(circ_results_sorted)
+
+    assert len(all_circs_results_sorted)==len(circ_result_property_files), "lost some files from sorting."
+
+    results=[]
+    for circ in all_circs_results_sorted:
+        circ_outcomes_temp=[]
+        # print(len(circ))
+        for idx, rnd in enumerate(circ):
+            # print(idx)
+            circ_outcomes_temp.append(rnd["state_fidelity_with_checks_with_errors"]-rnd["state_fidelity_no_checks_with_errors"])
+        results.append(circ_outcomes_temp)
+    
+    results=[sum(x)/len(x) for x in zip(*results)]
+
+    plt.plot(ONE_QUBIT_ERROR_SPACE, results)
+    plt.title("Qubits: "+str(NUMBER_OF_QUBITS)+ " CNOTS: " + str(CNOT_COUNT))
+    plt.xlabel("1 Qubit Error")
+    plt.ylabel("Average Fidelity Gain")
+    plt.xscale("log")
+    plt.savefig(BASE_PATH+"Qubits"+str(NUMBER_OF_QUBITS)+ "_CNOTS_" + str(CNOT_COUNT)+".png")
+    plt.show()
+
+                
+    
+    # rand_circ_files=[elem for elem in glob.glob(code_dir+SUBDIR+"qubits"+str(NUMBER_OF_QUBITS)+"*result*.txt")]
+    # cnots1to5=[] #idx 0
+    # cnots6to10=[] #idx 1
+    # cnots11to15=[] #idx 2
+    # cnots16to20=[] #idx 3
+    # cnots21to25=[] #idx 4
+    # cnots26to30=[] #idx 5
+    # cnots31to35=[] #idx 6
+    # cnots36to40=[] #idx 7
+    # cnots41to45=[] #idx 8
+    # grouped_files=[cnots1to5,cnots6to10,cnots11to15,cnots16to20,cnots21to25,cnots26to30,cnots31to35,cnots36to40,cnots41to45]
+    # for file in rand_circ_files:
+    #     lines=get_lines(file)
+    #     gate_count=get_line_str_stripped(lines , "{").split(",")
+    #     cnot_count=get_cnot_count(gate_count)
+    #     if 1<=cnot_count<=5: 
+    #         cnots1to5.append(file)
+    #     elif 6<=cnot_count<=10:
+    #         cnots6to10.append(file)
+    #     elif 11<=cnot_count<=15:
+    #         cnots11to15.append(file)
+    #     elif 16<=cnot_count<=20:
+    #         cnots16to20.append(file)
+    #     elif 21<=cnot_count<=25:
+    #         cnots21to25.append(file)
+    #     elif 26<=cnot_count<=30:
+    #         cnots26to30.append(file)
+    #     elif 31<=cnot_count<=35:
+    #         cnots31to35.append(file)
+    #     elif 36<=cnot_count<=40:
+    #         cnots36to40.append(file)
+    #     elif 41<=cnot_count<=45:
+    #         cnots41to45.append(file)
+    #     elif cnot_count>45:
+    #         print("cnot count of "+ str(cnot_count) + " wasn't included.")
+    # plot_from_grouped_cnots(grouped_files)
 
 def plot_from_grouped_cnots(grouped_files):
     for group_num, temp_list in enumerate(grouped_files):
@@ -245,12 +299,13 @@ def get_cnot_count(gate_count):
 if __name__ == "__main__":
     # File path stuff
     CODE_DIR=sys.path[0]
-    SUBDIR="/qubits5_depth_generated_renamed/"
-    PATH=CODE_DIR+SUBDIR
-    os.chdir(PATH)
+    SUBDIR="/data/"
+    BASE_PATH=CODE_DIR+SUBDIR
+    os.chdir(BASE_PATH)
     NUMBER_OF_QUBITS=5
+    CNOT_COUNT=20
     NUMBER_OF_ERROR_POINTS=21
     ONE_QUBIT_ERROR_SPACE=np.logspace(-5, -2, num=NUMBER_OF_ERROR_POINTS)
     # create_cnot_plot()
-    create_fidelity_plot_depth()
-    # create_fidelity_plot_cnots()
+    # create_fidelity_plot_depth()
+    create_fidelity_plot_cnots()
