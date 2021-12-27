@@ -10,8 +10,9 @@
 #SBATCH --error=genrandcircs.%j.error
 ##SBATCH --mail-user=<your email address> # Optional if you require email
 ##SBATCH --mail-type=ALL                  # Optional if you require email
-#SBATCH --time=01:00:00
+#SBATCH --time=72:00:00
 
 # Run My Program
 # number of qubits, depth, number of circuits
+# srun python -u gen_rand_circs.py $1 $2 $3
 srun python -u gen_rand_circs.py $1 $2 $3

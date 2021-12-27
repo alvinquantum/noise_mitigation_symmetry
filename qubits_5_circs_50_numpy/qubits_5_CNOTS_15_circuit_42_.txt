@@ -1,0 +1,166 @@
+      ┌───┐┌───┐┌───┐        ┌───┐┌───┐┌───┐                        ┌───┐     »
+q5_0: ┤ S ├┤ H ├┤ S ├──────X─┤ X ├┤ H ├┤ S ├────────────────────────┤ X ├─────»
+      ├───┤└───┘└───┘      │ └─┬─┘├───┤├───┤         ┌───┐     ┌───┐└─┬─┘┌───┐»
+q5_1: ┤ H ├──■────■────────┼───■──┤ X ├┤ H ├──■──────┤ S ├─────┤ H ├──■──┤ H ├»
+      ├───┤┌─┴─┐  │  ┌───┐ │      └─┬─┘└───┘  │      └───┘     └───┘     └───┘»
+q5_2: ┤ S ├┤ X ├──┼──┤ H ├─┼───■────┼─────────┼───────────────────────────────»
+      ├───┤└───┘  │  └───┘ │   │    │       ┌─┴─┐┌────────────┐┌───┐          »
+q5_3: ┤ H ├───────┼────────X───┼────■───────┤ X ├┤ Rz(1.4827) ├┤ Z ├──────────»
+      ├───┤     ┌─┴─┐        ┌─┴─┐┌───┐     └───┘└────────────┘└───┘          »
+q5_4: ┤ H ├─────┤ X ├────────┤ X ├┤ H ├───────────────────────────────────────»
+      └───┘     └───┘        └───┘└───┘                                       »
+«                              ┌───┐┌───┐┌───┐┌───┐┌───┐┌────────────┐     »
+«q5_0: ──■─────────────────────┤ X ├┤ Y ├┤ S ├┤ H ├┤ S ├┤ Rz(3.4321) ├─────»
+«        │  ┌────────────┐┌───┐└─┬─┘├───┤└───┘└───┘└───┘└────────────┘     »
+«q5_1: ──┼──┤ Rz(2.7674) ├┤ S ├──┼──┤ X ├───────■───────────────────────■──»
+«      ┌─┴─┐└───┬───┬────┘└───┘  │  └─┬─┘┌───┐┌─┴─┐         ┌───┐       │  »
+«q5_2: ┤ X ├────┤ H ├────────────■────┼──┤ H ├┤ X ├──■──────┤ Z ├───────┼──»
+«      └───┘    └───┘                 │  └───┘└───┘  │      └───┘       │  »
+«q5_3: ───────────────────────────────┼──────────────┼──────────────────┼──»
+«                                     │            ┌─┴─┐              ┌─┴─┐»
+«q5_4: ───────────────────────────────■────────────┤ X ├──────────────┤ X ├»
+«                                                  └───┘              └───┘»
+«                                                     ┌───┐
+«q5_0: ───────────────────────────────X───────────────┤ X ├
+«      ┌───┐     ┌───┐     ┌───┐┌───┐ │ ┌────────────┐└─┬─┘
+«q5_1: ┤ Y ├─────┤ S ├─────┤ H ├┤ X ├─┼─┤ Rz(5.7606) ├──┼──
+«      └───┘     └───┘     └───┘└─┬─┘ │ └────────────┘  │  
+«q5_2: ───────────────────────────┼───┼─────────────────┼──
+«                                 │   │                 │  
+«q5_3: ───────────────────────────■───┼─────────────────┼──
+«      ┌───┐┌─────────────┐┌───┐┌───┐ │                 │  
+«q5_4: ┤ H ├┤ Rz(0.97777) ├┤ S ├┤ Z ├─X─────────────────■──
+«      └───┘└─────────────┘└───┘└───┘                      
+{"h": 15, "cx": 15, "s": 10, "rz": 5, "z": 3, "swap": 2, "y": 2}
+p1: +1IIIYZ
+p2: +1ZIYIZ
+Pauli weight P2: 3
+
+p1: +1IYXYX
+p2: +1IZXIZ
+Pauli weight P2: 3
+
+p1: +1IZXIX
+p2: +1IZZII
+Pauli weight P2: 2
+
+p1: +1IZXYY
+p2: +1ZZXIZ
+Pauli weight P2: 4
+
+p1: +1XIIXI
+p2: +1ZZZZI
+Pauli weight P2: 4
+
+p1: +1XXIZI
+p2: +1ZZXZZ
+Pauli weight P2: 5
+
+p1: +1XYXZX
+p2: +1ZIYZZ
+Pauli weight P2: 4
+
+p1: +1XZXZY
+p2: +1IIYZZ
+Pauli weight P2: 3
+
+p1: +1XZXXX
+p2: +1ZIIZI
+Pauli weight P2: 2
+
+p1: +1YIZII
+p2: +1IZYZZ
+Pauli weight P2: 4
+
+p1: +1YIZYZ
+p2: +1ZZIZI
+Pauli weight P2: 3
+
+p1: +1YZYIX
+p2: +1IIXZZ
+Pauli weight P2: 3
+
+p1: +1ZXZXZ
+p2: +1IIXIZ
+Pauli weight P2: 2
+
+p1: +1ZXZZI
+p2: +1ZIZII
+Pauli weight P2: 2
+
+p1: +1ZYYZX
+p2: +1ZZIII
+Pauli weight P2: 2
+
+p1: +1ZZYZY
+p2: +1IZIII
+Pauli weight P2: 1
+
+p1: +1ZZYXX
+p2: +1ZZYIZ
+Pauli weight P2: 4
+
+p1: -1IXIYI
+p2: +1IIYIZ
+Pauli weight P2: 2
+
+p1: -1IXIIZ
+p2: +1ZIIII
+Pauli weight P2: 1
+
+p1: -1IYXIY
+p2: +1ZZZII
+Pauli weight P2: 3
+
+p1: -1XIIZZ
+p2: +1IZXZZ
+Pauli weight P2: 4
+
+p1: -1XXIXZ
+p2: +1IZZZI
+Pauli weight P2: 3
+
+p1: -1XYXXY
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1YXZYI
+p2: +1IZIZI
+Pauli weight P2: 2
+
+p1: -1YYYYX
+p2: +1IIZZI
+Pauli weight P2: 2
+
+p1: -1YXZIZ
+p2: +1ZZYZZ
+Pauli weight P2: 5
+
+p1: -1YYYIY
+p2: +1ZIXZZ
+Pauli weight P2: 4
+
+p1: -1YZYYY
+p2: +1ZIZZI
+Pauli weight P2: 3
+
+p1: -1ZIZZZ
+p2: +1IIZII
+Pauli weight P2: 1
+
+p1: -1ZIZXI
+p2: +1ZIXIZ
+Pauli weight P2: 3
+
+p1: -1ZYYXY
+p2: +1IZYIZ
+Pauli weight P2: 3
+
+Found Matches: 31
+Max Weight: 5
+P1 that creates max P2: +1XXIZI
+Max P2: +1ZZXZZ
+Circuit no: 42
+Qubits: 5
+CNOT count: 15
+RZ count: 5

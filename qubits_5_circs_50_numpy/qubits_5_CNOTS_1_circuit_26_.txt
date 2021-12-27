@@ -1,0 +1,272 @@
+       ┌───────────┐     ┌───┐     ┌───┐              
+q13_0: ┤ Rz(5.912) ├─────┤ S ├─────┤ H ├──────────────
+       └───┬───┬───┘ ┌───┴───┴────┐└───┘              
+q13_1: ────┤ S ├─────┤ Rz(3.2455) ├──■────────────────
+       ┌───┴───┴────┐└───┬───┬────┘  │                
+q13_2: ┤ Rz(2.1795) ├────┤ H ├───────┼────────────────
+       └────────────┘    └───┘       │                
+q13_3: ──────────────────────────────┼────────────────
+           ┌───┐     ┌────────────┐┌─┴─┐┌────────────┐
+q13_4: ────┤ H ├─────┤ Rz(1.6602) ├┤ X ├┤ Rz(4.1087) ├
+           └───┘     └────────────┘└───┘└────────────┘
+{"rz": 5, "h": 3, "s": 2, "cx": 1}
+p1: +1IIIIZ
+p2: +1IIIIX
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIIZX
+Pauli weight P2: 2
+
+p1: +1IIZIZ
+p2: +1IIXIX
+Pauli weight P2: 2
+
+p1: +1IIZII
+p2: +1IIXII
+Pauli weight P2: 1
+
+p1: +1IIZZI
+p2: +1IIXZI
+Pauli weight P2: 2
+
+p1: +1IIZZZ
+p2: +1IIXZX
+Pauli weight P2: 3
+
+p1: +1IXIII
+p2: +1IXIII
+Pauli weight P2: 1
+
+p1: +1IXIIZ
+p2: +1IXIIX
+Pauli weight P2: 2
+
+p1: +1IXIZI
+p2: +1IXIZI
+Pauli weight P2: 2
+
+p1: +1IXIZZ
+p2: +1IXIZX
+Pauli weight P2: 3
+
+p1: +1IXZII
+p2: +1IXXII
+Pauli weight P2: 2
+
+p1: +1IXZIZ
+p2: +1IXXIX
+Pauli weight P2: 3
+
+p1: +1IXZZI
+p2: +1IXXZI
+Pauli weight P2: 3
+
+p1: +1IXZZZ
+p2: +1IXXZX
+Pauli weight P2: 4
+
+p1: +1IYIII
+p2: +1IYIII
+Pauli weight P2: 1
+
+p1: +1IYIIZ
+p2: +1IYIIX
+Pauli weight P2: 2
+
+p1: +1IYIZZ
+p2: +1IYIZX
+Pauli weight P2: 3
+
+p1: +1IYIZI
+p2: +1IYIZI
+Pauli weight P2: 2
+
+p1: +1IYZII
+p2: +1IYXII
+Pauli weight P2: 2
+
+p1: +1IYZIZ
+p2: +1IYXIX
+Pauli weight P2: 3
+
+p1: +1IYZZI
+p2: +1IYXZI
+Pauli weight P2: 3
+
+p1: +1IYZZZ
+p2: +1IYXZX
+Pauli weight P2: 4
+
+p1: +1IZIII
+p2: +1IZIII
+Pauli weight P2: 1
+
+p1: +1IZIIZ
+p2: +1IZIIX
+Pauli weight P2: 2
+
+p1: +1IZIZI
+p2: +1IZIZI
+Pauli weight P2: 2
+
+p1: +1IZIZZ
+p2: +1IZIZX
+Pauli weight P2: 3
+
+p1: +1IZZII
+p2: +1IZXII
+Pauli weight P2: 2
+
+p1: +1IZZIZ
+p2: +1IZXIX
+Pauli weight P2: 3
+
+p1: +1IZZZI
+p2: +1IZXZI
+Pauli weight P2: 3
+
+p1: +1IZZZZ
+p2: +1IZXZX
+Pauli weight P2: 4
+
+p1: +1XIIII
+p2: +1ZIIZI
+Pauli weight P2: 2
+
+p1: +1XIIIZ
+p2: +1ZIIZX
+Pauli weight P2: 3
+
+p1: +1XIIZI
+p2: +1ZIIII
+Pauli weight P2: 1
+
+p1: +1XIIZZ
+p2: +1ZIIIX
+Pauli weight P2: 2
+
+p1: +1XIZIZ
+p2: +1ZIXZX
+Pauli weight P2: 4
+
+p1: +1XIZII
+p2: +1ZIXZI
+Pauli weight P2: 3
+
+p1: +1XIZZI
+p2: +1ZIXII
+Pauli weight P2: 2
+
+p1: +1XXIII
+p2: +1ZXIZI
+Pauli weight P2: 3
+
+p1: +1XXIIZ
+p2: +1ZXIZX
+Pauli weight P2: 4
+
+p1: +1XIZZZ
+p2: +1ZIXIX
+Pauli weight P2: 3
+
+p1: +1XXIZI
+p2: +1ZXIII
+Pauli weight P2: 2
+
+p1: +1XXIZZ
+p2: +1ZXIIX
+Pauli weight P2: 3
+
+p1: +1XXZIZ
+p2: +1ZXXZX
+Pauli weight P2: 5
+
+p1: +1XXZII
+p2: +1ZXXZI
+Pauli weight P2: 4
+
+p1: +1XYIII
+p2: +1ZYIZI
+Pauli weight P2: 3
+
+p1: +1XXZZI
+p2: +1ZXXII
+Pauli weight P2: 3
+
+p1: +1XYIIZ
+p2: +1ZYIZX
+Pauli weight P2: 4
+
+p1: +1XXZZZ
+p2: +1ZXXIX
+Pauli weight P2: 4
+
+p1: +1XYIZI
+p2: +1ZYIII
+Pauli weight P2: 2
+
+p1: +1XYIZZ
+p2: +1ZYIIX
+Pauli weight P2: 3
+
+p1: +1XYZII
+p2: +1ZYXZI
+Pauli weight P2: 4
+
+p1: +1XYZIZ
+p2: +1ZYXZX
+Pauli weight P2: 5
+
+p1: +1XYZZI
+p2: +1ZYXII
+Pauli weight P2: 3
+
+p1: +1XYZZZ
+p2: +1ZYXIX
+Pauli weight P2: 4
+
+p1: +1XZIII
+p2: +1ZZIZI
+Pauli weight P2: 3
+
+p1: +1XZIIZ
+p2: +1ZZIZX
+Pauli weight P2: 4
+
+p1: +1XZIZI
+p2: +1ZZIII
+Pauli weight P2: 2
+
+p1: +1XZIZZ
+p2: +1ZZIIX
+Pauli weight P2: 3
+
+p1: +1XZZIZ
+p2: +1ZZXZX
+Pauli weight P2: 5
+
+p1: +1XZZII
+p2: +1ZZXZI
+Pauli weight P2: 4
+
+p1: +1XZZZI
+p2: +1ZZXII
+Pauli weight P2: 3
+
+p1: +1XZZZZ
+p2: +1ZZXIX
+Pauli weight P2: 4
+
+Found Matches: 63
+Max Weight: 5
+P1 that creates max P2: +1XXZIZ
+Max P2: +1ZXXZX
+Circuit no: 26
+Qubits: 5
+CNOT count: 1
+RZ count: 5

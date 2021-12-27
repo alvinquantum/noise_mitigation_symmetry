@@ -1,0 +1,144 @@
+       ┌─────────────┐┌───┐     ┌────────────┐
+q17_0: ┤ Rz(0.84518) ├┤ H ├──■──┤ Rz(5.2198) ├
+       └────┬───┬────┘└───┘  │  └────────────┘
+q17_1: ─────┤ H ├────────────┼────────────────
+        ┌───┴───┴────┐     ┌─┴─┐              
+q17_2: ─┤ Rz(1.7959) ├─────┤ X ├──────────────
+        └───┬───┬────┘┌───┐└───┘              
+q17_3: ─────┤ S ├─────┤ H ├───────────────────
+        ┌───┴───┴────┐├───┤┌───┐┌────────────┐
+q17_4: ─┤ Rz(3.2719) ├┤ S ├┤ H ├┤ Rz(2.0299) ├
+        └────────────┘└───┘└───┘└────────────┘
+{"rz": 5, "h": 4, "s": 2, "cx": 1}
+p1: +1IIIXI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIXI
+Pauli weight P2: 1
+
+p1: +1IIZZI
+p2: +1IIZXZ
+Pauli weight P2: 3
+
+p1: +1IIZII
+p2: +1IIZIZ
+Pauli weight P2: 2
+
+p1: +1IIZXI
+p2: +1IIZZZ
+Pauli weight P2: 3
+
+p1: +1IXIYI
+p2: +1IYIYI
+Pauli weight P2: 2
+
+p1: +1IXZYI
+p2: +1IYZYZ
+Pauli weight P2: 4
+
+p1: +1IYIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IZIII
+p2: +1IXIII
+Pauli weight P2: 1
+
+p1: +1IZIXI
+p2: +1IXIZI
+Pauli weight P2: 2
+
+p1: +1IYZYI
+p2: +1IZZYZ
+Pauli weight P2: 4
+
+p1: +1IZIZI
+p2: +1IXIXI
+Pauli weight P2: 2
+
+p1: +1IZZII
+p2: +1IXZIZ
+Pauli weight P2: 3
+
+p1: +1IZZXI
+p2: +1IXZZZ
+Pauli weight P2: 4
+
+p1: +1IZZZI
+p2: +1IXZXZ
+Pauli weight P2: 4
+
+p1: -1IIIYI
+p2: +1IIIYI
+Pauli weight P2: 1
+
+p1: -1IIZYI
+p2: +1IIZYZ
+Pauli weight P2: 3
+
+p1: -1IXIII
+p2: +1IYIII
+Pauli weight P2: 1
+
+p1: -1IXIXI
+p2: +1IYIZI
+Pauli weight P2: 2
+
+p1: -1IXIZI
+p2: +1IYIXI
+Pauli weight P2: 2
+
+p1: -1IXZII
+p2: +1IYZIZ
+Pauli weight P2: 3
+
+p1: -1IXZXI
+p2: +1IYZZZ
+Pauli weight P2: 4
+
+p1: -1IXZZI
+p2: +1IYZXZ
+Pauli weight P2: 4
+
+p1: -1IYIII
+p2: +1IZIII
+Pauli weight P2: 1
+
+p1: -1IYIXI
+p2: +1IZIZI
+Pauli weight P2: 2
+
+p1: -1IYIZI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IYZII
+p2: +1IZZIZ
+Pauli weight P2: 3
+
+p1: -1IYZXI
+p2: +1IZZZZ
+Pauli weight P2: 4
+
+p1: -1IYZZI
+p2: +1IZZXZ
+Pauli weight P2: 4
+
+p1: -1IZIYI
+p2: +1IXIYI
+Pauli weight P2: 2
+
+p1: -1IZZYI
+p2: +1IXZYZ
+Pauli weight P2: 4
+
+Found Matches: 31
+Max Weight: 4
+P1 that creates max P2: +1IXZYI
+Max P2: +1IYZYZ
+Circuit no: 28
+Qubits: 5
+CNOT count: 1
+RZ count: 5

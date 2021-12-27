@@ -2,7 +2,7 @@
 
 #SBATCH --job-name=test_circuit
 #SBATCH --account=quantumsimulations
-#SBATCH --partition=knlall
+#SBATCH --partition=bdwall
 #SBATCH --nodes=1
 ##SBATCH --ntasks-per-node=21
 #SBATCH --output=test_circuit.%j.out
@@ -13,4 +13,6 @@
 
 # Run My Program
 # pass the number qubits, cnot, and range
-srun python -u test_circuits.py $1 $2 $3 $4
+# srun python -m cProfile -o test_circuits.profile test_circuits.py $1 $2 $3 $4
+# srun kernprof -l -v test_circuits.py $1 $2 $3 $4
+srun python test_circuits.py $1 $2 $3 $4

@@ -15,8 +15,8 @@
 
 from copy import deepcopy
 import numpy as np
-
-from qiskit.circuit import QuantumRegister, QuantumCircuit
+from qiskit import execute, transpile, QuantumCircuit
+from qiskit.circuit import QuantumRegister
 from qiskit.circuit.library.standard_gates import (IGate, U1Gate, U2Gate, U3Gate, XGate,
                                                    YGate, ZGate, HGate, SGate, SdgGate, TGate,
                                                    TdgGate, RXGate, RYGate, RZGate, CXGate,
@@ -26,12 +26,13 @@ from qiskit.circuit.library.standard_gates import (IGate, U1Gate, U2Gate, U3Gate
 from qiskit.converters.dag_to_circuit import dag_to_circuit
 from qiskit.quantum_info import random_clifford, decompose_clifford
 from qiskit.converters import circuit_to_dag
+import os, math, pickle
 
 def split_circ():
     pass
 
 def random_circuit_cnot(num_qubits, num_cnots_required, seed=None):
-    """ Generates a random circuit with num_qubits, 5 rz gates and num_cnots
+    """Generate random circ: Generates a random circuit with num_qubits, 5 rz gates and num_cnots
     The circuit uses h, s, cz, cx, swap gates and no measurements. 
 
     Returns:
@@ -51,17 +52,17 @@ def random_circuit_cnot(num_qubits, num_cnots_required, seed=None):
         qc.compose(qc_temp, inplace=True)
     
     # Too many cnots so trim.
-    print(qc)
+    # print(qc)
     if cnot_count> num_cnots_required:
         qc=trim(qc, cnot_count, num_cnots_required)
-        print(qc)
+        # print(qc)
         assert dict(qc.count_ops())["cx"] == num_cnots_required, "the circuit doesn't have the required cnots"
     # qc=add_rz_gates_prob(num_qubits, qc, rng) #Non deterministic # of rz.
     qc=add_rz_gates_det(num_qubits, qc, rng) #Deterministic # of rz
     return qc
 
 def trim(qc, cnot_count, num_cnots_required):
-    '''Helper function. Remove the end of the circuit until we have enough cnots. Returns: QuantumCircuit'''
+    '''Generate random circ: Helper function. Remove the end of the circuit until we have enough cnots. Returns: QuantumCircuit'''
     assert cnot_count > num_cnots_required, "Number of cnots required is greater than actual. Cannot trim."
     qc_dag = circuit_to_dag(qc)
     layers= list(qc_dag.multigraph_layers())
@@ -79,14 +80,14 @@ def trim(qc, cnot_count, num_cnots_required):
                 return dag_to_circuit(qc_dag)
 
 def insert_rz_gate(circ, rng, prob, operand):
-    '''Helper function. Add rz with probability.'''
+    '''Generate random circ: Helper function. Add rz with probability.'''
     if rng.uniform(0,1)<=prob:
         #Add a random rz to the operand
         angle=rng.uniform(0, 2 * np.pi)
         circ.rz(angle, operand)
 
 def add_rz_gates_det(num_qubits, qc, rng):
-    '''Helper function. Add a set number of rz gates randomly to the circuit. Returns: QuantumCircuit'''
+    '''Generate random circ: Helper function. Add a set number of rz gates randomly to the circuit. Returns: QuantumCircuit'''
     qc_dag=circuit_to_dag(qc)
     new_qc=QuantumCircuit(QuantumRegister(num_qubits))
     NUM_RZ=5
@@ -103,7 +104,11 @@ def add_rz_gates_det(num_qubits, qc, rng):
             # Also we need to add multiqubit nodes as many times as 
             # their number of arguments so that we have a uniform distribution.
             if node.type!="in":
-                if len(node.qargs)>1:
+                # print(node.type)
+                # print(node.qargs)
+                #Need to check that it's not an out node because out node returns an empty list for qargs.
+                if node.type!="out" and len(node.qargs)>1:
+                    # print(node.qargs)
                     for _ in range(len(node.qargs)):
                         all_nodes.append(node)
                 else:
@@ -127,7 +132,7 @@ def add_rz_gates_det(num_qubits, qc, rng):
     return new_qc
 
 def add_rz_to_node_det(new_qc, chosen_nodes, node, rng):
-    '''Helper function for deterministic adding of rz gates. Process the given node and insert rz gates.'''
+    '''Generate random circ: Helper function for deterministic adding of rz gates. Process the given node and insert rz gates.'''
     # The number of qubits that the node/gate is operating on can be greater than 1.
     if len(node.qargs)==1:
         insert_rz_gate(new_qc, rng, 1, node.qargs[0].index)
@@ -146,7 +151,7 @@ def add_rz_to_node_det(new_qc, chosen_nodes, node, rng):
             number_of_rzs_to_add-=1
 
 def add_rz_gates_prob(num_qubits, qc, rng):
-    '''Helper function. Add rz gates randomly to the circuit. Returns: QuantumCircuit'''
+    '''Generate random circ: Helper function. Add rz gates randomly to the circuit. Returns: QuantumCircuit'''
     CONST= 5 #Vary this parameter.
     cnot_count=count_gate(qc, "cx")
     swap_count=count_gate(qc, "swap")
@@ -187,7 +192,7 @@ def add_rz_gates_prob(num_qubits, qc, rng):
     return new_qc
 
 def count_gate(qc, gate):
-    '''Helper function: counts the number of occurrences of the gate in the qc.'''
+    '''Generate random circ: Helper function: counts the number of occurrences of the gate in the qc.'''
     gates_counts=qc.count_ops()
     count=0
     if gate in dict(gates_counts):
@@ -195,7 +200,7 @@ def count_gate(qc, gate):
     return count
 
 def copy_node(new_qc, node):
-    '''Helper function: Copy the node into new_qc'''
+    '''Generate random circ: Helper function: Copy the node into new_qc'''
     # Copy the node.
     if node.name=="x":
         new_qc.x(node.qargs[0].index)
@@ -213,14 +218,20 @@ def copy_node(new_qc, node):
         new_qc.cx(node.qargs[0].index, node.qargs[1].index)
     elif node.name=="swap":
         new_qc.swap(node.qargs[0].index, node.qargs[1].index)
+    #Test
+    elif node.name=="rz":
+        # print(node.op.params)
+        # print(type(node.op))
+        new_qc.rz(node.op.params[0], node.qargs[0].index)
+    elif node.name=="sx":
+        new_qc.sx(node.qargs[0].index)   
+        
     else:
-        # We may have overlooked a gate type.
+        # We have overlooked a gate type.
         assert False, node.name + " gate wasn't matched in the DAG."
 
-
-
 def random_circuit_depth(num_qubits, depth, seed=None):
-    """ Generates a random circuit with num_qubits and depth (each wire has the specified depth). 
+    """Generate random circ: Generates a random circuit with num_qubits and depth (each wire has the specified depth). 
     The circuit uses h, s, t, cx gates and no measurements.
     Derived from https://qiskit.org/documentation/_modules/qiskit/circuit/random/utils.html#random_circuit.
 
@@ -277,8 +288,697 @@ def random_circuit_depth(num_qubits, depth, seed=None):
 
     return qc
 
+class PushOperator:
+    '''Finding checks: Symbolic: push operations.'''
+    #Todo: we need to boolean values for traversing. One that gets checked at the end of each layer and one that keeps
+    # track of the direction at the start of the layer.
+    @staticmethod
+    def x(op2, temp_check_reversed):
+        '''Finding checks: Symbolic: Push x through op2. 
+        Forward: Circuit: [x]--[Op2]=[Op2]--[F] Math: (Op2)(x)=(F)(Op2)-->
+        (F)=(Op2)(x)(Op2)^\dagger.
+
+        Backwards: Circuit: [Op2]--[x]=[F]--[Op2] Math: (x)(Op2)=(Op2)(F)-->
+        (F)=(Op2)^\dagger (x)(Op2)
+        
+        In return: first digit is phase.'''
+        if op2=="X":
+            return [1, "X"]
+        elif op2=="Y":
+            return [-1, "X"]
+        elif op2=="Z":
+            return [-1, "X"]
+        elif op2=="H":
+            return [1, "Z"]
+        elif op2=="S":
+            if temp_check_reversed.forward:
+                return [1, "Y"]
+            else:
+                return [-1, "Y"]
+        elif op2=="SDG":
+            if temp_check_reversed.forward:
+                return [-1, "Y"]
+            else:
+                return [1, "Y"]
+        #Test
+        elif op2=="RZ":
+            temp_check_reversed.change_to_backwards=True
+            # Increment the layer_idx so that we redo this layer when going
+            # backwards. You can see this in the decrementing logic of find_checks_sym.
+            # temp_check_reversed.layer_idx+=1
+            return [1, "I"]
+        else:
+            # We have overlooked a gate type.
+            assert False, op2 + " gate wasn't matched in the DAG."
+
+    @staticmethod
+    def y(op2, temp_check_reversed):
+        '''Finding checks: Symbolic: Push y through op2.  
+        Forward: Circuit: [y]--[Op2]=[Op2]--[F] Math: (Op2)(y)=(F)(Op2)-->
+        (F)=(Op2)(y)(Op2)^\dagger.
+
+        Backwards: Circuit: [Op2]--[y]=[F]--[Op2] Math: (y)(Op2)=(Op2)(F)-->
+        (F)=(Op2)^\dagger (y)(Op2)
+        
+        In return: first digit is phase.'''
+        if op2=="X":
+            return [-1, "Y"]
+        elif op2=="Y":
+            return [1, "Y"]
+        elif op2=="Z":
+            return [-1, "Y"]
+        elif op2=="H":
+            return [-1, "Y"]
+        elif op2=="S":
+            if temp_check_reversed.forward:
+                return [-1, "X"]
+            else:
+                return [1, "X"]
+        elif op2=="SDG":
+            if temp_check_reversed.forward:
+                return [1, "X"]
+            else:
+                return [-1, "X"]
+        elif op2=="RZ":
+            temp_check_reversed.change_to_backwards=True
+            # Increment the layer_idx so that we redo this layer when going
+            # backwards. You can see this in the decrementing logic of find_checks_sym.
+            # temp_check_reversed.layer_idx+=1
+            return [1, "I"]
+        else:
+            # We have overlooked a gate type.
+            assert False, op2 + " gate wasn't matched in the DAG." 
+
+    @staticmethod        
+    def z(op2):
+        '''Finding checks: Symbolic: Push z through op2. 
+        Forward: Circuit: [z]--[Op2]=[Op2]--[F] Math: (Op2)(z)=(F)(Op2)-->
+        (F)=(Op2)(z)(Op2)^\dagger.
+
+        Backwards: Circuit: [Op2]--[z]=[F]--[Op2] Math: (z)(Op2)=(Op2)(F)-->
+        (F)=(Op2)^\dagger (z)(Op2)
+        
+        In return: first digit is phase.'''
+        if op2=="X":
+            return [-1, "Z"]
+        elif op2=="Y":
+            return [-1, "Z"]
+        elif op2=="Z":
+            return [1, "Z"]
+        elif op2=="H":
+            return [1, "X"]
+        elif op2=="S":
+            return [1, "Z"]
+        elif op2=="SDG":
+            return [1, "Z"]
+        elif op2=="RZ":
+            # Both operators are diagonal so they commute.
+            return [1, "Z"]            
+        else:
+            # We have overlooked a gate type.
+            assert False, op2 + " gate wasn't matched in the DAG." 
+
+    @staticmethod
+    def cx(op1):
+        '''Finding checks: Symbolic: Push op1 through cx.  
+        Forward: Circuit: [op1]--[cx]=[cx]--[F] Math: (cx)(op1)=(F)(cx)
+        Backwards: Circuit: [cx]--[op1]=[F]--[cx] Math: (op1)(cx)=(cx)(F)
+        -->
+        (F)=(cx)(op1)(cx).
+        
+        In return: first digit is phase.'''
+
+        if op1==["I", "I"]:
+            return [1, "I", "I"]
+        elif op1==["I", "X"]:
+            return [1, "I", "X"]
+        elif op1==["I", "Y"]:
+            return [1, "Z", "Y"]
+        elif op1==["I", "Z"]:
+            return [1, "Z", "Z"]
+
+        elif op1==["X", "I"]:
+            return [1, "X", "X"]
+        elif op1==["X", "X"]:
+            return [1, "X", "I"]
+        elif op1==["X", "Y"]:
+            return [1, "Y", "Z"]
+        elif op1==["X", "Z"]:
+            return [-1, "Y", "Y"]
+
+        elif op1==["Y", "I"]:
+            return [1, "Y", "X"]
+        elif op1==["Y", "X"]:
+            return [1, "Y", "I"]
+        elif op1==["Y", "Y"]:
+            return [-1, "X", "Z"]
+        elif op1==["Y", "Z"]:
+            return [1, "X", "Y"]
+
+        elif op1==["Z", "I"]:
+            return [1, "Z", "I"]
+        elif op1==["Z", "X"]:
+            return [1, "Z", "X"]
+        elif op1==["Z", "Y"]:
+            return [1, "I", "Y"]
+        elif op1==["Z", "Z"]:
+            return [1, "I", "Z"]
+
+        else:
+            # We have overlooked a gate type.
+            assert False, op1[0] + ", " + op1[1] + " wasn't a pauli element." 
+
+    @staticmethod
+    def swap(op1):
+        '''Finding checks: Symbolic: pass op1 through.
+        In return: first digit is phase.'''
+        result_ops=list(reversed(op1))
+        result=[1]
+        return result+result_ops
+
+class CheckOperator:
+    '''Finding checks: Symbolic: Stores the check operation along with the phase. operations is a list of strings.'''
+    __slots__=["phase", "operations"]
+    def __init__(self, phase, operations):
+        self.phase=phase
+        self.operations=operations
+
+class TempCheckOperator:
+    '''Finding checks: Symbolic: Stores the check operation along with the phase. operations is a list of strings.'''
+    __slots__=["phase", "operations", "change_to_backwards", "forward", "layer_idx"]
+    def __init__(self, phase, operations):
+        self.phase=phase
+        self.operations=operations
+        self.change_to_backwards=False
+        self.forward=True
+        self.layer_idx=1
+
+class CircuitProperties:
+    '''Circuit properties holder.'''
+    __slots__=["NUMBER_OF_QUBITS", "CNOT_COUNT", "NUMBER_OF_CIRCUITS", "circ", "circ_operations"]
+    def __init__(self, NUMBER_OF_QUBITS, CNOT_COUNT, NUMBER_OF_CIRCUITS, circ, circ_operations,):
+        self.NUMBER_OF_QUBITS=NUMBER_OF_QUBITS
+        self.CNOT_COUNT=CNOT_COUNT
+        self.NUMBER_OF_CIRCUITS=NUMBER_OF_CIRCUITS
+        self.circ=circ
+        self.circ_operations=circ_operations
+
+class ChecksProperties:
+    '''Checks properties holder.'''
+    __slots__=["count", "p2_weights", "pauli_str_p1s", "pauli_str_p2s"]
+    def __init__(self, count, p2_weights, pauli_str_p1s, pauli_str_p2s):
+        self.count=count
+        self.p2_weights=p2_weights
+        self.pauli_str_p1s=pauli_str_p1s
+        self.pauli_str_p2s=pauli_str_p2s
+
+def update_current_ops(op1, op2, temp_check_reversed, current_qubits):
+    '''Finding checks: Symbolic: Finds the intermediate check. Always push op1 through op2. '''
+    if len(op1)==1:
+        if op1[0]=="X":
+            result= PushOperator.x(op2, temp_check_reversed)
+        elif op1[0]=="Y":
+            result= PushOperator.y(op2, temp_check_reversed)
+        elif op1[0]=="Z":
+            result= PushOperator.z(op2)
+        elif op1[0]=="I":
+            result= [1, "I"]
+        else:
+            # Can expand to accomodate non pauli + I in the future.
+            assert False, op1[0] + " is not I, X, Y, or Z."
+    else:
+        # Two qubit operations
+        if op2=="CX":
+            result = PushOperator.cx(op1)
+        elif op2=="SWAP":
+            result= PushOperator.swap(op1)
+        else:
+            assert False, op2 + " is not cx or swap."
+
+    result_phase=result[0]
+    result_ops=result[1::1]
+    temp_check_reversed.phase=temp_check_reversed.phase*result_phase
+    # Coppy the current ops into temp_check_reversed.
+    for idx, op in enumerate(result_ops):
+        temp_check_reversed.operations[current_qubits[idx]]=op
+
+def append_results(p1, p2):
+    '''Finding checks: Symbolic: Appends p1 and p2 to the results.'''
+    #P1s
+    p1_operations=p1.operations
+    p1_phase=str(p1.phase)
+    if len(p1_phase)==1:#Add if + if positive phase
+        p1_phase="+"+p1_phase
+    p1_operations.insert(0, p1_phase)
+
+    #P2s
+    p2_operations=p2.operations
+    p2_weight=get_weight(p2_operations)
+    p2_phase=str(p2.phase)
+    if len(p2_phase)==1:#Add + if positive phase
+        p2_phase="+"+p2_phase
+    p2_operations.insert(0, p2_phase)
+
+    p1_str="".join(p1_operations)
+    p2_str="".join(p2_operations)
+    
+    print("p1: ", p1_str)
+    print("p2: ", p2_str)
+    print("Pauli weight P2: ", p2_weight)
+    print()
+
+    return (p2_weight, p1_str, p2_str)
+
+def can_continue(forward, op1, op2):
+    '''Finding checks: Symbolic: Determine if can continue. If we're going backwards and op1 is not I or Z and op2 is RZ then don't continue.'''
+    if forward==False and op2=="RZ" and op1!="I" and op1!="Z":
+        return False
+    else:
+        return True
+
+def get_current_qubits(node):
+    '''Finding checks: Symbolic: get the current qubits whose operations that will be passed through.'''
+    # We have to check for single or two qubit gates.
+    if node.name in ["x", "y", "z", "h", "s", "sdg", "rz"]:
+        return [node.qargs[0].index]
+    elif node.name in ["cx", "swap"]:
+        return [node.qargs[0].index, node.qargs[1].index]
+    else:
+        assert False, "Overlooked a node operation." 
+
+def get_weight(pauli_string):
+    '''Gets the weight of a Pauli string. Returns: int'''
+    count=0
+    for character in pauli_string:
+        if character!="I":
+            count+=1
+    return count
+
+def create_controlU(npmat, number_of_qubits):
+    '''Testing circuits:
+    Finding checks: Helper of numpy method.
+    Returns: np.array'''
+    return np.kron(np.array([[1,0],[0,0]]),np.eye(2**number_of_qubits))+np.kron(np.array([[0,0],[0,1]]),npmat)    
+
+def check_p2(control_p1, control_p2, unitary, number_of_qubits):
+    '''Finding checks: Helper for numpy method.
+    Sanity check for p2. U\otimes I- ControlP2^\dagger(U\otimes I)ControlP1==0'''
+    assert np.allclose(np.kron(np.eye(2),unitary.data)-control_p2.dot(np.kron(np.eye(2),unitary.data)).dot(control_p1), np.zeros(2**(number_of_qubits+1))), "wrong p2"
+
+def layer_to_circ(layer, temp_layer_circ):
+    '''Finding checks: Helper for transpile method. 
+    Convert layer to circiut.'''
+    for node in layer:
+        if node.type == "op":
+            copy_node(temp_layer_circ, node)
+
+def pauli_to_circuit(pauli_str):
+    '''Finding checks: Helper for transpile method. 
+    Converts the Pauli string to a circuit. Returns: QuantumCircuit'''
+    circ=QuantumCircuit(len(pauli_str))
+    qubit_pos=len(pauli_str)-1
+    for char in pauli_str:
+        if char=="X":
+            # print(phase_added, phase, char)
+            circ.x(qubit_pos)
+        elif char=="Y":
+            circ.y(qubit_pos)
+        elif char=="Z":
+            circ.z(qubit_pos)
+        qubit_pos-=1
+    return circ
+
+def find_checks_sym(pauli_group_elem, circ):
+    '''Finding checks: Symbolic: Finds p1 and p2 elements symbolically.'''
+    # global unitary, NUMBER_OF_QUBITS, CNOT_COUNT, ABS_TOL 
+    # global pauli_labels, pauli_group_positive, table_length
+    # global unitary, circ
+
+    print(pauli_group_elem)
+
+    # We will just iterate over the +1 phase elements of the pauli group since the 
+    # scenarios can be recovered by just multiplying by the phase constant.
+    pauli_group_elem_ops=list(pauli_group_elem)
+    p1=CheckOperator(1, pauli_group_elem_ops)
+    p2=CheckOperator(1, ["I" for _ in range(len(pauli_group_elem))])
+    temp_check_reversed=TempCheckOperator(1, list(reversed(pauli_group_elem_ops)))
+
+    # Iterate through the circuit. We manually keep track of the idx since
+    # we can either go forward or backwards. This is kept track of inside the temp_check_reversed
+    # We also track layer_idx in temp_check_reversed.
+    # forward=True
+    circ_dag = circuit_to_dag(circ)
+    layers = list(circ_dag.multigraph_layers())
+    num_layers=len(layers)
+    # # We start index 1 since the first layer are just in nodes.
+    # layer_idx = 1
+
+    while True:
+        # Get current layer
+        layer=layers[temp_check_reversed.layer_idx]
+        for node in layer:
+            # Iterate through layers and nodes.
+            # if found.value:
+            #     print("exiting.")
+            #     return
+            # elif node.type=="op":
+            if node.type=="op":
+                current_qubits=get_current_qubits(node)
+                current_ops=[temp_check_reversed.operations[qubit] for qubit in current_qubits]
+                node_op= node.name.upper()
+
+                # Update temp_check_reversed if possible
+                if can_continue(temp_check_reversed.forward, current_ops[0], node_op):
+                    update_current_ops(current_ops, node_op, temp_check_reversed, current_qubits)
+                else:
+                    return
+        
+        # See if we should start going backwards.
+        if temp_check_reversed.change_to_backwards:
+            temp_check_reversed.forward=False
+            temp_check_reversed.change_to_backwards=False
+            # we don't increment or decrement the layer_idx since we processed this layer.
+            # We have to process the same layer going backwards.
+
+        # Since we're not changing to backwards, either move forward or backards
+        elif temp_check_reversed.forward:
+            if temp_check_reversed.layer_idx==num_layers-1:
+                p2.phase=temp_check_reversed.phase
+                p2.operations=list(reversed(temp_check_reversed.operations))
+                # Append operations.
+                # with count.get_lock():
+                result =append_results(p1, p2)
+                return result
+            else:
+                temp_check_reversed.layer_idx+=1            
+        else:
+            if temp_check_reversed.layer_idx==1:
+                # We reached the first layer of operation nodes so move forward. Note
+                # the zero index are all input nodes so we can skip.
+                p1.phase=temp_check_reversed.phase
+                p1.operations=list(reversed(temp_check_reversed.operations))
+                temp_check_reversed.forward=True
+            else:
+                temp_check_reversed.layer_idx-=1
+
+def find_checks_with_numpy(pauli_group_tuple, unitary, NUMBER_OF_QUBITS, ABS_TOL, 
+    pauli_labels, pauli_group_positive, table_length, count, p2_weights, pauli_str_p1s, pauli_str_p2s):
+    '''Finding checks: Uses numpy. Probably depricate.'''
+    # global unitary, NUMBER_OF_QUBITS, CNOT_COUNT, ABS_TOL 
+    # global pauli_labels, pauli_group_positive, table_length
+    # global count, p2_weights, pauli_str_p1s, pauli_str_p2s
+    idx1=pauli_group_tuple[0]
+    # to_matrix() returns a list.
+    p1=pauli_group_tuple[1].to_matrix()[0]
+    if idx1 >= table_length:
+        p1 = p1*-1
+    #U.p1=p2.U ---->U.p1.U^\dagger=p2. Operator class so we need .data to access numpy array.
+    p2=unitary.dot(p1).dot(unitary.adjoint()).data
+    #Sanity check. Can comment out.
+    control_p1=create_controlU(p1, NUMBER_OF_QUBITS)
+    control_p2=create_controlU(p2, NUMBER_OF_QUBITS)
+    if not check_p2(control_p1, control_p2, unitary, NUMBER_OF_QUBITS):
+        return
+    # Check if p2 is traceless. All elements of the pauli group are traceless except identity.
+    if not math.isclose(0.0,np.trace(p2), abs_tol=ABS_TOL):
+        return
+    #Only need p2 with +1 phase since the global phase can be absorbed into p1. Faster this way.
+    for idx2, label_element in enumerate(pauli_group_positive):
+        # to_matrix() returns a list.
+        element=label_element.to_matrix()[0]
+        # allclose checks if the values are within tolerance of atol=10^-8.
+        if np.allclose(p2, element):
+            #Have to check which part of the table p1 belongs to so we can print the correct phase.
+            if idx1-table_length<0:
+                p1_str="+1"+pauli_labels[idx1 % table_length]
+            else:
+                p1_str="-1"+pauli_labels[idx1 % table_length]
+            # elif idx1-2*table_length<0:
+            #     p1_str="-1"+pauli_labels[idx1 % table_length]
+            # elif idx1-3*table_length<0:
+            #     p1_str="+j"+pauli_labels[idx1 % table_length]
+            # else:
+            #     p1_str="-j"+pauli_labels[idx1 % table_length]
+            #P2 is always +1 phase.
+            p2_str="+1"+pauli_labels[idx2]
+            print("p1: ", p1_str)
+            print("p2: ", p2_str)
+
+            # Print the weight. We care about P2 weight since we commute p1 through U.
+            p2_weight=get_weight(pauli_labels[idx2])
+            print("Pauli weight P2: ", p2_weight)
+            print()
+            #Need to lock the value so it doesn't change while checking. Since we write only
+            #after locking the weight we don't need to lock the other values.
+            with count.get_lock():
+                count.value+=1
+                if p2_weight>p2_weights[0]:
+                    # We store the max values in the beginning.
+                    p2_weights[0]=p2_weight
+                    pauli_str_p1s[0]=p1_str
+                    pauli_str_p2s[0]=p2_str
+                pauli_str_p1s.append(p1_str)
+                pauli_str_p2s.append(p2_str)
+                p2_weights.append(p2_weight)
+
+            # #Need to lock the value so it doesn't change. Nonatomic operation.
+            # with count.get_lock():
+            #     count.value+=1
+            #We found p2 so just return.
+            return
+
+def find_checks_with_transpile(pauli_group_elem, circ):
+    '''Finding checks: Uses transpile. May deprecate.'''
+    # global unitary, NUMBER_OF_QUBITS, CNOT_COUNT, ABS_TOL 
+    # global pauli_labels, pauli_group_positive, table_length
+    # global count, p2_weights, pauli_str_p1s, pauli_str_p2s
+    # Temporay storage
+    temp_p2_circ=pauli_to_circuit(pauli_group_elem)
+
+    #Go through the layers of the circ
+    circ_dag=circuit_to_dag(circ)
+    layers=list(circ_dag.multigraph_layers())
+    for layer in layers:
+        #Convert layer to circuit.
+        temp_layer_circ=QuantumCircuit(circ.num_qubits)
+        layer_to_circ(layer, temp_layer_circ)
+        # for node in layer:
+        #     if node.type == "op":
+        #         mymodule.copy_node(temp_layer_circ, node)
+        temp_p2_circ=find_intermediate_p2(temp_p2_circ, temp_layer_circ)
+    print("p2:", pauli_group_elem)
+    print("Temp_p2: ")
+    print(temp_p2_circ)
+    return(temp_p2_circ)
+
+def find_intermediate_p2(p1_circ, circ):
+    '''Finding checks: Helper function for transpile method.'''
+    # global unitary, NUMBER_OF_QUBITS, CNOT_COUNT, ABS_TOL 
+    # global pauli_labels, pauli_group_positive, table_length
+    # global count, p2_weights, pauli_str_p1s, pauli_str_p2s
+    circ_inverse=QuantumCircuit.inverse(circ)
+    # U.p_1=c_2.U---->Up_1U^dagger=c_2
+    p2_circ=circ_inverse.compose(p1_circ).compose(circ)
+    # print(c2_circ)
+    #Optimize the circuit
+    basis_gates=['id', 'rz', 'sx', 'cx']
+    p2_circ=transpile(p2_circ, basis_gates=basis_gates, optimization_level=2)
+    # print(c2_circ)
+    return p2_circ
+
+# def create_controlU(npmat, number_of_qubits):
+#     '''Testing cricuits: Returns a controlled operation. Type is np.array'''
+#     return np.kron(np.array([[1,0],[0,0]]),np.eye(2**number_of_qubits))+np.kron(np.array([[0,0],[0,1]]),npmat)
+
+def write_outputs(circ_properties, checks_properties, file_number, file_info_path, file_qasm_path, output_file):
+    '''Finding checks: write outputs.'''
+    pauli_str_p1s=checks_properties.pauli_str_p1s
+    pauli_str_p2s=checks_properties.pauli_str_p2s
+    p2_weights=checks_properties.p2_weights
+    count=checks_properties.count
+    circ_operations=circ_properties.circ_operations
+    NUMBER_OF_QUBITS=circ_properties.NUMBER_OF_QUBITS
+    circ=circ_properties.circ
+
+    assert len(pauli_str_p1s)==len(pauli_str_p2s), "number of p1's and p2's don't match."
+    assert len(pauli_str_p2s)==len(p2_weights), "number of p2's and weights don't match."
+    # Count doesn't count the extra storage of max vales in the beginning of the lists of solutions (e.g. pauli_str_p1s)
+    assert len(pauli_str_p2s)==count+1, "number of p2's and counts of solutions don't match."
+    #Outputs
+    if count==0:
+        output_file.write("\n")
+        output_file.write("nothing found: trivial solution\n")
+        print("nothing found: trivial solution")
+    else:
+        for index1, strp1 in enumerate(pauli_str_p1s):
+            if index1!=0: #The max stuff are stored in the beginning, which we print at the end.
+                output_file.write("\n")
+                output_file.write("p1: "+ str(strp1)+ "\n")
+                output_file.write("p2: "+ str(pauli_str_p2s[index1])+ "\n")
+                output_file.write("Pauli weight P2: "+ str(p2_weights[index1])+ "\n")
+        output_file.write("\n")
+        output_file.write("Found Matches: "+ str(count)+ "\n")
+        output_file.write("Max Weight: "+ str(p2_weights[0]) + "\n")
+        output_file.write("P1 that creates max P2: "+ str(pauli_str_p1s[0])+ "\n")
+        output_file.write("Max P2: " + str(pauli_str_p2s[0])+ "\n")
+        print("Found Matches: ", count)   
+        print("Max P2 Weight: ", p2_weights[0])
+        print("P1 that creates max P2: ", pauli_str_p1s[0])
+        print("Max P2: ", pauli_str_p2s[0])
+
+    cnot_count=0
+    if "cx" in circ_operations:
+        cnot_count=circ_operations["cx"]
+
+    rz_count=0
+    if "rz" in circ_operations:
+        rz_count=circ_operations["rz"]
+    output_file.write("Circuit no: " + str(file_number)+ "\n")
+    output_file.write("Qubits: " + str(NUMBER_OF_QUBITS)+ "\n")
+    output_file.write("CNOT count: "+ str(cnot_count) + "\n")
+    output_file.write("RZ count: "+ str(rz_count) + "\n")
+
+    print("Qubits: ", str(NUMBER_OF_QUBITS))
+    print("Circuit no: ", str(file_number))
+    print("CNOT count: ", cnot_count)
+    print("RZ count: ", rz_count)
+
+    # # Dump all the info into a pickle
+    circ_file=open(file_info_path, "wb")
+    pickle.dump({"cx": cnot_count, "rz": rz_count, "qubits": NUMBER_OF_QUBITS, "circuit_num" : file_number, "found_matches": count,
+            "max_pauli_weight": p2_weights[0], "max_pauli_str_p1": pauli_str_p1s[0], "max_pauli_str_p2": pauli_str_p2s[0]}, circ_file)
+    circ.qasm(filename=file_qasm_path)
+    # # Close the files. 
+    circ_file.close()
+    output_file.close()
+
+def add_controlU(circ, pauli_str, number_of_qubits, quantum_register, ancilla_register):
+    '''Testing cricuits: Adds a controlled Pauli to circ.'''
+    print(pauli_str)
+    c_minus_x = QuantumCircuit.from_qasm_str("""
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    u3(1.0592554e-13,3.288277,2.8116442) q[0];
+    u3(pi,5.8991791,2.7575864) q[1];
+    cx q[0],q[1];
+    u3(2*pi,5.4995268,4.1085153) q[0];
+    u3(pi,0.38400625,3.5255989) q[1];
+    """.strip())
+
+    c_minus_j_x = QuantumCircuit.from_qasm_str("""
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    u3(6.9759301e-13,4.3371506,0.076820611) q[0];
+    u3(6.9089241e-09,5.477472,3.947306) q[1];
+    cx q[0],q[1];
+    u3(2*pi,0.60772643,2.832284) q[0];
+    u3(5.5644668e-09,5.4477338,3.9770441) q[1];
+    """.strip())
+
+    c_plus_j_x =QuantumCircuit.from_qasm_str("""
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    u3(pi,4.6477413,6.258122) q[0];
+    u3(1.7599424,3*pi/2,3*pi/2) q[1];
+    cx q[0],q[1];
+    u3(pi,3.1666559,3.2062404) q[0];
+    u3(4.9015351,3*pi/2,3*pi/2) q[1];
+    """.strip())
+
+    #Check the length of the pauli string. It maybe empty when there were no matches found.
+    if len(pauli_str)>number_of_qubits:
+        phase=pauli_str[:2]
+        pauli_str=pauli_str[2:]
+        qubit_pos=number_of_qubits-1
+        phase_added=False
+        for pos, char in enumerate(pauli_str):
+            # First case is most common
+            if phase_added or phase=="+1":
+                if char=="X":
+                    # print(phase_added, phase, char)
+                    circ.cx(ancilla_register, quantum_register[qubit_pos])
+                elif char=="Y":
+                    # print(phase_added, phase, char)
+                    circ.sdg(quantum_register[qubit_pos])
+                    circ.cx(ancilla_register, quantum_register[qubit_pos])
+                    circ.s(quantum_register[qubit_pos])
+                elif char=="Z":
+                    # print(phase_added, phase, char)
+                    circ.h(quantum_register[qubit_pos])
+                    circ.cx(ancilla_register, quantum_register[qubit_pos])
+                    circ.h(quantum_register[qubit_pos])
+            # -1 phase
+            else:
+                if char=="X":
+                    # print(phase_added, phase, char)
+                    circ.compose(c_minus_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                elif char=="Y":
+                    # print(phase_added, phase, char)
+                    circ.sdg(quantum_register[qubit_pos])
+                    circ.compose(c_minus_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                    circ.s(quantum_register[qubit_pos])
+                elif char=="Z":
+                    # print(phase_added, phase, char)
+                    circ.h(quantum_register[qubit_pos])
+                    circ.compose(c_minus_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                    circ.h(quantum_register[qubit_pos])
+                # Note the phase added needs this check because of identity terms in the pauli strings.
+                # With no check, if there is an identity it will change phase_added to true and we won't get the
+                # added necessary phase on of the pauli terms.
+                if char!="I":
+                    phase_added=True
+            qubit_pos-=1
+    return circ
+
+def result_exists(base_path, file_name, result_num):
+    '''Testing circuits: Checks if the result file exists.'''
+    name_split=file_name.split("_")
+    result_name="_".join(name_split[:-1])+"_result_"+str(result_num)+"_.txt"
+    # print(file_name)
+    # print(result_name)
+    output_file_txt_path=os.path.join(base_path, result_name)
+    # print(output_file_txt_path)
+    return os.path.isfile(output_file_txt_path)
+
+def get_number_of_results(job):
+    '''Testing circuits: Get's the number of measurement outcomes. Before post selecting this should be number of tomography circuits*shots.'''
+    tot=0
+    for idx, _ in enumerate(job.results):
+        # Each idx represents one tomography circuit. The number of shots is how much we repeat the circuit.
+        # The list given by get_counts contains all the outcomes from running that specific tomography circuit. get_counts
+        # returns a list of outcomes for that specific tomography circuit. The number of outcomes for that specific circuit
+        # is equal to the number of shots.
+        curr_exp=job.get_counts(idx)
+        # print(curr_exp)
+        tot+=sum(curr_exp.values())
+    # print(tot)
+    return tot
+
+def run_job(job, basis_gates, noise_model, shots_arg, simulator):
+    '''Testing cricuits: Runs the given job. Returns result.'''
+    print("running job...")
+    # simulator=Aer.get_backend('qasm_simulator')
+    # simulator.set_option("method", "density_matrix")
+    # simulator.set_option("max_parallel_experiments", psutil.cpu_count(logical=False))
+    # simulator.set_option("max_parallel_shots", psutil.cpu_count(logical=False))
+    # simulator.set_option("max_parallel_threads", psutil.cpu_count(logical=False))
+    # result= execute(job, Aer.get_backend('qasm_simulator'),
+    #             basis_gates=basis_gates,
+    #             noise_model=noise_model, 
+    #             shots=shots_arg, optimization_level=0).result()
+    result= execute(job, simulator,
+                basis_gates=basis_gates,
+                noise_model=noise_model, 
+                shots=shots_arg, optimization_level=0).result()
+    print("job done.")
+    
+    return result
+
 def post_select_on_ancilla(res, ancilla_value, new_nqubits): # todo: get percentage of good outcomes.
-    """
+    """Testing circuits:
     strip the results where ancilla was not equal to `ancilla_value`
     This is some voodoo copied from 
     https://qiskit.org/documentation/tutorials/noise/8_tomography.html#2-Qubit-Conditional-State-Tomography  

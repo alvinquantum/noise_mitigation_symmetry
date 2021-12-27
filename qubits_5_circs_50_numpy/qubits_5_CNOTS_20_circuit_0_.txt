@@ -1,0 +1,305 @@
+      ┌───┐     ┌───┐                                  ┌───┐    ┌───┐»
+q1_0: ┤ S ├─────┤ X ├───────────────────────────■──────┤ S ├────┤ H ├»
+      ├───┤┌───┐└─┬─┘                    ┌───┐┌─┴─┐┌───┴───┴───┐└───┘»
+q1_1: ┤ S ├┤ H ├──┼────■────■────────────┤ X ├┤ X ├┤ Rz(3.113) ├──■──»
+      ├───┤└───┘  │  ┌─┴─┐  │  ┌───┐┌───┐└─┬─┘└───┘└───────────┘  │  »
+q1_2: ┤ H ├───────┼──┤ X ├──┼──┤ H ├┤ S ├──┼──────────────────────┼──»
+      ├───┤       │  └───┘  │  └───┘└───┘  │                    ┌─┴─┐»
+q1_3: ┤ S ├───────■─────────┼──────────────┼────────────────────┤ X ├»
+      ├───┤               ┌─┴─┐┌───┐       │  ┌───┐    ┌───┐    ├───┤»
+q1_4: ┤ H ├───────────────┤ X ├┤ H ├───────■──┤ S ├────┤ H ├────┤ S ├»
+      └───┘               └───┘└───┘          └───┘    └───┘    └───┘»
+«          ┌───┐                              ┌───┐          ┌───┐┌───┐┌───┐»
+«q1_0: ────┤ S ├──────────────────────■───────┤ X ├───────■──┤ Z ├┤ H ├┤ S ├»
+«      ┌───┴───┴────┐     ┌───┐       │  ┌───┐└─┬─┘┌───┐  │  └───┘└───┘└───┘»
+«q1_1: ┤ Rz(4.3764) ├─────┤ Y ├───────┼──┤ S ├──┼──┤ H ├──┼─────────────────»
+«      └───┬───┬────┘     └───┘       │  └───┘  │  ├───┤  │                 »
+«q1_2: ────┤ X ├──────────────────────┼─────────■──┤ H ├──┼────X────────────»
+«          └─┬─┘     ┌─────────────┐┌─┴─┐┌───┐     └───┘  │    │       ┌───┐»
+«q1_3: ──────┼───────┤ Rz(0.91144) ├┤ X ├┤ H ├────────────┼────┼────■──┤ H ├»
+«            │       └─────────────┘└───┘└───┘          ┌─┴─┐  │  ┌─┴─┐└───┘»
+«q1_4: ──────■──────────────────────────────────────────┤ X ├──X──┤ X ├─────»
+«                                                       └───┘     └───┘     »
+«                                                   ┌───┐                    »
+«q1_0: ─────────────────────────────────────────────┤ X ├────────────────────»
+«                                                   └─┬─┘                    »
+«q1_1: ───────────────────────────────────────────────┼──────────────────────»
+«           ┌───┐┌───┐          ┌───┐┌───┐┌───┐┌───┐  │                      »
+«q1_2: ──■──┤ S ├┤ H ├──■───────┤ X ├┤ Y ├┤ H ├┤ S ├──■──────────────────────»
+«        │  └───┘└───┘┌─┴─┐┌───┐└─┬─┘├───┤├───┤├───┤┌───┐┌─────────────┐     »
+«q1_3: ──┼────────────┤ X ├┤ H ├──■──┤ H ├┤ S ├┤ Z ├┤ H ├┤ Rz(0.27524) ├──■──»
+«      ┌─┴─┐┌───┐     └───┘└───┘     └───┘└───┘└───┘└───┘└─────────────┘┌─┴─┐»
+«q1_4: ┤ X ├┤ Z ├───────────────────────────────────────────────────────┤ X ├»
+«      └───┘└───┘                                                       └───┘»
+«               ┌───┐     ┌───┐┌───┐          
+«q1_0: ──■──────┤ H ├─────┤ S ├┤ X ├──────────
+«        │      └───┘     └───┘└─┬─┘          
+«q1_1: ──┼───────────────────────■────────────
+«        │      ┌───┐     ┌───┐┌───┐┌───┐┌───┐
+«q1_2: ──┼──────┤ X ├─────┤ S ├┤ H ├┤ S ├┤ X ├
+«      ┌─┴─┐    └─┬─┘     ├───┤└───┘└───┘└─┬─┘
+«q1_3: ┤ X ├──────■───────┤ Y ├────────────┼──
+«      ├───┤┌────────────┐├───┤            │  
+«q1_4: ┤ H ├┤ Rz(1.6066) ├┤ S ├────────────■──
+«      └───┘└────────────┘└───┘               
+{"h": 20, "cx": 20, "s": 17, "rz": 5, "y": 3, "z": 3, "swap": 1}
+p1: +1IIXIZ
+p2: +1ZXZZZ
+Pauli weight P2: 5
+
+p1: +1IIYII
+p2: +1ZIIYZ
+Pauli weight P2: 3
+
+p1: +1IIXXY
+p2: +1ZYZZZ
+Pauli weight P2: 5
+
+p1: +1IZYII
+p2: +1IIZZY
+Pauli weight P2: 3
+
+p1: +1IZIII
+p2: +1ZIZXX
+Pauli weight P2: 4
+
+p1: +1XIXIY
+p2: +1IYZZZ
+Pauli weight P2: 4
+
+p1: +1XIXXZ
+p2: +1IXZZZ
+Pauli weight P2: 4
+
+p1: +1XIYXI
+p2: +1IIIYZ
+Pauli weight P2: 2
+
+p1: +1XIIXI
+p2: +1ZIIII
+Pauli weight P2: 1
+
+p1: +1XZIXI
+p2: +1IIZXX
+Pauli weight P2: 3
+
+p1: +1YIIZZ
+p2: +1IIZII
+Pauli weight P2: 1
+
+p1: +1YIIYY
+p2: +1IZZII
+Pauli weight P2: 2
+
+p1: +1XZYXI
+p2: +1ZIZZY
+Pauli weight P2: 4
+
+p1: +1YIXZI
+p2: +1ZXIZZ
+Pauli weight P2: 4
+
+p1: +1YIXYX
+p2: +1ZYIZZ
+Pauli weight P2: 4
+
+p1: +1YIYZZ
+p2: +1ZIZYZ
+Pauli weight P2: 4
+
+p1: +1YIYYY
+p2: +1ZZZYZ
+Pauli weight P2: 5
+
+p1: +1YZYZZ
+p2: +1IIIZY
+Pauli weight P2: 2
+
+p1: +1YZYYY
+p2: +1IZIZY
+Pauli weight P2: 3
+
+p1: +1YZIZZ
+p2: +1ZIIXX
+Pauli weight P2: 3
+
+p1: +1YZIYY
+p2: +1ZZIXX
+Pauli weight P2: 4
+
+p1: +1ZIXYI
+p2: +1IXIZZ
+Pauli weight P2: 3
+
+p1: +1ZIYYZ
+p2: +1IIZYZ
+Pauli weight P2: 3
+
+p1: +1ZIIYZ
+p2: +1ZIZII
+Pauli weight P2: 2
+
+p1: +1ZIZZX
+p2: +1ZYIXI
+Pauli weight P2: 3
+
+p1: +1ZZIYZ
+p2: +1IIIXX
+Pauli weight P2: 2
+
+p1: +1ZZZZX
+p2: +1IYZIX
+Pauli weight P2: 3
+
+p1: -1IIIXX
+p2: +1IZIII
+Pauli weight P2: 1
+
+p1: +1ZZXZX
+p2: +1ZYZYY
+Pauli weight P2: 5
+
+p1: +1ZZYYZ
+p2: +1ZIIZY
+Pauli weight P2: 3
+
+p1: -1IIZIZ
+p2: +1IXZXI
+Pauli weight P2: 3
+
+p1: -1IIZXY
+p2: +1IYZXI
+Pauli weight P2: 3
+
+p1: -1IIYXX
+p2: +1ZZIYZ
+Pauli weight P2: 4
+
+p1: -1IZXIZ
+p2: +1IXIYY
+Pauli weight P2: 3
+
+p1: -1IZXXY
+p2: +1IYIYY
+Pauli weight P2: 3
+
+p1: -1IZYXX
+p2: +1IZZZY
+Pauli weight P2: 4
+
+p1: -1IZIXX
+p2: +1ZZZXX
+Pauli weight P2: 5
+
+p1: -1IZZIZ
+p2: +1ZXIIX
+Pauli weight P2: 3
+
+p1: -1IZZXY
+p2: +1ZYIIX
+Pauli weight P2: 3
+
+p1: -1XIYIX
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: -1XIIIX
+p2: +1ZZIII
+Pauli weight P2: 2
+
+p1: -1XIZXZ
+p2: +1ZXZXI
+Pauli weight P2: 4
+
+p1: -1XIZIY
+p2: +1ZYZXI
+Pauli weight P2: 4
+
+p1: -1XZIIX
+p2: +1IZZXX
+Pauli weight P2: 4
+
+p1: -1XZZIY
+p2: +1IYIIX
+Pauli weight P2: 2
+
+p1: -1XZZXZ
+p2: +1IXIIX
+Pauli weight P2: 2
+
+p1: -1XZXIY
+p2: +1ZYIYY
+Pauli weight P2: 4
+
+p1: -1XZXXZ
+p2: +1ZXIYY
+Pauli weight P2: 4
+
+p1: -1XZYIX
+p2: +1ZZZZY
+Pauli weight P2: 5
+
+p1: -1YIZYX
+p2: +1IYIXI
+Pauli weight P2: 2
+
+p1: -1YIZZI
+p2: +1IXIXI
+Pauli weight P2: 2
+
+p1: -1YZXZI
+p2: +1IXZYY
+Pauli weight P2: 4
+
+p1: -1YZXYX
+p2: +1IYZYY
+Pauli weight P2: 4
+
+p1: -1ZIXZX
+p2: +1IYIZZ
+Pauli weight P2: 3
+
+p1: -1YZZZI
+p2: +1ZXZIX
+Pauli weight P2: 4
+
+p1: -1YZZYX
+p2: +1ZYZIX
+Pauli weight P2: 4
+
+p1: -1ZIYZY
+p2: +1IZZYZ
+Pauli weight P2: 4
+
+p1: -1ZIIZY
+p2: +1ZZZII
+Pauli weight P2: 3
+
+p1: -1ZIZYI
+p2: +1ZXIXI
+Pauli weight P2: 3
+
+p1: -1ZZIZY
+p2: +1IZIXX
+Pauli weight P2: 3
+
+p1: -1ZZZYI
+p2: +1IXZIX
+Pauli weight P2: 3
+
+p1: -1ZZXYI
+p2: +1ZXZYY
+Pauli weight P2: 5
+
+p1: -1ZZYZY
+p2: +1ZZIZY
+Pauli weight P2: 4
+
+Found Matches: 63
+Max Weight: 5
+P1 that creates max P2: +1IIXIZ
+Max P2: +1ZXZZZ
+Circuit no: 0
+Qubits: 5
+CNOT count: 20
+RZ count: 5

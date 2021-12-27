@@ -1,0 +1,77 @@
+     ┌───┐          ┌───┐               ┌───┐               ┌───┐┌───┐                         
+q_0: ┤ X ├──────────┤ X ├──■─────────■──┤ T ├───────■───────┤ X ├┤ T ├────────────■────■───────
+     └─┬─┘┌───┐┌───┐└─┬─┘  │         │  ├───┤┌───┐  │  ┌───┐└─┬─┘├───┤┌───┐┌───┐  │    │  ┌───┐
+q_1: ──┼──┤ T ├┤ S ├──┼────┼────■────┼──┤ T ├┤ X ├──┼──┤ H ├──┼──┤ H ├┤ X ├┤ H ├──┼────┼──┤ T ├
+       │  ├───┤└───┘  │    │  ┌─┴─┐┌─┴─┐└───┘└─┬─┘  │  ├───┤  │  └───┘└─┬─┘├───┤  │    │  ├───┤
+q_2: ──┼──┤ S ├──■────┼────┼──┤ X ├┤ X ├───────■────┼──┤ T ├──■─────────■──┤ H ├──┼────┼──┤ S ├
+       │  ├───┤  │    │    │  ├───┤├───┤┌───┐┌───┐  │  ├───┤┌───┐          └───┘┌─┴─┐┌─┴─┐└───┘
+q_3: ──┼──┤ T ├──┼────■────┼──┤ S ├┤ H ├┤ T ├┤ H ├──┼──┤ H ├┤ S ├───────────────┤ X ├┤ X ├─────
+       │  └───┘┌─┴─┐     ┌─┴─┐├───┤├───┤└───┘└───┘┌─┴─┐├───┤├───┤┌───┐┌───┐     └───┘└───┘     
+q_4: ──■───────┤ X ├─────┤ X ├┤ H ├┤ S ├──────────┤ X ├┤ T ├┤ S ├┤ H ├┤ S ├────────────────────
+               └───┘     └───┘└───┘└───┘          └───┘└───┘└───┘└───┘└───┘                    
+{"cx": 12, "t": 9, "h": 9, "s": 8}
+p1: +1XIIIX
+p2: +1YIYIZ
+Pauli weight P2: 3
+
+p1: +1IIXYI
+p2: +1YIYZI
+Pauli weight P2: 3
+
+p1: +1XIXYX
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1XIYXX
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIYXI
+p2: +1YIYZZ
+Pauli weight P2: 4
+
+p1: +1XIZZX
+p2: +1YIYII
+Pauli weight P2: 2
+
+p1: +1IIZZI
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1ZZIIZ
+p2: +1IIYIZ
+Pauli weight P2: 2
+
+p1: +1ZZXYZ
+p2: +1YIIZZ
+Pauli weight P2: 3
+
+p1: +1ZZYXZ
+p2: +1YIIZI
+Pauli weight P2: 2
+
+p1: +1ZZZZZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: -1YZIIY
+p2: +1YIIII
+Pauli weight P2: 1
+
+p1: -1YZXYY
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: -1YZYXY
+p2: +1IIYZZ
+Pauli weight P2: 3
+
+p1: -1YZZZY
+p2: +1YIIIZ
+Pauli weight P2: 2
+
+Found Matches: 15
+Max Weight: 4
+P1 that creates max P2: +1IIYXI
+Max P2: +1YIYZZ
+CNOT count: 12

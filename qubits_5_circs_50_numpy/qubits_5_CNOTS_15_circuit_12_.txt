@@ -1,0 +1,166 @@
+           ┌───┐     ┌────────────┐┌───┐┌───┐          ┌────────────┐┌───┐┌───┐»
+q23_0: ────┤ S ├─────┤ Rz(2.2191) ├┤ H ├┤ S ├──■────■──┤ Rz(1.7258) ├┤ X ├┤ X ├»
+       ┌───┴───┴────┐└───┬───┬────┘├───┤└───┘  │    │  └────────────┘└─┬─┘└─┬─┘»
+q23_1: ┤ Rz(1.9921) ├────┤ S ├─────┤ X ├───────┼────┼──────────────────┼────■──»
+       └────────────┘    └───┘     └─┬─┘       │  ┌─┴─┐    ┌───┐       │       »
+q23_2: ──────────────────────────────┼─────────┼──┤ X ├────┤ H ├───────■────■──»
+           ┌───┐                     │         │  └───┘    └───┘            │  »
+q23_3: ────┤ S ├─────────────────────■─────────┼────────────────────────────┼──»
+           ├───┤                             ┌─┴─┐┌───┐                   ┌─┴─┐»
+q23_4: ────┤ H ├─────────────────────────────┤ X ├┤ H ├───────────────────┤ X ├»
+           └───┘                             └───┘└───┘                   └───┘»
+«                 ┌───┐┌───┐                                                   »
+«q23_0: ───────■──┤ S ├┤ H ├───────X───────────────────────────────────────────»
+«       ┌───┐  │  └───┘└───┘┌───┐  │                                           »
+«q23_1: ┤ S ├──┼────■───────┤ X ├──X───────────────────────────────────────────»
+«       └───┘  │  ┌─┴─┐┌───┐└─┬─┘┌───┐   ┌───┐                                 »
+«q23_2: ───────┼──┤ X ├┤ H ├──■──┤ H ├─X─┤ X ├─────────────────────X────────■──»
+«            ┌─┴─┐├───┤└───┘     └───┘ │ └─┬─┘┌───┐┌───┐           │      ┌─┴─┐»
+«q23_3: ─────┤ X ├┤ S ├────────────────┼───■──┤ X ├┤ H ├──■────────X──────┤ X ├»
+«            └───┘└───┘                │      └─┬─┘└───┘┌─┴─┐┌───────────┐├───┤»
+«q23_4: ───────────────────────────────X────────■───────┤ X ├┤ Rz(4.197) ├┤ S ├»
+«                                                       └───┘└───────────┘└───┘»
+«                      ┌───┐┌────────────┐     
+«q23_0: ───────────────┤ X ├┤ Rz(4.0583) ├─────
+«                      └─┬─┘└────────────┘     
+«q23_1: ────────────■────■─────────────────────
+«       ┌───┐┌───┐  │  ┌───┐    ┌───┐     ┌───┐
+«q23_2: ┤ S ├┤ H ├──┼──┤ S ├────┤ H ├─────┤ S ├
+«       ├───┤├───┤┌─┴─┐├───┤    └───┘     └───┘
+«q23_3: ┤ Z ├┤ S ├┤ X ├┤ S ├───────────────────
+«       ├───┤├───┤└───┘└───┘                   
+«q23_4: ┤ H ├┤ S ├─────────────────────────────
+«       └───┘└───┘                             
+{"cx": 15, "s": 14, "h": 11, "rz": 5, "swap": 3, "z": 1}
+p1: +1IYZZI
+p2: +1YIIII
+Pauli weight P2: 1
+
+p1: +1IZXII
+p2: +1IZYXZ
+Pauli weight P2: 4
+
+p1: +1XXYZI
+p2: +1IIZZZ
+Pauli weight P2: 3
+
+p1: +1YIIZI
+p2: +1IYXII
+Pauli weight P2: 2
+
+p1: +1YXYII
+p2: +1YXZXZ
+Pauli weight P2: 5
+
+p1: +1YYZII
+p2: +1YYXII
+Pauli weight P2: 3
+
+p1: +1ZIIZI
+p2: +1YXIYI
+Pauli weight P2: 3
+
+p1: +1ZXYII
+p2: +1IYYZZ
+Pauli weight P2: 4
+
+p1: +1ZYZII
+p2: +1IXIYI
+Pauli weight P2: 2
+
+p1: -1IXXII
+p2: +1IXYII
+Pauli weight P2: 2
+
+p1: -1IIZZI
+p2: +1YYIXZ
+Pauli weight P2: 4
+
+p1: -1IYIII
+p2: +1IYIXZ
+Pauli weight P2: 3
+
+p1: -1IXYZI
+p2: +1YZYXZ
+Pauli weight P2: 5
+
+p1: -1IZYZI
+p2: +1YXYII
+Pauli weight P2: 3
+
+p1: -1XIIII
+p2: +1YZXYI
+Pauli weight P2: 4
+
+p1: -1XIZZI
+p2: +1IXXZZ
+Pauli weight P2: 4
+
+p1: -1XXXII
+p2: +1YYZYI
+Pauli weight P2: 4
+
+p1: -1XYIII
+p2: +1YXXZZ
+Pauli weight P2: 5
+
+p1: -1XYZZI
+p2: +1IZXYI
+Pauli weight P2: 3
+
+p1: -1XZXII
+p2: +1YIZZZ
+Pauli weight P2: 4
+
+p1: -1XZYZI
+p2: +1IYZYI
+Pauli weight P2: 3
+
+p1: -1YIZII
+p2: +1YIXXZ
+Pauli weight P2: 4
+
+p1: -1YXXZI
+p2: +1IZZII
+Pauli weight P2: 2
+
+p1: -1YYIZI
+p2: +1IIXXZ
+Pauli weight P2: 3
+
+p1: -1YZXZI
+p2: +1IXZXZ
+Pauli weight P2: 4
+
+p1: -1YZYII
+p2: +1YZZII
+Pauli weight P2: 3
+
+p1: -1ZIZII
+p2: +1IZIZZ
+Pauli weight P2: 3
+
+p1: -1ZXXZI
+p2: +1YIYYI
+Pauli weight P2: 3
+
+p1: -1ZYIZI
+p2: +1YZIZZ
+Pauli weight P2: 4
+
+p1: -1ZZYII
+p2: +1IIYYI
+Pauli weight P2: 2
+
+p1: -1ZZXZI
+p2: +1YYYZZ
+Pauli weight P2: 5
+
+Found Matches: 31
+Max Weight: 5
+P1 that creates max P2: +1YXYII
+Max P2: +1YXZXZ
+Circuit no: 12
+Qubits: 5
+CNOT count: 15
+RZ count: 5

@@ -1,0 +1,77 @@
+                                        ┌───┐┌───┐          ┌───┐               ┌───┐                    
+q_0: ──■──────────────■────■────────────┤ X ├┤ S ├───────■──┤ T ├───────────────┤ X ├──■─────────■───────
+       │  ┌───┐┌───┐  │    │  ┌───┐┌───┐└─┬─┘└───┘       │  └───┘     ┌───┐┌───┐└─┬─┘  │         │  ┌───┐
+q_1: ──┼──┤ S ├┤ X ├──┼────┼──┤ X ├┤ T ├──┼────■─────────┼────■───────┤ X ├┤ X ├──┼────┼────■────┼──┤ X ├
+     ┌─┴─┐└───┘└─┬─┘  │    │  └─┬─┘├───┤  │    │  ┌───┐┌─┴─┐  │  ┌───┐└─┬─┘└─┬─┘  │  ┌─┴─┐  │    │  └─┬─┘
+q_2: ┤ X ├───────■────┼────┼────┼──┤ H ├──■────┼──┤ S ├┤ X ├──┼──┤ S ├──┼────■────┼──┤ X ├──┼────┼────■──
+     ├───┤┌───┐       │    │    │  ├───┤     ┌─┴─┐├───┤└───┘  │  └───┘  │  ┌───┐  │  └───┘┌─┴─┐┌─┴─┐     
+q_3: ┤ T ├┤ S ├───────┼────┼────■──┤ H ├─────┤ X ├┤ T ├───────┼─────────■──┤ S ├──┼───────┤ X ├┤ X ├─────
+     └───┘├───┤     ┌─┴─┐┌─┴─┐┌───┐├───┤     └───┘└───┘     ┌─┴─┐┌───┐     └───┘  │  ┌───┐├───┤└───┘     
+q_4: ─────┤ T ├─────┤ X ├┤ X ├┤ H ├┤ H ├────────────────────┤ X ├┤ T ├────────────■──┤ H ├┤ T ├──────────
+          └───┘     └───┘└───┘└───┘└───┘                    └───┘└───┘               └───┘└───┘          
+{"cx": 16, "t": 7, "s": 6, "h": 5}
+p1: +1IIIIZ
+p2: +1IIZIZ
+Pauli weight P2: 2
+
+p1: +1IZIXX
+p2: +1IYXIZ
+Pauli weight P2: 3
+
+p1: +1IZIXY
+p2: +1IYYII
+Pauli weight P2: 2
+
+p1: +1IZZZI
+p2: +1IZIIZ
+Pauli weight P2: 2
+
+p1: +1IZZZZ
+p2: +1IZZII
+Pauli weight P2: 2
+
+p1: -1ZIXYI
+p2: +1IZIII
+Pauli weight P2: 1
+
+p1: -1ZIXYZ
+p2: +1IZZIZ
+Pauli weight P2: 3
+
+p1: -1ZIYIX
+p2: +1IYXII
+Pauli weight P2: 2
+
+p1: -1ZIYIY
+p2: +1IYYIZ
+Pauli weight P2: 3
+
+p1: -1IIZYX
+p2: +1IXXII
+Pauli weight P2: 2
+
+p1: -1IIZYY
+p2: +1IXYIZ
+Pauli weight P2: 3
+
+p1: -1ZZXZX
+p2: +1IXXIZ
+Pauli weight P2: 3
+
+p1: -1ZZXZY
+p2: +1IXYII
+Pauli weight P2: 2
+
+p1: -1ZZYXI
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: -1ZZYXZ
+p2: +1IIZII
+Pauli weight P2: 1
+
+Found Matches: 15
+Max Weight: 3
+P1 that creates max P2: +1IZIXX
+Max P2: +1IYXIZ
+CNOT count: 16
