@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-import os
-import qiskit
-os.environ['OPENBLAS_NUM_THREADS'] = 'unlimited'
+import os, qiskit, cirq
 from qiskit.ignis.verification import tomography
 from copy import deepcopy
 import numpy as np
@@ -23,7 +21,6 @@ from os import listdir
 from os.path import isfile
 # import cProfile, io
 # from pstats import SortKey
-import cirq
 from cirq.contrib.qasm_import import circuit_from_qasm
 from cirq.qis import fidelity
 
@@ -46,11 +43,11 @@ if __name__ == "__main__":
 #  1.00000000e-02, 0.015, 0.02, 0.025, 0.03, 0.035, 0.06]
 
     # File stuff
-    subdir="/data/"
+    SUBDIR="/data/"
     # Gets the file path of the script
     # code_dir=sys.path[0]
-    code_dir=os.path.abspath(os.path.dirname(__file__))
-    BASE_PATH=code_dir+subdir
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    BASE_PATH=CODE_DIR+SUBDIR
     # Gets the files that match the string. Files include the path
     files_found=mymodule.get_files(BASE_PATH, NUMBER_OF_QUBITS, CNOT_COUNT, START_CIRC_NUMBER, END_CIRC_NUMBER)
     rand_circ_files=files_found[0]
@@ -104,11 +101,7 @@ if __name__ == "__main__":
             kraus_ops=(np.array([[1,0],[0,0]]),),
             validate=False
         )
-        # cirq_circ_initial_state=circuit_from_qasm(created_circs.circ_initial_state.qasm())
-        # circ_p1=circ_pieces[0]
         circ_compute=circ_pieces[1]
-        # circ_p2=circ_pieces[2]
-        # cirq_circ_with_checks_no_input=build_circ_no_intial_state(circ_p1, circ_compute, circ_p2, ancilla_name)
         #Error space
         cirq_circ_with_checks.append([projector0_channel.on(ancilla_qubit)])
         results=[]
