@@ -1,2 +1,8 @@
 qubits5_depth_generated_old/
 qubits5_depth_generated_old_renamed/
+rename_files.py
+read_codes_stats.py
+hpcNotes.txt
+startup.sh
+rename_files.py
+process_tomography.py

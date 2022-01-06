@@ -3,5 +3,5 @@
 for idx in 1 5 10 15 20 25 30 35 40 
 do
     # number of qubits, depth, number of circuits
-    sbatch gen_rand_circs.sh 10 $idx 20
+    sbatch gen_rand_circs.sh 10 $idx 50
 done

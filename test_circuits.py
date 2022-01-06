@@ -27,6 +27,7 @@ import math
 # import cProfile, io
 # from pstats import SortKey
 import line_profiler, kernprof
+import cirq
 
 # @profile
 def get_results(error_tuple):
@@ -203,80 +204,82 @@ def get_files(BASE_PATH, NUMBER_OF_QUBITS, CNOT_COUNT, start_circ_number, end_ci
 
     return (rand_circ_files, circ_properties_files)
 
-def add_rand_input_state(NUMBER_OF_QUBITS, circ_full, circ_no_checks):
+def add_rand_input_state(NUMBER_OF_QUBITS, quantum_register, circ_full, circ_no_checks):
     '''Create a random state.'''
     #Insert random state generator
     random_params = np.random.uniform(size=(NUMBER_OF_QUBITS, 3))
     for i,qreg in enumerate(quantum_register):
         for j, pauli in enumerate([X,Y,Z]):
             rand_tuple=(random_params[i][j])
-            circ_full = circ_full.compose((pauli * rand_tuple).exp_i().to_circuit(), [qreg])
-            circ_no_checks=circ_no_checks.compose((pauli * rand_tuple).exp_i().to_circuit(), [qreg])
+            circ_full.compose((pauli * rand_tuple).exp_i().to_circuit(), [qreg], inplace=True)
+            circ_no_checks.compose((pauli * rand_tuple).exp_i().to_circuit(), [qreg], inplace=True)
 
-# def create_check_circ(circ):
-#     pass
+def split_circuit_by_barrier(qasm_file_path):
+    '''Testing circuits: Split circuits by barrier.'''
+    with open(qasm_file_path, "r") as file:
+        qasm = file.read()
+        prelude = []
+        circuits = [[]]
+        for line in qasm.splitlines():
+            if any([line.startswith(t) for t in ['OPENQASM', 'include', 'qreg', 'creg']]):
+                prelude.append(line)
+            elif line.startswith('barrier'):
+                circuits.append([])
+            else:
+                circuits[-1].append(line)
+        circuits_with_prelude = [prelude+circuit for circuit in circuits]
+        return list(map(lambda x: QuantumCircuit.from_qasm_str("\n".join(x)), circuits_with_prelude))
 
-# def create_no_check_circ(circ):
-#     pass
+# def sso_results(error_tuple):
+#     global circ_full, circ_no_checks, final_state_no_errors_with_checks, final_state_no_errors_no_checks, reduced_correct_state
+#     error_idx=error_tuple[0]
+#     one_qubit_err=error_tuple[1]
+#     two_qubit_err = one_qubit_err*10
 
-# def get_sso_circ(circ, qubit_regs):
-#     '''Get sso circuit'''
+#     circ_no_checks.measure_all()
+#     circ_full.measure_all()
 
-#     pass
+#     # Depolarizing quantum errors
+#     error_1 = noise.depolarizing_error(one_qubit_err, 1)
+#     error_2 = noise.depolarizing_error(two_qubit_err, 2)
 
-def get_sso(result_err, result_ideal):
-    pass
+#     # Add errors to noise model
+#     noise_model = noise.NoiseModel()
+#     noise_model.add_all_qubit_quantum_error(error_1, ['id','rz','sx'])
+#     noise_model.add_all_qubit_quantum_error(error_2, ['cx'])
+#     basis_gates=noise_model.basis_gates
 
-def sso_results(error_tuple):
-    global circ_full, circ_no_checks, final_state_no_errors_with_checks, final_state_no_errors_no_checks, reduced_correct_state
-    error_idx=error_tuple[0]
-    one_qubit_err=error_tuple[1]
-    two_qubit_err = one_qubit_err*10
+#     simulator=Aer.get_backend('qasm_simulator')
+#     simulator.set_option("method", "density_matrix")
+#     # simulator.set_option("max_parallel_experiments", math.floor(psutil.cpu_count(logical=False)/cpus_pool))
+#     simulator.set_option("max_parallel_experiments", psutil.cpu_count(logical=False))
+#     simulator.set_option("noise_model", noise_model)
+#     result_with_checks=simulator.run(circ_full).result()
+#     result_no_checks=simulator.run(circ_no_checks).result()
 
-    circ_no_checks.measure_all()
-    circ_full.measure_all()
+#     print(result_no_checks)
+#     print(result_with_checks)
 
-    # Depolarizing quantum errors
-    error_1 = noise.depolarizing_error(one_qubit_err, 1)
-    error_2 = noise.depolarizing_error(two_qubit_err, 2)
+#     num_results_before_postselect=mymodule.get_number_of_results(result_with_checks)
+#     result_with_checks=mymodule.post_select_on_ancilla(result_with_checks, "0", NUMBER_OF_QUBITS)
+#     num_results_after_postselect=mymodule.get_number_of_results(result_with_checks)
+#     state_fidelity_no_checks_with_errors=get_sso(result_no_checks, final_state_no_errors_no_checks)
+#     state_fidelity_with_checks_with_errors=get_sso(result_with_checks, final_state_no_errors_no_checks)
+#     state_fidelity_with_checks_no_errors=state_fidelity(final_state_no_errors_with_checks, final_state_no_errors_no_checks)
 
-    # Add errors to noise model
-    noise_model = noise.NoiseModel()
-    noise_model.add_all_qubit_quantum_error(error_1, ['id','rz','sx'])
-    noise_model.add_all_qubit_quantum_error(error_2, ['cx'])
-    basis_gates=noise_model.basis_gates
+#     print("Error_idx", error_idx)
+#     print("One qubit error: "+str(one_qubit_err))
+#     print("One qubit error: "+str(two_qubit_err))
+#     print('State fidelity no checks with errors: ', state_fidelity_no_checks_with_errors)
+#     print('State fidelity with checks and errors: ', state_fidelity_with_checks_with_errors)
+#     # Sanity check
+#     print("Sanity check fidelity with checks no errors: ", state_fidelity_with_checks_no_errors)
+#     print()
+#     # print("One_qubit_err:", one_qubit_err)
+#     # print(circ.count_ops())
 
-    simulator=Aer.get_backend('qasm_simulator')
-    simulator.set_option("method", "density_matrix")
-    # simulator.set_option("max_parallel_experiments", math.floor(psutil.cpu_count(logical=False)/cpus_pool))
-    simulator.set_option("max_parallel_experiments", psutil.cpu_count(logical=False))
-    simulator.set_option("noise_model", noise_model)
-    result_with_checks=simulator.run(circ_full).result()
-    result_no_checks=simulator.run(circ_no_checks).result()
-
-    print(result_no_checks)
-    print(result_with_checks)
-
-    num_results_before_postselect=mymodule.get_number_of_results(result_with_checks)
-    result_with_checks=mymodule.post_select_on_ancilla(result_with_checks, "0", NUMBER_OF_QUBITS)
-    num_results_after_postselect=mymodule.get_number_of_results(result_with_checks)
-    state_fidelity_no_checks_with_errors=get_sso(result_no_checks, final_state_no_errors_no_checks)
-    state_fidelity_with_checks_with_errors=get_sso(result_with_checks, final_state_no_errors_no_checks)
-    state_fidelity_with_checks_no_errors=state_fidelity(final_state_no_errors_with_checks, final_state_no_errors_no_checks)
-
-    print("Error_idx", error_idx)
-    print("One qubit error: "+str(one_qubit_err))
-    print("One qubit error: "+str(two_qubit_err))
-    print('State fidelity no checks with errors: ', state_fidelity_no_checks_with_errors)
-    print('State fidelity with checks and errors: ', state_fidelity_with_checks_with_errors)
-    # Sanity check
-    print("Sanity check fidelity with checks no errors: ", state_fidelity_with_checks_no_errors)
-    print()
-    # print("One_qubit_err:", one_qubit_err)
-    # print(circ.count_ops())
-
-    return {"num_results_before_postselect": num_results_before_postselect, "num_results_after_postselect": num_results_after_postselect, "error_idx": error_idx, "one_qubit_err": one_qubit_err, "two_qubit_err": two_qubit_err, "state_fidelity_no_checks_with_errors": state_fidelity_no_checks_with_errors, 
-    "state_fidelity_with_checks_with_errors": state_fidelity_with_checks_with_errors, "state_fidelity_with_checks_no_errors": state_fidelity_with_checks_no_errors}
+#     return {"num_results_before_postselect": num_results_before_postselect, "num_results_after_postselect": num_results_after_postselect, "error_idx": error_idx, "one_qubit_err": one_qubit_err, "two_qubit_err": two_qubit_err, "state_fidelity_no_checks_with_errors": state_fidelity_no_checks_with_errors, 
+#     "state_fidelity_with_checks_with_errors": state_fidelity_with_checks_with_errors, "state_fidelity_with_checks_no_errors": state_fidelity_with_checks_no_errors}
 
 if __name__ == "__main__":
     # #Test
@@ -292,8 +295,8 @@ if __name__ == "__main__":
     start_circ_number=int(sys.argv[3])
     end_circ_number=int(sys.argv[4])
     #Determines if we run parallel or not.
-    PARALLEL=True
-    do_tomography=False
+    PARALLEL=False
+    do_tomography=True
     #Error space
     one_qubit_error_space=np.logspace(-5, -2, num=21) #goes from 10^-5 to 10^-2
     # one_qubit_error_space=np.logspace(-3, 0, num=21)
@@ -337,12 +340,12 @@ if __name__ == "__main__":
         max_pauli_weight=circ_info["max_pauli_weight"]
         max_pauli_str_p1=circ_info["max_pauli_str_p1"]
         max_pauli_str_p2=circ_info["max_pauli_str_p2"]
-        circ=QuantumCircuit.from_qasm_file(os.path.join(BASE_PATH, rand_circ_files[idx]))
+        circ_from_qasm=QuantumCircuit.from_qasm_file(os.path.join(BASE_PATH, rand_circ_files[idx]))
+        circ_pieces=split_circuit_by_barrier(os.path.join(BASE_PATH, rand_circ_files[idx]))
+        circ=circ_pieces[1]
         # If there were no Pauli checks found just skip.
         if max_pauli_weight == 0: 
             continue
-
-        unitary=Operator(circ)
 
         #Initial zero state. The randomness is introduced with the circuit.
         zero_state=Statevector.from_int(0, 2**(NUMBER_OF_QUBITS+1))
@@ -357,31 +360,39 @@ if __name__ == "__main__":
         circ_full=QuantumCircuit(quantum_register, ancilla_register)
         #Create the circuit with no checks
         circ_no_checks=QuantumCircuit(quantum_register, ancilla_register)
-        add_rand_input_state(NUMBER_OF_QUBITS, circ_full, circ_no_checks)
+        add_rand_input_state(NUMBER_OF_QUBITS, quantum_register, circ_full, circ_no_checks)
+
+        print(circ_no_checks)
+        print(circ_full)
+
+        circ_full.barrier()
+        circ_full.compose(circ_from_qasm, inplace=True)
+        circ_no_checks.barrier()
+        circ_no_checks.compose(circ_pieces[1], inplace=True)
 
         #Test
         # print(list(range(NUMBER_OF_QUBITS)))
-        comp_qubit_positions=list(range(circ.num_qubits))
+        comp_qubit_positions=list(range(NUMBER_OF_QUBITS))
 
         # Finish the full circuit
-        circ_full.h(ancilla_register[0])
-        circ_full.barrier(all_qubits)
-        circ_full=mymodule.add_controlU(circ_full, max_pauli_str_p1, NUMBER_OF_QUBITS, quantum_register, ancilla_register)
-        circ_full.barrier(all_qubits)
-        circ_full.compose(circ, qubits=comp_qubit_positions, inplace=True)
-        circ_full.barrier(all_qubits)
-        circ_full=mymodule.add_controlU(circ_full, max_pauli_str_p2, NUMBER_OF_QUBITS, quantum_register, ancilla_register)
-        circ_full.barrier(all_qubits)
-        circ_full.h(ancilla_register[0])
-        print(circ_full.decompose())
+        # circ_full.h(ancilla_register[0])
+        # circ_full.barrier(all_qubits)
+        # circ_full=mymodule.add_controlU(circ_full, max_pauli_str_p1, NUMBER_OF_QUBITS, quantum_register, ancilla_register)
+        # circ_full.barrier(all_qubits)
+        # circ_full.compose(circ, qubits=comp_qubit_positions, inplace=True)
+        # circ_full.barrier(all_qubits)
+        # circ_full=mymodule.add_controlU(circ_full, max_pauli_str_p2, NUMBER_OF_QUBITS, quantum_register, ancilla_register)
+        # circ_full.barrier(all_qubits)
+        # circ_full.h(ancilla_register[0])
+        # print(circ_full.decompose())
 
         #Finish the circuit with no checks
-        circ_no_checks.compose(circ, qubits=comp_qubit_positions, inplace=True)
+        # circ_no_checks.compose(circ, qubits=comp_qubit_positions, inplace=True)
         # print(circ_no_checks.decompose())
 
         #Test
         print("circ")
-        print(circ)
+        print(circ_from_qasm)
         print("circ full")
         print(circ_full)
         print("circ no checks")
@@ -457,7 +468,7 @@ if __name__ == "__main__":
                     results=list(pool.imap_unordered(get_results, enumerate(one_qubit_error_space)))
                 else:
                     print("here")
-                    results=list(pool.imap_unordered(sso_results, enumerate(one_qubit_error_space)))
+                    results=list(pool.imap_unordered(get_results, enumerate(one_qubit_error_space)))
         else:
             # Non parallel.
             results=[]

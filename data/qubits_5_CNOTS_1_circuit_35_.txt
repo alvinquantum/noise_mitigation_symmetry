@@ -1,0 +1,2868 @@
+             ┌───┐     ┌─────────────┐┌───┐    ┌───┐        ┌────────────┐
+q141_0: ─────┤ S ├─────┤ Rz(0.76042) ├┤ H ├────┤ S ├──────X─┤ Rz(1.1643) ├
+             └───┘     └─────────────┘└───┘    └───┘      │ └────────────┘
+q141_1: ──────────────────────■───────────────────────────┼───────────────
+             ┌───┐            │       ┌───┐               │               
+q141_2: ─────┤ S ├────────────┼───────┤ H ├───────────────X───────────────
+        ┌────┴───┴────┐     ┌─┴─┐     ├───┤┌────────────┐                 
+q141_3: ┤ Rz(0.96475) ├─────┤ X ├─────┤ H ├┤ Rz(1.4336) ├─────────────────
+        └────┬───┬────┘ ┌───┴───┴────┐└───┘└────────────┘                 
+q141_4: ─────┤ S ├──────┤ Rz(2.5265) ├────────────────────────────────────
+             └───┘      └────────────┘                                    
+{"rz": 5, "s": 4, "h": 3, "cx": 1, "swap": 1}
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXZ
+p2: -1IZYXI
+Pauli weight P2: 3
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYZ
+p2: -1IZYYI
+Pauli weight P2: 3
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYIZ
+p2: -1IIYIZ
+Pauli weight P2: 2
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: -1IIYXI
+p2: +1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXZ
+p2: -1IZYXZ
+Pauli weight P2: 4
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: -1IIYYI
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYZ
+p2: -1IZYYZ
+Pauli weight P2: 4
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZZ
+p2: -1IIYZZ
+Pauli weight P2: 3
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXZ
+p2: -1IZYXI
+Pauli weight P2: 3
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYZ
+p2: -1IZYYI
+Pauli weight P2: 3
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYIZ
+p2: -1IIYIZ
+Pauli weight P2: 2
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: -1IIYXI
+p2: +1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXZ
+p2: -1IZYXZ
+Pauli weight P2: 4
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: -1IIYYI
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYZ
+p2: -1IZYYZ
+Pauli weight P2: 4
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZZ
+p2: -1IIYZZ
+Pauli weight P2: 3
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXZ
+p2: -1IZYXI
+Pauli weight P2: 3
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYZ
+p2: -1IZYYI
+Pauli weight P2: 3
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYIZ
+p2: -1IIYIZ
+Pauli weight P2: 2
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: -1IIYXI
+p2: +1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXZ
+p2: -1IZYXZ
+Pauli weight P2: 4
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: -1IIYYI
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYZ
+p2: -1IZYYZ
+Pauli weight P2: 4
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZZ
+p2: -1IIYZZ
+Pauli weight P2: 3
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZZ
+p2: -1IIYZZ
+Pauli weight P2: 3
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYIZ
+p2: -1IIYIZ
+Pauli weight P2: 2
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXZ
+p2: -1IZYXI
+Pauli weight P2: 3
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYZ
+p2: -1IZYYI
+Pauli weight P2: 3
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYIZ
+p2: -1IIYIZ
+Pauli weight P2: 2
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: -1IIYXI
+p2: +1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXZ
+p2: -1IZYXZ
+Pauli weight P2: 4
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: -1IIYYI
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYZ
+p2: -1IZYYZ
+Pauli weight P2: 4
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZZ
+p2: -1IIYZZ
+Pauli weight P2: 3
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXZ
+p2: -1IZYXI
+Pauli weight P2: 3
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYZ
+p2: -1IZYYI
+Pauli weight P2: 3
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYIZ
+p2: -1IIYIZ
+Pauli weight P2: 2
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: -1IIYXI
+p2: +1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXZ
+p2: -1IZYXZ
+Pauli weight P2: 4
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: -1IIYYI
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYZ
+p2: -1IZYYZ
+Pauli weight P2: 4
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZZ
+p2: -1IIYZZ
+Pauli weight P2: 3
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXZ
+p2: -1IZYXI
+Pauli weight P2: 3
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYZ
+p2: -1IZYYI
+Pauli weight P2: 3
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYIZ
+p2: -1IIYIZ
+Pauli weight P2: 2
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: -1IIYXI
+p2: +1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXZ
+p2: -1IZYXZ
+Pauli weight P2: 4
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: -1IIYYI
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYZ
+p2: -1IZYYZ
+Pauli weight P2: 4
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZZ
+p2: -1IIYZZ
+Pauli weight P2: 3
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZZ
+p2: -1IIYZZ
+Pauli weight P2: 3
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYIZ
+p2: -1IIYIZ
+Pauli weight P2: 2
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXZ
+p2: -1IZYXI
+Pauli weight P2: 3
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYZ
+p2: -1IZYYI
+Pauli weight P2: 3
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYIZ
+p2: +1IIYIZ
+Pauli weight P2: 2
+
+p1: -1IIYXI
+p2: +1IZIXZ
+Pauli weight P2: 3
+
+p1: -1IIYXI
+p2: +1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: -1IIYXZ
+p2: +1IZYXZ
+Pauli weight P2: 4
+
+p1: -1IIYYI
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: -1IIYYI
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: -1IIYYZ
+p2: +1IZYYZ
+Pauli weight P2: 4
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZZ
+p2: +1IIYZZ
+Pauli weight P2: 3
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXZ
+p2: -1IZYXI
+Pauli weight P2: 3
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYZ
+p2: -1IZYYI
+Pauli weight P2: 3
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXZ
+p2: -1IZYXI
+Pauli weight P2: 3
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYZ
+p2: -1IZYYI
+Pauli weight P2: 3
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYIZ
+p2: +1IIYIZ
+Pauli weight P2: 2
+
+p1: -1IIYXI
+p2: +1IZIXZ
+Pauli weight P2: 3
+
+p1: -1IIYXI
+p2: +1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: -1IIYXZ
+p2: +1IZYXZ
+Pauli weight P2: 4
+
+p1: -1IIYYI
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: -1IIYYI
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: -1IIYYZ
+p2: +1IZYYZ
+Pauli weight P2: 4
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZZ
+p2: +1IIYZZ
+Pauli weight P2: 3
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXZ
+p2: -1IZYXI
+Pauli weight P2: 3
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYZ
+p2: -1IZYYI
+Pauli weight P2: 3
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXZ
+p2: -1IZYXI
+Pauli weight P2: 3
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYZ
+p2: -1IZYYI
+Pauli weight P2: 3
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXZ
+p2: +1IZYXI
+Pauli weight P2: 3
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYZ
+p2: +1IZYYI
+Pauli weight P2: 3
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYIZ
+p2: +1IIYIZ
+Pauli weight P2: 2
+
+p1: -1IIYXI
+p2: +1IZIXZ
+Pauli weight P2: 3
+
+p1: -1IIYXI
+p2: +1IZIXZ
+Pauli weight P2: 3
+
+p1: +1IIYXI
+p2: -1IZIXZ
+Pauli weight P2: 3
+
+p1: -1IIYXZ
+p2: +1IZYXZ
+Pauli weight P2: 4
+
+p1: -1IIYYI
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: -1IIYYI
+p2: +1IZIYZ
+Pauli weight P2: 3
+
+p1: +1IIYYI
+p2: -1IZIYZ
+Pauli weight P2: 3
+
+p1: -1IIYYZ
+p2: +1IZYYZ
+Pauli weight P2: 4
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZZ
+p2: +1IIYZZ
+Pauli weight P2: 3
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXI
+p2: -1IZIXI
+Pauli weight P2: 2
+
+p1: +1IIIXI
+p2: +1IZIXI
+Pauli weight P2: 2
+
+p1: -1IIIXZ
+p2: -1IZYXI
+Pauli weight P2: 3
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYI
+p2: -1IZIYI
+Pauli weight P2: 2
+
+p1: +1IIIYI
+p2: +1IZIYI
+Pauli weight P2: 2
+
+p1: -1IIIYZ
+p2: -1IZYYI
+Pauli weight P2: 3
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZZ
+p2: +1IIYZI
+Pauli weight P2: 2
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIIZ
+p2: +1IIYII
+Pauli weight P2: 1
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZI
+p2: +1IIIZZ
+Pauli weight P2: 2
+
+p1: +1IIYZI
+p2: -1IIIZZ
+Pauli weight P2: 2
+
+p1: -1IIYZZ
+p2: +1IIYZZ
+Pauli weight P2: 3
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYII
+p2: +1IIIIZ
+Pauli weight P2: 1
+
+p1: +1IIYII
+p2: -1IIIIZ
+Pauli weight P2: 1
+
+p1: -1IIYIZ
+p2: +1IIYIZ
+Pauli weight P2: 2
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZI
+p2: -1IIIZI
+Pauli weight P2: 1
+
+p1: +1IIIZI
+p2: +1IIIZI
+Pauli weight P2: 1
+
+p1: -1IIIZZ
+p2: -1IIYZI
+Pauli weight P2: 2
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIII
+p2: -1IIIII
+Pauli weight P2: 0
+
+p1: +1IIIII
+p2: +1IIIII
+Pauli weight P2: 0
+
+p1: -1IIIIZ
+p2: -1IIYII
+Pauli weight P2: 1
+
+p1: +1ZIIII
+p2: +1ZIIII
+Pauli weight P2: 1
+
+p1: +1ZIIII
+p2: +1ZIIII
+Pauli weight P2: 1
+
+p1: -1ZIIII
+p2: -1ZIIII
+Pauli weight P2: 1
+
+p1: +1ZIIIZ
+p2: +1ZIYII
+Pauli weight P2: 2
+
+p1: +1ZIIXI
+p2: +1ZZIXI
+Pauli weight P2: 3
+
+p1: +1ZIIXI
+p2: +1ZZIXI
+Pauli weight P2: 3
+
+p1: -1ZIIXI
+p2: -1ZZIXI
+Pauli weight P2: 3
+
+p1: +1ZIIXZ
+p2: +1ZZYXI
+Pauli weight P2: 4
+
+p1: +1ZIIYI
+p2: +1ZZIYI
+Pauli weight P2: 3
+
+p1: +1ZIIYI
+p2: +1ZZIYI
+Pauli weight P2: 3
+
+p1: -1ZIIYI
+p2: -1ZZIYI
+Pauli weight P2: 3
+
+p1: +1ZIIYZ
+p2: +1ZZYYI
+Pauli weight P2: 4
+
+p1: +1ZIIZI
+p2: +1ZIIZI
+Pauli weight P2: 2
+
+p1: +1ZIIZI
+p2: +1ZIIZI
+Pauli weight P2: 2
+
+p1: -1ZIIZI
+p2: -1ZIIZI
+Pauli weight P2: 2
+
+p1: +1ZIIZZ
+p2: +1ZIYZI
+Pauli weight P2: 3
+
+p1: -1ZIIII
+p2: -1ZIIII
+Pauli weight P2: 1
+
+p1: -1ZIIII
+p2: -1ZIIII
+Pauli weight P2: 1
+
+p1: +1ZIIII
+p2: +1ZIIII
+Pauli weight P2: 1
+
+p1: -1ZIIIZ
+p2: -1ZIYII
+Pauli weight P2: 2
+
+p1: -1ZIIXI
+p2: -1ZZIXI
+Pauli weight P2: 3
+
+p1: -1ZIIXI
+p2: -1ZZIXI
+Pauli weight P2: 3
+
+p1: +1ZIIXI
+p2: +1ZZIXI
+Pauli weight P2: 3
+
+p1: -1ZIIXZ
+p2: -1ZZYXI
+Pauli weight P2: 4
+
+p1: -1ZIIYI
+p2: -1ZZIYI
+Pauli weight P2: 3
+
+p1: -1ZIIYI
+p2: -1ZZIYI
+Pauli weight P2: 3
+
+p1: +1ZIIYI
+p2: +1ZZIYI
+Pauli weight P2: 3
+
+p1: -1ZIIYZ
+p2: -1ZZYYI
+Pauli weight P2: 4
+
+p1: -1ZIIZI
+p2: -1ZIIZI
+Pauli weight P2: 2
+
+p1: -1ZIIZI
+p2: -1ZIIZI
+Pauli weight P2: 2
+
+p1: +1ZIIZI
+p2: +1ZIIZI
+Pauli weight P2: 2
+
+p1: -1ZIIZZ
+p2: -1ZIYZI
+Pauli weight P2: 3
+
+p1: +1ZIYII
+p2: -1ZIIIZ
+Pauli weight P2: 2
+
+p1: +1ZIYII
+p2: -1ZIIIZ
+Pauli weight P2: 2
+
+p1: -1ZIYII
+p2: +1ZIIIZ
+Pauli weight P2: 2
+
+p1: +1ZIYIZ
+p2: -1ZIYIZ
+Pauli weight P2: 3
+
+p1: +1ZIYXI
+p2: -1ZZIXZ
+Pauli weight P2: 4
+
+p1: +1ZIYXI
+p2: -1ZZIXZ
+Pauli weight P2: 4
+
+p1: -1ZIYXI
+p2: +1ZZIXZ
+Pauli weight P2: 4
+
+p1: +1ZIYXZ
+p2: -1ZZYXZ
+Pauli weight P2: 5
+
+Found Matches: 712
+Max Weight: 5
+P1 that creates max P2: +1ZIYXZ
+Max P2: -1ZZYXZ
+Circuit no: 35
+Qubits: 5
+CNOT count: 1
+RZ count: 5

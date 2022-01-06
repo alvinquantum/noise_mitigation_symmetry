@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import os
+# The number of threads is capped on Bebop.
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+from qiskit.circuit.quantumregister import QuantumRegister
 
 from qiskit.converters.circuit_to_dag import circuit_to_dag
 from qiskit.converters.dag_to_circuit import dag_to_circuit
 from scipy.sparse.extract import find
-# The number of threads is capped on Bebop.
-os.environ['OPENBLAS_NUM_THREADS'] = '1'
 from re import M
 import numpy as np
 import math, sys, pickle, ctypes, psutil, json
@@ -27,9 +28,9 @@ import time
 import cProfile
 
 def initialize(ABS_TOL_ARG, circ_properties_arg,
-                    pauli_labels_arg, pauli_group_positive_arg, table_length_arg):
+                    pauli_labels_arg, table_length_arg):
     '''Initialize globals for pool'''
-    global ABS_TOL, circ_properties, pauli_labels, pauli_group_positive, table_length
+    global ABS_TOL, circ_properties, pauli_labels, table_length
     #Passed from the main
     #Program parameters passed from main
     # Absolute tolerance for checking if the trace of p2 is close to zero with the isclose function.
@@ -38,14 +39,16 @@ def initialize(ABS_TOL_ARG, circ_properties_arg,
 
     #Tables passed from main
     pauli_labels=pauli_labels_arg
-    pauli_group_positive=pauli_group_positive_arg
     table_length=table_length_arg
-
 
 def get_checks_parallel(pauli_group_elem):
     '''Wrapper function. Get the checks in parallel.'''
-    global ABS_TOL, circ_properties, pauli_labels, pauli_group_positive, table_length
+    global ABS_TOL, circ_properties, pauli_labels, table_length
     return mymodule.find_checks_sym(pauli_group_elem, circ_properties.circ)
+
+def print_circ_to_file():
+    '''Prints the circ to the file.'''
+    circuit_drawer(circ, filename=output_file_path)
 
 if __name__ == "__main__":
     # #Disable qiskit parallel.
@@ -53,9 +56,9 @@ if __name__ == "__main__":
     print("running...")
     #Program parameters
     # func_params=FunctionParams()
-    NUMBER_OF_QUBITS=10#int(sys.argv[1])
-    CNOT_COUNT=10#int(sys.argv[2])
-    NUMBER_OF_CIRCUITS=10#int(sys.argv[3])
+    NUMBER_OF_QUBITS=int(sys.argv[1])
+    CNOT_COUNT=int(sys.argv[2])
+    NUMBER_OF_CIRCUITS=int(sys.argv[3])
     if NUMBER_OF_QUBITS<=5:
         PARALLEL=False
     else:
@@ -81,7 +84,6 @@ if __name__ == "__main__":
     #Labels will be used to print pauli strings in the loop
     pauli_labels=pauli_table.to_labels()
     pauli_group=pauli_table
-    pauli_group_positive=None
     
     # #Convert to matrices
     # pauli_group_positive=list(map(lambda x:x.to_matrix(),pauli_table))
@@ -143,10 +145,10 @@ if __name__ == "__main__":
         # each time. If we parallelize across individual circuits, each generation of circuit will be slow.
         if PARALLEL:
             with Pool(psutil.cpu_count(logical=False), initialize, initargs=(ABS_TOL, circ_properties,
-                    pauli_labels, pauli_group_positive, table_length)) as pool:
+                    pauli_labels, table_length)) as pool:
                 #In some cases pool.imap_unordered needs to be wrapped in list in order to return properly. 
                 #see: https://stackoverflow.com/questions/5481104/multiprocessing-pool-imap-broken
-                for result in pool.imap_unordered(get_checks_parallel, pauli_labels, chunksize=1000):
+                for result in pool.imap_unordered(get_checks_parallel, reversed(pauli_labels), chunksize=100):
                 # pool.map(find_p1s_p2s, enumerate(pauli_group))                    
                     #Store the results.
                     if result:
@@ -185,7 +187,8 @@ if __name__ == "__main__":
                 # cProfile.run("find_p1s_p2s(elem)", filename="rand_circ_stats.txt")
         checks_properties=mymodule.ChecksProperties(count, p2_weights, pauli_str_p1s, pauli_str_p2s)
         # Combine the circuit and checks.
-        #todo.
+        if p2_weights[0]>0:
+            circ_properties.circ=mymodule.append_checks_to_circ(circ_properties, checks_properties)
         mymodule.write_outputs(circ_properties, checks_properties, file_number, file_info_path, file_qasm_path, output_file)
 
         print("execution time", time.time()-time0)
