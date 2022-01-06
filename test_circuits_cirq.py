@@ -29,8 +29,8 @@ if __name__ == "__main__":
     #Program parameters. These are globals in the parallel program passed from shell.
     NUMBER_OF_QUBITS=5#int(sys.argv[1])
     CNOT_COUNT=10#int(sys.argv[2])
-    START_CIRC_NUMBER=6#int(sys.argv[3])
-    END_CIRC_NUMBER=6#int(sys.argv[4])
+    START_CIRC_NUMBER=0#int(sys.argv[3])
+    END_CIRC_NUMBER=10#int(sys.argv[4])
     #Determines if we run parallel or not.
     PARALLEL=False
     #Error space
@@ -49,9 +49,7 @@ if __name__ == "__main__":
     CODE_DIR=os.path.abspath(os.path.dirname(__file__))
     BASE_PATH=CODE_DIR+SUBDIR
     # Gets the files that match the string. Files include the path
-    files_found=mymodule.get_files(BASE_PATH, NUMBER_OF_QUBITS, CNOT_COUNT, START_CIRC_NUMBER, END_CIRC_NUMBER)
-    rand_circ_files=files_found[0]
-    circ_properties_files=files_found[1]
+    rand_circ_files, circ_properties_files=mymodule.get_files(BASE_PATH, NUMBER_OF_QUBITS, CNOT_COUNT, START_CIRC_NUMBER, END_CIRC_NUMBER)
 
     #Get the qasm and pickle info
     for idx, file_name in enumerate(circ_properties_files):
@@ -75,16 +73,14 @@ if __name__ == "__main__":
         if checks_properties.p2_weights == 0: 
             continue
 
-        ancilla_name="q1"
-        created_circs=mymodule.create_circs(NUMBER_OF_QUBITS, circ_pieces, ancilla_name)
+        created_circs=mymodule.create_circs(NUMBER_OF_QUBITS, circ_pieces)
         # print(created_circs)
-        cirq_circ_with_checks =circuit_from_qasm(created_circs.circ_with_checks.qasm())
-        cirq_circ_no_checks=circuit_from_qasm(created_circs.circ_no_checks.qasm())
-        cirq_circ_initial_state=circuit_from_qasm(created_circs.circ_initial_state.qasm())
-        print(cirq_circ_initial_state)
+        cirq_circ_with_checks =created_circs.circ_with_checks
+        cirq_circ_no_checks=created_circs.circ_no_checks
+        cirq_circ_initial_state=created_circs.circ_initial_state
+        # print(cirq_circ_initial_state)
 
         keep_qubits=list(range(NUMBER_OF_QUBITS))
-        # Cirq_circ_no_checks has NUMBER_OF_QUBITS+1 qubits including the ancilla. However
 
         rho_correct=mymodule.get_result_rho(cirq_circ_no_checks, NUMBER_OF_QUBITS, keep_qubits)
         rho_checks=mymodule.get_result_rho(cirq_circ_with_checks, NUMBER_OF_QUBITS+1, keep_qubits)
@@ -93,17 +89,7 @@ if __name__ == "__main__":
         assert sanity_check_fidelity>0.98, "Sanity check fidelity failed for circuit "+file_name
 
         #Noisy stuff.
-        ancilla_qubit=cirq.NamedQubit(ancilla_name+"_0")
-        # Creates a channel that applies the zero projector. We use this to get the measurement zero outcome of the
-        # density matrix. Since the resulting trial density matrix is unormalized we can get the percentages of outcomes that
-        # we discard.
-        projector0_channel=cirq.KrausChannel(
-            kraus_ops=(np.array([[1,0],[0,0]]),),
-            validate=False
-        )
-        circ_compute=circ_pieces[1]
-        #Error space
-        cirq_circ_with_checks.append([projector0_channel.on(ancilla_qubit)])
+        cirq_circ_compute=circ_pieces[1]
         results=[]
         test_circs=mymodule.TestCircuits(cirq_circ_with_checks, cirq_circ_no_checks, NUMBER_OF_QUBITS, rho_correct, sanity_check_fidelity, keep_qubits)
         for error_idx, single_qubit_error in enumerate(SINGLE_QUBIT_ERROR_SPACE):

@@ -204,10 +204,7 @@ def copy_node(new_qc, node):
         new_qc.cx(node.qargs[0].index, node.qargs[1].index)
     elif node.name=="swap":
         new_qc.swap(node.qargs[0].index, node.qargs[1].index)
-    #Test
     elif node.name=="rz":
-        # print(node.op.params)
-        # print(type(node.op))
         new_qc.rz(node.op.params[0], node.qargs[0].index)
     elif node.name=="sx":
         new_qc.sx(node.qargs[0].index)   
@@ -243,7 +240,6 @@ def random_circuit_depth(num_qubits, depth, seed=None):
 
     qr = QuantumRegister(num_qubits, 'q')
     qc = QuantumCircuit(num_qubits)
-
 
     if seed is None:
         seed = np.random.randint(0, np.iinfo(np.int32).max)
@@ -511,10 +507,10 @@ class TestCircuits:
         print()
 
         return {"num_results_before_postselect": 1, "num_results_after_postselect": ancilla_zero_outcome_probability, "error_idx": error_idx, 
-        "one_qubit_err": single_qubit_error, "two_qubit_err": 10*single_qubit_error, 
-        "state_fidelity_no_checks_with_errors": fidelity_noisy_rho_no_check, 
-        "state_fidelity_with_checks_with_errors": fidelity_noisy_rho_with_check, 
-        "state_fidelity_with_checks_no_errors": sanity_check_fidelity}
+            "one_qubit_err": single_qubit_error, "two_qubit_err": 10*single_qubit_error, 
+            "state_fidelity_no_checks_with_errors": fidelity_noisy_rho_no_check, 
+            "state_fidelity_with_checks_with_errors": fidelity_noisy_rho_with_check, 
+            "state_fidelity_with_checks_no_errors": sanity_check_fidelity}
 
 class ChecksProperties:
     '''Checks properties holder.'''
@@ -1072,7 +1068,7 @@ def get_files(base_path, number_of_qubits, cnot_count, start_circ_number, end_ci
             rand_circ_files.append(file)
             circ_properties_files.append("_".join(name_split[:-1])+"_.obj")
 
-    return (rand_circ_files, circ_properties_files)
+    return rand_circ_files, circ_properties_files
 
 def add_rand_input_state(number_of_qubits, quantum_register, circ_with_checks, circ_no_checks):
     '''Testing circuits: Create a random state. Need to send both circs at the same time so they have the same random initial state.'''
@@ -1094,55 +1090,58 @@ def get_checks_properties(base_path, file_name):
 
 class Circs:
     '''Testing circuits: Holder for circ variables.'''
-    def __init__(self, quantum_register, ancilla_register, circ_with_checks, circ_no_checks, circ_initial_state):
+    def __init__(self, quantum_register, circ_with_checks, circ_no_checks, circ_initial_state):
         self.quantum_register=quantum_register
-        self.ancilla_register=ancilla_register
+        # self.ancilla_register=ancilla_register
         self.circ_with_checks=circ_with_checks
         self.circ_no_checks=circ_no_checks
         self.circ_initial_state=circ_initial_state
 
-def create_circs(number_of_qubits, circ_pieces, ancilla_name):
+def create_circs(number_of_qubits, circ_pieces):
     '''Testing circuits: Creates circs no checks and with checks. The circs have the same random initial state.
     Return type: list'''
-    #Create the complete circuit without a measurement
-    quantum_register=QuantumRegister(number_of_qubits)
-    ancilla_register=QuantumRegister(1, name=ancilla_name)
-    
-    all_qubits=[]
-    for reg in quantum_register:
-        all_qubits.append(reg)
-    all_qubits.append(ancilla_register[0])
-    circ_with_checks=QuantumCircuit(quantum_register, ancilla_register)
+    # The size of the circuit is number_of_qubit+1 since we have an ancila. We label the qubits
+    # so that we can access the ancilla qubit later, i.e., the ancilla label is "q_{num}".format(number_of_qubits) 
+    qubits_label="q"
+    quantum_register=QuantumRegister(number_of_qubits+1, qubits_label)
+    circ_with_checks=QuantumCircuit(quantum_register)
     #Create the circuit with no checks
-    circ_no_checks=QuantumCircuit(quantum_register, ancilla_register)
-    add_rand_input_state(number_of_qubits, quantum_register, circ_with_checks, circ_no_checks)
+    circ_no_checks=QuantumCircuit(quantum_register)
+    add_rand_input_state(number_of_qubits, quantum_register[:number_of_qubits:], circ_with_checks, circ_no_checks)
     # Save the initial state circuit.
     circ_initial_state=deepcopy(circ_no_checks)
     # print("random initial state", rand_initial_state)
     # circ_with_checks.barrier()
-    circ_with_checks.h(ancilla_register)
+    circ_with_checks.h(number_of_qubits)
     for elem in circ_pieces:
         # circ_with_checks.barrier()
         circ_with_checks.compose(elem, inplace=True)
     # circ_with_checks.barrier()
     circ_no_checks.compose(circ_pieces[1], inplace=True)
-    circ_with_checks.h(ancilla_register)
-    #Test
-    # print("original")
-    # for circ in circ_pieces:
-    #     print(circ)
-    # print("circ full")
-    # print(circ_full)
-    # print("circ no checks")
-    # print(circ_no_checks)
-    # print(circ_with_checks)
+    circ_with_checks.h(number_of_qubits)
+
     #Test
     basis_gates=['u1', 'u2', 'u3', 'cx']
     circ_with_checks=transpile(circ_with_checks, basis_gates=basis_gates, optimization_level=0)
     circ_no_checks=transpile(circ_no_checks, basis_gates=basis_gates, optimization_level=0)
     circ_initial_state=transpile(circ_initial_state, basis_gates=basis_gates, optimization_level=0)
+    cirq_circ_with_checks =circuit_from_qasm(circ_with_checks.qasm())
+    cirq_circ_no_checks=circuit_from_qasm(circ_no_checks.qasm())
+    cirq_circ_initial_state=circuit_from_qasm(circ_initial_state.qasm())
     print(circ_with_checks)
-    return Circs(quantum_register, ancilla_register, circ_with_checks, circ_no_checks, circ_initial_state)
+    print(circ_no_checks)
+
+    ancilla_qubit=cirq.NamedQubit(qubits_label+"_"+str(number_of_qubits))
+    # Creates a channel that applies the zero projector. We use this to get the measurement zero outcome of the
+    # density matrix. Since the resulting trial density matrix is unormalized we can get the percentages of outcomes that
+    # we discard.
+    projector0_channel=cirq.KrausChannel(
+        kraus_ops=(np.array([[1,0],[0,0]]),),
+        validate=False
+    )
+    cirq_circ_with_checks.append([projector0_channel.on(ancilla_qubit)])
+
+    return Circs(quantum_register, cirq_circ_with_checks, cirq_circ_no_checks, cirq_circ_initial_state)
 
 def split_circuit_by_barrier(qasm_file_path):
     '''Testing circuits: Split circuits by barrier.'''
@@ -1159,15 +1158,6 @@ def split_circuit_by_barrier(qasm_file_path):
                 circuits[-1].append(line)
         circuits_with_prelude = [prelude+circuit for circuit in circuits]
         return list(map(lambda x: QuantumCircuit.from_qasm_str("\n".join(x)), circuits_with_prelude))
-
-# def get_fidelity(circ, number_of_qubits, rho_compare):
-#     '''Testing circuits: Uses Google Cirq. Returns the fidelity between the output of circ and rho_compare.'''
-#     # Add noise to the circuit
-#     rho_circ=simulator.simulate(circ).final_density_matrix
-#     rho_circ_reduced=partial_trace(np.reshape(rho_circ, [2,2]*(number_of_qubits+1)), keep_indices=keep_qubits)
-#     rho_circ_reduced=np.reshape(rho_circ_reduced, (2**number_of_qubits, 2**number_of_qubits))
-#     result=fidelity(rho_circ_reduced, rho_compare, qid_shape=(2**(number_of_qubits),), validate=False)
-#     return result
 
 def get_result_rho(circ, number_of_qubits, keep_qubits):
     '''Testing circuits: Uses Google Cirq. 
