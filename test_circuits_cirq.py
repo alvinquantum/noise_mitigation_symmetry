@@ -28,9 +28,9 @@ if __name__ == "__main__":
     print("running...")
     #Program parameters. These are globals in the parallel program passed from shell.
     NUMBER_OF_QUBITS=5#int(sys.argv[1])
-    CNOT_COUNT=1#int(sys.argv[2])
-    START_CIRC_NUMBER=0#int(sys.argv[3])
-    END_CIRC_NUMBER=0#int(sys.argv[4])
+    CNOT_COUNT=10#int(sys.argv[2])
+    START_CIRC_NUMBER=6#int(sys.argv[3])
+    END_CIRC_NUMBER=6#int(sys.argv[4])
     #Determines if we run parallel or not.
     PARALLEL=False
     #Error space

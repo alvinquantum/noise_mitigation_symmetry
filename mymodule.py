@@ -1,18 +1,3 @@
-# This code has been modified from Qiskit
-
-# This code is part of Qiskit.
-#
-# (C) Copyright IBM 2017.
-#
-# This code is licensed under the Apache License, Version 2.0. You may
-# obtain a copy of this license in the LICENSE.txt file in the root directory
-# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
-#
-# Any modifications or derivative works of this code must retain this
-# copyright notice, and modified files need to carry a notice indicating
-# that they have been altered from the originals.
-
-
 from copy import deepcopy
 import numpy as np
 from qiskit import execute, transpile, QuantumCircuit
@@ -33,9 +18,6 @@ from cirq.contrib.qasm_import import circuit_from_qasm
 from cirq.qis import fidelity
 from os import listdir
 from os.path import isfile
-
-def split_circ():
-    pass
 
 def random_circuit_cnot(num_qubits, num_cnots_required, seed=None):
     """Generate random circ: Generates a random circuit with num_qubits, 5 rz gates and num_cnots
@@ -58,10 +40,8 @@ def random_circuit_cnot(num_qubits, num_cnots_required, seed=None):
         qc.compose(qc_temp, inplace=True)
     
     # Too many cnots so trim.
-    # print(qc)
     if cnot_count> num_cnots_required:
         qc=trim(qc, cnot_count, num_cnots_required)
-        # print(qc)
         assert dict(qc.count_ops())["cx"] == num_cnots_required, "the circuit doesn't have the required cnots"
     # qc=add_rz_gates_prob(num_qubits, qc, rng) #Non deterministic # of rz.
     qc=add_rz_gates_det(num_qubits, qc, rng) #Deterministic # of rz
@@ -158,14 +138,14 @@ def add_rz_to_node_det(new_qc, chosen_nodes, node, rng):
 
 def add_rz_gates_prob(num_qubits, qc, rng):
     '''Generate random circ: Helper function. Add rz gates randomly to the circuit. Returns: QuantumCircuit'''
-    CONST= 5 #Vary this parameter.
+    const= 5 #Vary this parameter.
     cnot_count=count_gate(qc, "cx")
     swap_count=count_gate(qc, "swap")
 
     # We add the two qubit gates twice to the length and the number of qubits to account for
-    # output nodes. This puts the expectation at CONST for any circuit.
-    LENGTH=len(qc)+cnot_count+swap_count+ num_qubits
-    PROB=CONST/LENGTH
+    # output nodes. This puts the expectation at const for any circuit.
+    length=len(qc)+cnot_count+swap_count+ num_qubits
+    prob=const/length
 
     qc_dag=circuit_to_dag(qc)
     new_qc=QuantumCircuit(QuantumRegister(num_qubits))
@@ -176,12 +156,12 @@ def add_rz_gates_prob(num_qubits, qc, rng):
         for node in layer:
             # We're adding rz gates to the front so we can ignore in nodes.
             if node.type == "out":
-                insert_rz_gate(new_qc, rng, PROB, node.wire.index)
+                insert_rz_gate(new_qc, rng, prob, node.wire.index)
 
             elif node.type == "op":
                 # The number of qubits that the node/gate is operating on can be greater than 1.
                 if len(node.qargs)==1:
-                    insert_rz_gate(new_qc, rng, PROB, node.qargs[0].index)
+                    insert_rz_gate(new_qc, rng, prob, node.qargs[0].index)
                 else:
                     #Apply an rz gate to each qubit with some probability.
                     # Even though node.qargs is a list we can't iterate through it so it must be done
@@ -191,7 +171,7 @@ def add_rz_gates_prob(num_qubits, qc, rng):
                         rng.shuffle(remaining_qubits)
                         operand=remaining_qubits[0]
                         remaining_qubits = [q for q in remaining_qubits if q != operand]
-                        insert_rz_gate(new_qc, rng, PROB, operand)
+                        insert_rz_gate(new_qc, rng, prob, operand)
                 #only copy op nodes.
                 copy_node(new_qc, node)
     assert len(new_qc)>= len(qc), "Inserting RZ gates wasn't done properly."
