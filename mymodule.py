@@ -680,10 +680,6 @@ def append_checks_to_circ(circ_properties, checks_properties):
 
 def find_checks_sym(pauli_group_elem, circ):
     '''Finding checks: Symbolic: Finds p1 and p2 elements symbolically.'''
-    # global unitary, NUMBER_OF_QUBITS, CNOT_COUNT, ABS_TOL 
-    # global pauli_labels, pauli_group_positive, table_length
-    # global unitary, circ
-
     print(pauli_group_elem)
 
     # We will just iterate over the +1 phase elements of the pauli group since the 
@@ -754,9 +750,6 @@ def find_checks_sym(pauli_group_elem, circ):
 def find_checks_with_numpy(pauli_group_tuple, unitary, number_of_qubits, ABS_TOL, 
     pauli_labels, pauli_group_positive, table_length, count, p2_weights, pauli_str_p1s, pauli_str_p2s):
     '''Finding checks: Uses numpy. Probably depricate.'''
-    # global unitary, NUMBER_OF_QUBITS, CNOT_COUNT, ABS_TOL 
-    # global pauli_labels, pauli_group_positive, table_length
-    # global count, p2_weights, pauli_str_p1s, pauli_str_p2s
     idx1=pauli_group_tuple[0]
     # to_matrix() returns a list.
     p1=pauli_group_tuple[1].to_matrix()[0]
@@ -819,9 +812,6 @@ def find_checks_with_numpy(pauli_group_tuple, unitary, number_of_qubits, ABS_TOL
 
 def find_checks_with_transpile(pauli_group_elem, circ):
     '''Finding checks: Uses transpile. May deprecate.'''
-    # global unitary, NUMBER_OF_QUBITS, CNOT_COUNT, ABS_TOL 
-    # global pauli_labels, pauli_group_positive, table_length
-    # global count, p2_weights, pauli_str_p1s, pauli_str_p2s
     # Temporay storage
     temp_p2_circ=pauli_to_circuit(pauli_group_elem)
 
@@ -843,9 +833,6 @@ def find_checks_with_transpile(pauli_group_elem, circ):
 
 def find_intermediate_p2(p1_circ, circ):
     '''Finding checks: Helper function for transpile method.'''
-    # global unitary, NUMBER_OF_QUBITS, CNOT_COUNT, ABS_TOL 
-    # global pauli_labels, pauli_group_positive, table_length
-    # global count, p2_weights, pauli_str_p1s, pauli_str_p2s
     circ_inverse=QuantumCircuit.inverse(circ)
     # U.p_1=c_2.U---->Up_1U^dagger=c_2
     p2_circ=circ_inverse.compose(p1_circ).compose(circ)
@@ -1088,12 +1075,11 @@ def store_results(circ, circ_full_with_ancilla, base_path, circ_file_name, numbe
             output_file_txt.write("State fidelity with checks and with errors: "+str(result["state_fidelity_with_checks_with_errors"])+"\n")
             output_file_txt.write("Sanity check fidelity with checks and no errors: "+str(result["state_fidelity_with_checks_no_errors"])+"\n")
 
-def get_files(BASE_PATH, NUMBER_OF_QUBITS, CNOT_COUNT, start_circ_number, end_circ_number):
+def get_files(base_path, number_of_qubits, cnot_count, start_circ_number, end_circ_number):
     '''Testing circuits: Get the desired files for testing.'''
 
     # Gets the files that match the string. Files include the path
-    # rand_circ_files=[elem for elem in glob.glob(code_dir+subdir+"qubits"+str(NUMBER_OF_QUBITS)+"_depth"+ str(DEPTH)+"*.obj") if "result" not in elem]
-    all_files=[f for f in listdir(BASE_PATH) if isfile(os.path.join(BASE_PATH, f))]
+    all_files=[f for f in listdir(base_path) if isfile(os.path.join(base_path, f))]
     rand_circ_files=[]
     circ_properties_files=[]
     for file in all_files:
@@ -1101,17 +1087,17 @@ def get_files(BASE_PATH, NUMBER_OF_QUBITS, CNOT_COUNT, start_circ_number, end_ci
         name_split_nums=[int(num) for num in name_split if num.isdigit()]
         # print(name_split)
         # print(name_split_nums)
-        if (".qasm" in name_split and "result" not in name_split and name_split_nums[1]==CNOT_COUNT and name_split_nums[0]==NUMBER_OF_QUBITS 
+        if (".qasm" in name_split and "result" not in name_split and name_split_nums[1]==cnot_count and name_split_nums[0]==number_of_qubits 
             and start_circ_number<=name_split_nums[2]<=end_circ_number):
             rand_circ_files.append(file)
             circ_properties_files.append("_".join(name_split[:-1])+"_.obj")
 
     return (rand_circ_files, circ_properties_files)
 
-def add_rand_input_state(NUMBER_OF_QUBITS, quantum_register, circ_with_checks, circ_no_checks):
+def add_rand_input_state(number_of_qubits, quantum_register, circ_with_checks, circ_no_checks):
     '''Testing circuits: Create a random state. Need to send both circs at the same time so they have the same random initial state.'''
     #Insert random state generator
-    random_params = np.random.uniform(size=(NUMBER_OF_QUBITS, 3))
+    random_params = np.random.uniform(size=(number_of_qubits, 3))
     for i,qreg in enumerate(quantum_register):
         for j, pauli in enumerate([X,Y,Z]):
             rand_tuple=(random_params[i][j])
