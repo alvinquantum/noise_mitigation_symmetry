@@ -85,20 +85,26 @@ if __name__ == "__main__":
         rho_correct=mymodule.get_result_rho(cirq_circ_no_checks, NUMBER_OF_QUBITS, keep_qubits)
         rho_checks=mymodule.get_result_rho(cirq_circ_with_checks, NUMBER_OF_QUBITS+1, keep_qubits)
         sanity_check_fidelity=fidelity(rho_checks, rho_correct, qid_shape=(2**(NUMBER_OF_QUBITS),), validate=False)
-        print("Sanity check fidelity: ", sanity_check_fidelity)
-        assert sanity_check_fidelity>0.98, "Sanity check fidelity failed for circuit "+file_name
+        print(f"Sanity check fidelity: {sanity_check_fidelity}")
+        assert sanity_check_fidelity>0.98, f"Sanity check fidelity failed for circuit {file_name}"
 
         #Noisy stuff.
-        cirq_circ_compute=circ_pieces[1]
+        cirq_circ_compute=circuit_from_qasm(circ_pieces[1].qasm())
         results=[]
-        test_circs=mymodule.TestCircuits(cirq_circ_with_checks, cirq_circ_no_checks, NUMBER_OF_QUBITS, rho_correct, sanity_check_fidelity, keep_qubits)
+        test_circs=mymodule.TestCircuits(
+            cirq_circ_with_checks, cirq_circ_no_checks, NUMBER_OF_QUBITS, 
+            rho_correct, sanity_check_fidelity, keep_qubits)
         for error_idx, single_qubit_error in enumerate(SINGLE_QUBIT_ERROR_SPACE):
             results.append(test_circs.run_test((error_idx, single_qubit_error)))
 
+        #TODO: Fix saving the files.
         # with open(os.path.join(BASE_PATH, file_name), "rb") as circ_file:
         #     circ_info=pickle.load(circ_file)
-        # mymodule.store_results(circ_compute, created_circs.circ_with_checks, BASE_PATH, file_name, NUMBER_OF_QUBITS, results, CNOT_COUNT, circ_info["rz"], circ_info["circuit_num"], 
-        # circ_info["found_matches"], circ_info["max_pauli_weight"], circ_info["max_pauli_str_p1"], circ_info["max_pauli_str_p2"])
+        # mymodule.store_results(
+        #     cirq_circ_compute, created_circs.circ_with_checks, BASE_PATH, file_name, 
+        #     NUMBER_OF_QUBITS, results, CNOT_COUNT, circ_info["rz"], circ_info["circuit_num"], 
+        #     circ_info["found_matches"], circ_info["max_pauli_weight"], circ_info["max_pauli_str_p1"], 
+        #     circ_info["max_pauli_str_p2"])
 
-        print("execution time", time.time()-time0)
+        print(f"execution time {time.time()-time0}")
     print("Finished.")
