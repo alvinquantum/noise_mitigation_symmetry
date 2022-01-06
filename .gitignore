@@ -1,2 +1,4 @@
 rename_files.py
 read_codes_stats.py
+__pycache__
+.vscode
