@@ -211,7 +211,7 @@ def copy_node(new_qc, node):
         
     else:
         # We have overlooked a gate type.
-        assert False, node.name + " gate wasn't matched in the DAG."
+        assert False, f"{node.name} gate wasn't matched in the DAG."
 
 def random_circuit_depth(num_qubits, depth, seed=None):
     """Generate random circ: Generates a random circuit with num_qubits and depth (each wire has the specified depth). 
@@ -310,7 +310,7 @@ class PushOperator:
             return [1, "I"]
         else:
             # We have overlooked a gate type.
-            assert False, op2 + " gate wasn't matched in the DAG."
+            assert False, f"{op2} gate wasn't matched in the DAG."
 
     @staticmethod
     def y(op2, temp_check_reversed):
@@ -348,7 +348,7 @@ class PushOperator:
             return [1, "I"]
         else:
             # We have overlooked a gate type.
-            assert False, op2 + " gate wasn't matched in the DAG." 
+            assert False, f"{op2} gate wasn't matched in the DAG." 
 
     @staticmethod        
     def z(op2):
@@ -377,7 +377,7 @@ class PushOperator:
             return [1, "Z"]            
         else:
             # We have overlooked a gate type.
-            assert False, op2 + " gate wasn't matched in the DAG." 
+            assert False, f"{op2} gate wasn't matched in the DAG." 
 
     @staticmethod
     def cx(op1):
@@ -427,7 +427,7 @@ class PushOperator:
 
         else:
             # We have overlooked a gate type.
-            assert False, op1[0] + ", " + op1[1] + " wasn't a pauli element." 
+            assert False, f"{op1[0]} , {op1[1]} wasn't a pauli element." 
 
     @staticmethod
     def swap(op1):
@@ -500,10 +500,10 @@ class TestCircuits:
         # print(noisy_cirq_circ_with_checks)
         noisy_rho_no_checks=get_result_rho(noisy_cirq_circ_no_checks, number_of_qubits, keep_qubits)
         fidelity_noisy_rho_no_check=fidelity(noisy_rho_no_checks, rho_correct, qid_shape=(2**(number_of_qubits),), validate=False)
-        print("single qubit error rate: ", single_qubit_error)
-        print("ancilla 0 prob outcome: ", ancilla_zero_outcome_probability)
-        print("fidelity no check: ", fidelity_noisy_rho_no_check)
-        print("fidelity with check: ", fidelity_noisy_rho_with_check)
+        print(f"single qubit error rate: {single_qubit_error}")
+        print(f"ancilla 0 prob outcome: {ancilla_zero_outcome_probability}")
+        print(f"fidelity no check: {fidelity_noisy_rho_no_check}")
+        print(f"fidelity with check: {fidelity_noisy_rho_with_check}")
         print()
 
         return {"num_results_before_postselect": 1, "num_results_after_postselect": ancilla_zero_outcome_probability, "error_idx": error_idx, 
@@ -571,9 +571,9 @@ def get_check_strs(p1, p2):
     p1_str="".join(p1_operations)
     p2_str="".join(p2_operations)
     
-    print("p1: ", p1_str)
-    print("p2: ", p2_str)
-    print("Pauli weight P2: ", p2_weight)
+    print(f"p1: {p1_str}")
+    print(f"p2: {p2_str}")
+    print(f"Pauli weight P2: {p2_weight}")
     print()
 
     return (p2_weight, p1_str, p2_str)
@@ -749,9 +749,9 @@ def find_checks_with_numpy(pauli_group_tuple, unitary, number_of_qubits, ABS_TOL
         if np.allclose(p2, element):
             #Have to check which part of the table p1 belongs to so we can print the correct phase.
             if idx1-table_length<0:
-                p1_str="+1"+pauli_labels[idx1 % table_length]
+                p1_str=f"+1{pauli_labels[idx1 % table_length]}"
             else:
-                p1_str="-1"+pauli_labels[idx1 % table_length]
+                p1_str=f"-1{pauli_labels[idx1 % table_length]}"
             # elif idx1-2*table_length<0:
             #     p1_str="-1"+pauli_labels[idx1 % table_length]
             # elif idx1-3*table_length<0:
@@ -759,13 +759,13 @@ def find_checks_with_numpy(pauli_group_tuple, unitary, number_of_qubits, ABS_TOL
             # else:
             #     p1_str="-j"+pauli_labels[idx1 % table_length]
             #P2 is always +1 phase.
-            p2_str="+1"+pauli_labels[idx2]
-            print("p1: ", p1_str)
-            print("p2: ", p2_str)
+            p2_str=f"+1{pauli_labels[idx2]}"
+            print(f"p1: {p1_str}")
+            print(f"p2: {p2_str}")
 
             # Print the weight. We care about P2 weight since we commute p1 through U.
             p2_weight=get_weight(pauli_labels[idx2])
-            print("Pauli weight P2: ", p2_weight)
+            print(f"Pauli weight P2: {p2_weight}")
             print()
             #Need to lock the value so it doesn't change while checking. Since we write only
             #after locking the weight we don't need to lock the other values.
@@ -802,7 +802,7 @@ def find_checks_with_transpile(pauli_group_elem, circ):
         #     if node.type == "op":
         #         mymodule.copy_node(temp_layer_circ, node)
         temp_p2_circ=find_intermediate_p2(temp_p2_circ, temp_layer_circ)
-    print("p2:", pauli_group_elem)
+    print(f"p2: {pauli_group_elem}")
     print("Temp_p2: ")
     print(temp_p2_circ)
     return(temp_p2_circ)
@@ -846,18 +846,18 @@ def write_outputs(circ_properties, checks_properties, file_number, file_info_pat
         for index1, strp1 in enumerate(pauli_str_p1s):
             if index1!=0: #The max stuff are stored in the beginning, which we print at the end.
                 output_file.write("\n")
-                output_file.write("p1: "+ str(strp1)+ "\n")
-                output_file.write("p2: "+ str(pauli_str_p2s[index1])+ "\n")
-                output_file.write("Pauli weight P2: "+ str(p2_weights[index1])+ "\n")
+                output_file.write(f"p1: {strp1}\n")
+                output_file.write(f"p2: {pauli_str_p2s[index1]}\n")
+                output_file.write(f"Pauli weight P2: {p2_weights[index1]}\n")
         output_file.write("\n")
-        output_file.write("Found Matches: "+ str(count)+ "\n")
-        output_file.write("Max Weight: "+ str(p2_weights[0]) + "\n")
-        output_file.write("P1 that creates max P2: "+ str(pauli_str_p1s[0])+ "\n")
-        output_file.write("Max P2: " + str(pauli_str_p2s[0])+ "\n")
-        print("Found Matches: ", count)   
-        print("Max P2 Weight: ", p2_weights[0])
-        print("P1 that creates max P2: ", pauli_str_p1s[0])
-        print("Max P2: ", pauli_str_p2s[0])
+        output_file.write(f"Found Matches: {count}\n")
+        output_file.write(f"Max Weight: {p2_weights[0]}\n")
+        output_file.write(f"P1 that creates max P2: {pauli_str_p1s[0]}\n")
+        output_file.write(f"Max P2: {str(pauli_str_p2s[0])}\n")
+        print(f"Found Matches: {count}")   
+        print(f"Max P2 Weight: {p2_weights[0]}")
+        print(f"P1 that creates max P2: {pauli_str_p1s[0]}")
+        print(f"Max P2: {pauli_str_p2s[0]}")
 
     cnot_count=0
     if "cx" in circ_operations:
@@ -866,15 +866,15 @@ def write_outputs(circ_properties, checks_properties, file_number, file_info_pat
     rz_count=0
     if "rz" in circ_operations:
         rz_count=circ_operations["rz"]
-    output_file.write("Circuit no: " + str(file_number)+ "\n")
-    output_file.write("Qubits: " + str(number_of_qubits)+ "\n")
-    output_file.write("CNOT count: "+ str(cnot_count) + "\n")
-    output_file.write("RZ count: "+ str(rz_count) + "\n")
+    output_file.write(f"Circuit no: {file_number}\n")
+    output_file.write(f"Qubits: {number_of_qubits}\n")
+    output_file.write(f"CNOT count: {cnot_count}\n")
+    output_file.write(f"RZ count: {rz_count}\n")
 
-    print("Qubits: ", str(number_of_qubits))
-    print("Circuit no: ", str(file_number))
-    print("CNOT count: ", cnot_count)
-    print("RZ count: ", rz_count)
+    print(f"Qubits: {number_of_qubits}")
+    print(f"Circuit no: {file_number}")
+    print(f"CNOT count: {cnot_count}")
+    print(f"RZ count: {rz_count}")
 
     # # Dump all the info into a pickle
     circ_file=open(file_info_path, "wb")
@@ -969,7 +969,7 @@ def add_controlU(circ, pauli_str, number_of_qubits, quantum_register, ancilla_re
 def result_exists(base_path, file_name, result_num):
     '''Testing circuits: Checks if the result file exists.'''
     name_split=file_name.split("_")
-    result_name="_".join(name_split[:-1])+"_result_"+str(result_num)+"_.txt"
+    result_name=f"{'_'.join(name_split[:-1])}_result_{result_num}_.txt"
     # print(file_name)
     # print(result_name)
     output_file_txt_path=os.path.join(base_path, result_name)
@@ -1021,18 +1021,19 @@ def store_results(circ, circ_full_with_ancilla, base_path, circ_file_name, numbe
     # print(output_file_name_obj)
     # print(os.path.join(base_path,output_file_name_obj))
     temp_file_number=0
-    output_file_name_obj=file_name_no_extension+"_result_"+ str(temp_file_number) +"_.obj"
+    output_file_name_obj=f"{file_name_no_extension}_result_{temp_file_number}_.obj"
     while os.path.isfile(os.path.join(base_path,output_file_name_obj)):
         temp_file_number+=1
-        output_file_name_obj=file_name_no_extension+"_result_"+ str(temp_file_number) +"_.obj"
-    output_file_name_txt=file_name_no_extension+"_result_"+ str(temp_file_number) +"_.txt"
-    output_file_name_qasm=file_name_no_extension+"_result_"+ str(temp_file_number) +"_.qasm"
+        output_file_name_obj=f"{file_name_no_extension}_result_{temp_file_number}_.obj"
+    output_file_name_txt=f"{file_name_no_extension}_result_{temp_file_number}_.txt"
+    output_file_name_qasm=f"{file_name_no_extension}_result_{temp_file_number}_.qasm"
     circ_full_with_ancilla.qasm(filename=os.path.join(base_path, output_file_name_qasm))
 
     # Dump all the results into a pickle
     with open(os.path.join(base_path, output_file_name_obj), "wb") as circ_file:
-        pickle.dump({"cx": cnot_count, "rz": rz_count, "qubits": number_of_qubits, "circuit_num" : circuit_num, "found_matches: ": count,
-             "max_pauli_weight": p2_weight, "max_pauli_str_p1": pauli_str_p1, "max_pauli_str_p2": pauli_str_p2 ,"results": results}, circ_file)
+        pickle.dump(
+            {"cx": cnot_count, "rz": rz_count, "qubits": number_of_qubits, "circuit_num" : circuit_num, "found_matches: ": count,
+            "max_pauli_weight": p2_weight, "max_pauli_str_p1": pauli_str_p1, "max_pauli_str_p2": pauli_str_p2 ,"results": results}, circ_file)
 
     #Print text results to file
     output_file_txt_path=os.path.join(base_path, output_file_name_txt)
@@ -1042,14 +1043,14 @@ def store_results(circ, circ_full_with_ancilla, base_path, circ_file_name, numbe
         output_file_txt.write(json.dumps(circ.count_ops()))
         for result in results:
             output_file_txt.write("\n")
-            output_file_txt.write("Error idx: "+str(result["error_idx"])+"\n")
-            output_file_txt.write("One qubit error: "+str(result["one_qubit_err"])+"\n")
+            output_file_txt.write(f"Error idx: {result['error_idx']}\n")
+            output_file_txt.write(f"One qubit error: {result['one_qubit_err']}\n")
             # print("One_qubit_err:", one_qubit_err)
-            output_file_txt.write("Two qubit error: "+str(result["two_qubit_err"])+"\n")
+            output_file_txt.write(f"Two qubit error: {result['two_qubit_err']}\n")
             # print("Two qubit error:", two_qubit_err)
-            output_file_txt.write("State fidelity no checks and with errors: "+str(result["state_fidelity_no_checks_with_errors"])+"\n")
-            output_file_txt.write("State fidelity with checks and with errors: "+str(result["state_fidelity_with_checks_with_errors"])+"\n")
-            output_file_txt.write("Sanity check fidelity with checks and no errors: "+str(result["state_fidelity_with_checks_no_errors"])+"\n")
+            output_file_txt.write(f"State fidelity no checks and with errors: {result['state_fidelity_no_checks_with_errors']}\n")
+            output_file_txt.write(f"State fidelity with checks and with errors: {result['state_fidelity_with_checks_with_errors']}\n")
+            output_file_txt.write(f"Sanity check fidelity with checks and no errors: {result['state_fidelity_with_checks_no_errors']}\n")
 
 def get_files(base_path, number_of_qubits, cnot_count, start_circ_number, end_circ_number):
     '''Testing circuits: Get the desired files for testing.'''
@@ -1066,7 +1067,7 @@ def get_files(base_path, number_of_qubits, cnot_count, start_circ_number, end_ci
         if (".qasm" in name_split and "result" not in name_split and name_split_nums[1]==cnot_count and name_split_nums[0]==number_of_qubits 
             and start_circ_number<=name_split_nums[2]<=end_circ_number):
             rand_circ_files.append(file)
-            circ_properties_files.append("_".join(name_split[:-1])+"_.obj")
+            circ_properties_files.append(f"{'_'.join(name_split[:-1])}_.obj")
 
     return rand_circ_files, circ_properties_files
 
@@ -1085,7 +1086,8 @@ def get_checks_properties(base_path, file_name):
     with open(os.path.join(base_path, file_name), "rb") as circ_file:
         circ_info=pickle.load(circ_file)
             # circ=circ_info["circ"]
-    return ChecksProperties(circ_info["found_matches"], circ_info["max_pauli_weight"], 
+    return ChecksProperties(
+        circ_info["found_matches"], circ_info["max_pauli_weight"], 
         circ_info["max_pauli_str_p1"], circ_info["max_pauli_str_p2"])
 
 class Circs:
@@ -1131,7 +1133,7 @@ def create_circs(number_of_qubits, circ_pieces):
     print(circ_with_checks)
     print(circ_no_checks)
 
-    ancilla_qubit=cirq.NamedQubit(qubits_label+"_"+str(number_of_qubits))
+    ancilla_qubit=cirq.NamedQubit(f"{qubits_label}_{number_of_qubits}")
     # Creates a channel that applies the zero projector. We use this to get the measurement zero outcome of the
     # density matrix. Since the resulting trial density matrix is unormalized we can get the percentages of outcomes that
     # we discard.
