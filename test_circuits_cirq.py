@@ -1,38 +1,54 @@
 #!/usr/bin/env python3
 
-import os, qiskit, cirq
-from qiskit.ignis.verification import tomography
+import os 
+# import qiskit
+# import cirq
+# from qiskit.ignis.verification import tomography
 from copy import deepcopy
 import numpy as np
-from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister, Aer, transpile
-from matplotlib import pyplot as plt
-from qiskit.quantum_info import Statevector, state_fidelity, DensityMatrix, Operator, Pauli
-from qiskit.circuit.random import random_circuit
-from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
-from qiskit.visualization import circuit_drawer
-from qiskit.circuit import QuantumRegister
-import pickle, mymodule, json, psutil, time
-import qiskit.providers.aer.noise as noise
-from qiskit.opflow import X,Y,Z
-from qiskit.ignis.verification.tomography import StateTomographyFitter
-from math import e, pi
+# from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister, Aer, transpile
+# from matplotlib import pyplot as plt
+# from qiskit.quantum_info import Statevector, state_fidelity, DensityMatrix, Operator, Pauli
+# from qiskit.circuit.random import random_circuit
+# from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
+# from qiskit.visualization import circuit_drawer
+# from qiskit.circuit import QuantumRegister
+import pickle 
+import mymodule 
+import json 
+import psutil
+import time
+# import qiskit.providers.aer.noise as noise
+# from qiskit.opflow import X,Y,Z
+# from qiskit.ignis.verification.tomography import StateTomographyFitter
+# from math import e, pi
 from multiprocessing import Pool, Value, Array, Manager
-from os import listdir
-from os.path import isfile
+# from os import listdir
+# from os.path import isfile
 # import cProfile, io
 # from pstats import SortKey
 from cirq.contrib.qasm_import import circuit_from_qasm
 from cirq.qis import fidelity
 
+class CircuitTester:
+    # For running tests.
+    pass
+
 if __name__ == "__main__":
     print("running...")
     #Program parameters. These are globals in the parallel program passed from shell.
     NUMBER_OF_QUBITS=5#int(sys.argv[1])
-    CNOT_COUNT=10#int(sys.argv[2])
+    CNOT_COUNT=40#int(sys.argv[2])
     START_CIRC_NUMBER=0#int(sys.argv[3])
-    END_CIRC_NUMBER=10#int(sys.argv[4])
+    END_CIRC_NUMBER=50#int(sys.argv[4])
     #Determines if we run parallel or not.
     PARALLEL=False
+    # File stuff
+    SUBDIR="/data/"
+    # Gets the file path of the script
+    # code_dir=sys.path[0]
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    BASE_PATH=CODE_DIR+SUBDIR
     #Error space
     SINGLE_QUBIT_ERROR_SPACE=np.logspace(-5, -2, num=21) #goes from 10^-5 to 10^-2
     # SINGLE_QUBIT_ERROR_SPACE=[
@@ -42,15 +58,10 @@ if __name__ == "__main__":
     #     6.30957344e-04, 8.91250938e-04, 1.25892541e-03, 1.77827941e-03,
     #     2.51188643e-03, 3.54813389e-03, 5.01187234e-03, 7.07945784e-03,
     #     1.00000000e-02, 0.015, 0.02, 0.025, 0.03, 0.035, 0.06]
-
-    # File stuff
-    SUBDIR="/data/"
-    # Gets the file path of the script
-    # code_dir=sys.path[0]
-    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
-    BASE_PATH=CODE_DIR+SUBDIR
     # Gets the files that match the string. Files include the path
-    rand_circ_files, circ_properties_files=mymodule.get_files(BASE_PATH, NUMBER_OF_QUBITS, CNOT_COUNT, START_CIRC_NUMBER, END_CIRC_NUMBER)
+    rand_circ_files, circ_properties_files=mymodule.get_files(
+        BASE_PATH, NUMBER_OF_QUBITS, CNOT_COUNT, 
+        START_CIRC_NUMBER, END_CIRC_NUMBER)
 
     #Get the qasm and pickle info
     for idx, file_name in enumerate(circ_properties_files):
@@ -76,9 +87,9 @@ if __name__ == "__main__":
 
         created_circs=mymodule.create_circs(NUMBER_OF_QUBITS, circ_pieces)
         # print(created_circs)
-        cirq_circ_with_checks =created_circs.circ_with_checks
-        cirq_circ_no_checks=created_circs.circ_no_checks
-        cirq_circ_initial_state=created_circs.circ_initial_state
+        cirq_circ_with_checks =created_circs.cirq_circ_with_checks
+        cirq_circ_no_checks=created_circs.cirq_circ_no_checks
+        # cirq_circ_initial_state=created_circs.circ_initial_state
         # print(cirq_circ_initial_state)
 
         keep_qubits=list(range(NUMBER_OF_QUBITS))
@@ -92,20 +103,20 @@ if __name__ == "__main__":
         #Noisy stuff.
         cirq_circ_compute=circuit_from_qasm(circ_pieces[1].qasm())
         results=[]
-        test_circs=mymodule.TestCircuits(
+        circ_tester=mymodule.CircuitTester(
             cirq_circ_with_checks, cirq_circ_no_checks, NUMBER_OF_QUBITS, 
             rho_correct, sanity_check_fidelity, keep_qubits)
         for error_idx, single_qubit_error in enumerate(SINGLE_QUBIT_ERROR_SPACE):
-            results.append(test_circs.run_test((error_idx, single_qubit_error)))
+            results.append(circ_tester.run_test((error_idx, single_qubit_error)))
 
         #TODO: Fix saving the files.
-        # with open(os.path.join(BASE_PATH, file_name), "rb") as circ_file:
-        #     circ_info=pickle.load(circ_file)
-        # mymodule.store_results(
-        #     cirq_circ_compute, created_circs.circ_with_checks, BASE_PATH, file_name, 
-        #     NUMBER_OF_QUBITS, results, CNOT_COUNT, circ_info["rz"], circ_info["circuit_num"], 
-        #     circ_info["found_matches"], circ_info["max_pauli_weight"], circ_info["max_pauli_str_p1"], 
-        #     circ_info["max_pauli_str_p2"])
+        with open(os.path.join(BASE_PATH, file_name), "rb") as circ_file:
+            circ_info=pickle.load(circ_file)
+        mymodule.store_results(
+            cirq_circ_compute, created_circs.cirq_circ_with_checks, BASE_PATH, file_name, 
+            NUMBER_OF_QUBITS, results, CNOT_COUNT, circ_info["rz"], circ_info["circuit_num"], 
+            circ_info["found_matches"], circ_info["max_pauli_weight"], circ_info["max_pauli_str_p1"], 
+            circ_info["max_pauli_str_p2"])
 
         print(f"execution time {time.time()-time0}")
     print("Finished.")

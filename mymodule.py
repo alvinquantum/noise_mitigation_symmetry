@@ -403,7 +403,7 @@ class CircuitProperties:
         self.circ=circ
         self.circ_operations=circ_operations
 
-class TestCircuits:
+class CircuitTester:
     '''Testing circuits: For running the simulations.'''
     def __init__(self, cirq_circ_with_checks, cirq_circ_no_checks, number_of_qubits, rho_correct, sanity_check_fidelity, keep_qubits):
         self.cirq_circ_with_checks=cirq_circ_with_checks
@@ -798,7 +798,9 @@ def store_results(circ, circ_full_with_ancilla, base_path, circ_file_name, numbe
         output_file_name_obj=f"{file_name_no_extension}_result_{temp_file_number}_.obj"
     output_file_name_txt=f"{file_name_no_extension}_result_{temp_file_number}_.txt"
     output_file_name_qasm=f"{file_name_no_extension}_result_{temp_file_number}_.qasm"
-    circ_full_with_ancilla.qasm(filename=os.path.join(base_path, output_file_name_qasm))
+    circ_full_no_measure=circ_full_with_ancilla[:-1:]
+    qiskit_circ_full_no_measure=QuantumCircuit.from_qasm_str(cirq.qasm(circ_full_no_measure))
+    qiskit_circ_full_no_measure.qasm(filename=os.path.join(base_path, output_file_name_qasm))
 
     # Dump all the results into a pickle
     with open(os.path.join(base_path, output_file_name_obj), "wb") as circ_file:
@@ -808,10 +810,11 @@ def store_results(circ, circ_full_with_ancilla, base_path, circ_file_name, numbe
 
     #Print text results to file
     output_file_txt_path=os.path.join(base_path, output_file_name_txt)
-    circuit_drawer(circ_full_with_ancilla, filename=output_file_txt_path)
+    circuit_drawer(qiskit_circ_full_no_measure, filename=output_file_txt_path)
     with open(output_file_txt_path, "a") as output_file_txt:
         output_file_txt.write("\n")
-        output_file_txt.write(json.dumps(circ.count_ops()))
+        qiskit_circ=QuantumCircuit.from_qasm_str(cirq.qasm(circ))
+        output_file_txt.write(json.dumps(qiskit_circ.count_ops()))
         for result in results:
             output_file_txt.write("\n")
             output_file_txt.write(f"Error idx: {result['error_idx']}\n")
@@ -861,14 +864,18 @@ def get_checks_properties(base_path, file_name):
         circ_info["found_matches"], circ_info["max_pauli_weight"], 
         circ_info["max_pauli_str_p1"], circ_info["max_pauli_str_p2"])
 
-class Circs:
-    '''Testing circuits: Holder for circ variables.'''
-    def __init__(self, quantum_register, circ_with_checks, circ_no_checks, circ_initial_state):
-        self.quantum_register=quantum_register
-        # self.ancilla_register=ancilla_register
-        self.circ_with_checks=circ_with_checks
-        self.circ_no_checks=circ_no_checks
-        self.circ_initial_state=circ_initial_state
+class NoislessCircuits:
+    '''Testing Circuits'''
+    def __init__(self, qiskit_circ_with_checks, cirq_circ_with_checks, cirq_circ_no_checks):
+        self.qiskit_circ_with_checks = qiskit_circ_with_checks
+        self.cirq_circ_with_checks = cirq_circ_with_checks
+        self.cirq_circ_no_checks = cirq_circ_no_checks
+
+class NoisyCircuits:
+    '''Testing Circuits'''
+    def __init__(self, ):
+        self.cirq_circ_with_checks_noisy
+        self.cirq_circ_no_checks_noisy
 
 def create_circs(number_of_qubits, circ_pieces):
     '''Testing circuits: Creates circs no checks and with checks. The circs have the same random initial state.
@@ -877,31 +884,31 @@ def create_circs(number_of_qubits, circ_pieces):
     # so that we can access the ancilla qubit later, i.e., the ancilla label is "q_{num}".format(number_of_qubits) 
     qubits_label="q"
     quantum_register=QuantumRegister(number_of_qubits+1, qubits_label)
-    circ_with_checks=QuantumCircuit(quantum_register)
+    qiskit_circ_with_checks=QuantumCircuit(quantum_register)
     #Create the circuit with no checks
     circ_no_checks=QuantumCircuit(quantum_register)
-    add_rand_input_state(number_of_qubits, quantum_register[:number_of_qubits:], circ_with_checks, circ_no_checks)
+    add_rand_input_state(number_of_qubits, quantum_register[:number_of_qubits:], qiskit_circ_with_checks, circ_no_checks)
     # Save the initial state circuit.
     circ_initial_state=deepcopy(circ_no_checks)
     # print("random initial state", rand_initial_state)
     # circ_with_checks.barrier()
-    circ_with_checks.h(number_of_qubits)
+    qiskit_circ_with_checks.h(number_of_qubits)
     for elem in circ_pieces:
         # circ_with_checks.barrier()
-        circ_with_checks.compose(elem, inplace=True)
+        qiskit_circ_with_checks.compose(elem, inplace=True)
     # circ_with_checks.barrier()
     circ_no_checks.compose(circ_pieces[1], inplace=True)
-    circ_with_checks.h(number_of_qubits)
+    qiskit_circ_with_checks.h(number_of_qubits)
 
     #Test
     basis_gates=['u1', 'u2', 'u3', 'cx']
-    circ_with_checks=transpile(circ_with_checks, basis_gates=basis_gates, optimization_level=0)
+    qiskit_circ_with_checks=transpile(qiskit_circ_with_checks, basis_gates=basis_gates, optimization_level=0)
     circ_no_checks=transpile(circ_no_checks, basis_gates=basis_gates, optimization_level=0)
     circ_initial_state=transpile(circ_initial_state, basis_gates=basis_gates, optimization_level=0)
-    cirq_circ_with_checks =circuit_from_qasm(circ_with_checks.qasm())
+    cirq_circ_with_checks =circuit_from_qasm(qiskit_circ_with_checks.qasm())
     cirq_circ_no_checks=circuit_from_qasm(circ_no_checks.qasm())
     cirq_circ_initial_state=circuit_from_qasm(circ_initial_state.qasm())
-    print(circ_with_checks)
+    print(qiskit_circ_with_checks)
     print(circ_no_checks)
 
     ancilla_qubit=cirq.NamedQubit(f"{qubits_label}_{number_of_qubits}")
@@ -914,7 +921,7 @@ def create_circs(number_of_qubits, circ_pieces):
     )
     cirq_circ_with_checks.append([projector0_channel.on(ancilla_qubit)])
 
-    return Circs(quantum_register, cirq_circ_with_checks, cirq_circ_no_checks, cirq_circ_initial_state)
+    return NoislessCircuits(qiskit_circ_with_checks, cirq_circ_with_checks, cirq_circ_no_checks)
 
 def split_circuit_by_barrier(qasm_file_path):
     '''Testing circuits: Split circuits by barrier.'''
