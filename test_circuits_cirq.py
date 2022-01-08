@@ -1,46 +1,24 @@
 #!/usr/bin/env python3
 
 import os 
-# import qiskit
-# import cirq
-# from qiskit.ignis.verification import tomography
 from copy import deepcopy
 import numpy as np
-# from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister, Aer, transpile
-# from matplotlib import pyplot as plt
-# from qiskit.quantum_info import Statevector, state_fidelity, DensityMatrix, Operator, Pauli
-# from qiskit.circuit.random import random_circuit
-# from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
-# from qiskit.visualization import circuit_drawer
-# from qiskit.circuit import QuantumRegister
 import pickle 
-import mymodule 
+import circtester 
 import json 
 import psutil
 import time
-# import qiskit.providers.aer.noise as noise
-# from qiskit.opflow import X,Y,Z
-# from qiskit.ignis.verification.tomography import StateTomographyFitter
-# from math import e, pi
 from multiprocessing import Pool, Value, Array, Manager
-# from os import listdir
-# from os.path import isfile
-# import cProfile, io
-# from pstats import SortKey
 from cirq.contrib.qasm_import import circuit_from_qasm
 from cirq.qis import fidelity
-
-class CircuitTester:
-    # For running tests.
-    pass
 
 if __name__ == "__main__":
     print("running...")
     #Program parameters. These are globals in the parallel program passed from shell.
     NUMBER_OF_QUBITS=5#int(sys.argv[1])
-    CNOT_COUNT=40#int(sys.argv[2])
+    CNOT_COUNT=10#int(sys.argv[2])
     START_CIRC_NUMBER=0#int(sys.argv[3])
-    END_CIRC_NUMBER=50#int(sys.argv[4])
+    END_CIRC_NUMBER=10#int(sys.argv[4])
     #Determines if we run parallel or not.
     PARALLEL=False
     # File stuff
@@ -59,7 +37,7 @@ if __name__ == "__main__":
     #     2.51188643e-03, 3.54813389e-03, 5.01187234e-03, 7.07945784e-03,
     #     1.00000000e-02, 0.015, 0.02, 0.025, 0.03, 0.035, 0.06]
     # Gets the files that match the string. Files include the path
-    rand_circ_files, circ_properties_files=mymodule.get_files(
+    rand_circ_files, circ_properties_files=circtester.get_files(
         BASE_PATH, NUMBER_OF_QUBITS, CNOT_COUNT, 
         START_CIRC_NUMBER, END_CIRC_NUMBER)
 
@@ -74,18 +52,18 @@ if __name__ == "__main__":
         assert len(file_info) == 3, "This file doesn't have three numbers in the name."
         file_number=file_info[2]
         #If the file exists we already did this so just skip. Later on we can remove this for other initial states.
-        if mymodule.result_exists(BASE_PATH, file_name, 0):
+        if circtester.result_exists(BASE_PATH, file_name, 0):
             continue
         
-        checks_properties=mymodule.get_checks_properties(BASE_PATH, file_name)
-        circ_pieces=mymodule.split_circuit_by_barrier(os.path.join(BASE_PATH, rand_circ_files[idx]))
+        checks_properties=circtester.get_checks_properties(BASE_PATH, file_name)
+        circ_pieces=circtester.split_circuit_by_barrier(os.path.join(BASE_PATH, rand_circ_files[idx]))
         if len(circ_pieces)!=3:
             continue
         # If there were no Pauli checks found just skip.
         if checks_properties.p2_weights == 0: 
             continue
 
-        created_circs=mymodule.create_circs(NUMBER_OF_QUBITS, circ_pieces)
+        created_circs=circtester.create_circs(NUMBER_OF_QUBITS, circ_pieces)
         # print(created_circs)
         cirq_circ_with_checks =created_circs.cirq_circ_with_checks
         cirq_circ_no_checks=created_circs.cirq_circ_no_checks
@@ -94,8 +72,8 @@ if __name__ == "__main__":
 
         keep_qubits=list(range(NUMBER_OF_QUBITS))
 
-        rho_correct=mymodule.get_result_rho(cirq_circ_no_checks, NUMBER_OF_QUBITS, keep_qubits)
-        rho_checks=mymodule.get_result_rho(cirq_circ_with_checks, NUMBER_OF_QUBITS+1, keep_qubits)
+        rho_correct=circtester.get_result_rho(cirq_circ_no_checks, NUMBER_OF_QUBITS, keep_qubits)
+        rho_checks=circtester.get_result_rho(cirq_circ_with_checks, NUMBER_OF_QUBITS+1, keep_qubits)
         sanity_check_fidelity=fidelity(rho_checks, rho_correct, qid_shape=(2**(NUMBER_OF_QUBITS),), validate=False)
         print(f"Sanity check fidelity: {sanity_check_fidelity}")
         assert sanity_check_fidelity>0.98, f"Sanity check fidelity failed for circuit {file_name}"
@@ -103,16 +81,15 @@ if __name__ == "__main__":
         #Noisy stuff.
         cirq_circ_compute=circuit_from_qasm(circ_pieces[1].qasm())
         results=[]
-        circ_tester=mymodule.CircuitTester(
+        circ_tester=circtester.CircuitTester(
             cirq_circ_with_checks, cirq_circ_no_checks, NUMBER_OF_QUBITS, 
             rho_correct, sanity_check_fidelity, keep_qubits)
         for error_idx, single_qubit_error in enumerate(SINGLE_QUBIT_ERROR_SPACE):
             results.append(circ_tester.run_test((error_idx, single_qubit_error)))
 
-        #TODO: Fix saving the files.
         with open(os.path.join(BASE_PATH, file_name), "rb") as circ_file:
             circ_info=pickle.load(circ_file)
-        mymodule.store_results(
+        circtester.store_results(
             cirq_circ_compute, created_circs.cirq_circ_with_checks, BASE_PATH, file_name, 
             NUMBER_OF_QUBITS, results, CNOT_COUNT, circ_info["rz"], circ_info["circuit_num"], 
             circ_info["found_matches"], circ_info["max_pauli_weight"], circ_info["max_pauli_str_p1"], 

@@ -17,14 +17,13 @@ from matplotlib import pyplot as plt
 from qiskit.quantum_info import Statevector, Pauli, Operator
 from qiskit.circuit.random import random_circuit
 from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
-import mymodule
+import circgenerator
+import utilities
 from qiskit.visualization import circuit_drawer
 from multiprocessing import Pool, Value, Array, Manager
 from copy import deepcopy
 from pprint import pprint
 import time
-# from qiskit.circuit import ControlledGate
-# from qiskit.extensions import UnitaryGate
 import cProfile
 
 def initialize(ABS_TOL_ARG, circ_properties_arg,
@@ -44,7 +43,7 @@ def initialize(ABS_TOL_ARG, circ_properties_arg,
 def get_checks_parallel(pauli_group_elem):
     '''Wrapper function. Get the checks in parallel.'''
     global ABS_TOL, circ_properties, pauli_labels, table_length
-    return mymodule.find_checks_sym(pauli_group_elem, circ_properties.circ)
+    return circgenerator.find_checks_sym(pauli_group_elem, circ_properties.circ)
 
 def print_circ_to_file():
     '''Prints the circ to the file.'''
@@ -105,7 +104,7 @@ if __name__ == "__main__":
         file_info_path=BASE_FILE_PATH+ "circuit_" + str(file_number)+"_.obj"
         file_qasm_path=BASE_FILE_PATH+ "circuit_" + str(file_number)+"_.qasm"
         #Random circuit.
-        circ=mymodule.random_circuit_cnot(NUMBER_OF_QUBITS, CNOT_COUNT)
+        circ=circgenerator.random_circuit_cnot(NUMBER_OF_QUBITS, CNOT_COUNT)
         # circ=mymodule.random_circuit_depth(NUMBER_OF_QUBITS, CNOT_COUNT)
         # # # Load circuit.
         # circ_file=open(BASE_FILE_PATH+ "circuit_0_.obj", "rb")
@@ -140,7 +139,7 @@ if __name__ == "__main__":
         pauli_str_p1s=[""]
         pauli_str_p2s=[""]
 
-        circ_properties=mymodule.CircuitProperties(NUMBER_OF_QUBITS, CNOT_COUNT, NUMBER_OF_CIRCUITS, circ, circ_operations)
+        circ_properties=circgenerator.CircuitProperties(NUMBER_OF_QUBITS, CNOT_COUNT, NUMBER_OF_CIRCUITS, circ, circ_operations)
         # Doing pool this way is faster when the circuits become large since the cpus will be fully utilized
         # each time. If we parallelize across individual circuits, each generation of circuit will be slow.
         if PARALLEL:
@@ -169,7 +168,7 @@ if __name__ == "__main__":
         else:
             for elem in pauli_labels:
                 # temp_p2_circ=find_p2s(elem, circ)
-                result=mymodule.find_checks_sym(elem, circ)
+                result=circgenerator.find_checks_sym(elem, circ)
                 if result:
                     count+=1
                     if result[0]>p2_weights[0]:
@@ -185,11 +184,11 @@ if __name__ == "__main__":
                 # print(pauli_to_circuit(elem))
                 #Test
                 # cProfile.run("find_p1s_p2s(elem)", filename="rand_circ_stats.txt")
-        checks_properties=mymodule.ChecksProperties(count, p2_weights, pauli_str_p1s, pauli_str_p2s)
+        checks_properties=utilities.ChecksProperties(count, p2_weights, pauli_str_p1s, pauli_str_p2s)
         # Combine the circuit and checks.
         if p2_weights[0]>0:
-            circ_properties.circ=mymodule.append_checks_to_circ(circ_properties, checks_properties)
-        mymodule.write_outputs(circ_properties, checks_properties, file_number, file_info_path, file_qasm_path, output_file)
+            circ_properties.circ=circgenerator.append_checks_to_circ(circ_properties, checks_properties)
+        circgenerator.write_outputs(circ_properties, checks_properties, file_number, file_info_path, file_qasm_path, output_file)
 
         print("execution time", time.time()-time0)
     print("done")
