@@ -1,21 +1,17 @@
 from copy import deepcopy
 import numpy as np
-from qiskit import execute, transpile, QuantumCircuit
+from qiskit import transpile, QuantumCircuit
 from qiskit.circuit import QuantumRegister
-from qiskit.circuit.library.standard_gates import (IGate, U1Gate, U2Gate, U3Gate, XGate,
-                                                   YGate, ZGate, HGate, SGate, SdgGate, TGate,
-                                                   TdgGate, RXGate, RYGate, RZGate, CXGate,
-                                                   CYGate, CZGate, CHGate, CRZGate, CU1Gate,
-                                                   CU3Gate, SwapGate, RZZGate,
-                                                   CCXGate, CSwapGate)
 from qiskit.converters.dag_to_circuit import dag_to_circuit
 from qiskit.quantum_info import random_clifford, decompose_clifford
 from qiskit.converters import circuit_to_dag
 from qiskit.visualization import circuit_drawer
 from qiskit.opflow import X,Y,Z
-import os, math, pickle, cirq, json
+import os
+import pickle
+import cirq
+import json
 from cirq.contrib.qasm_import import circuit_from_qasm
-from cirq.qis import fidelity
 from os import listdir
 from os.path import isfile
 
@@ -212,63 +208,6 @@ def copy_node(new_qc, node):
     else:
         # We have overlooked a gate type.
         assert False, f"{node.name} gate wasn't matched in the DAG."
-
-def random_circuit_depth(num_qubits, depth, seed=None):
-    """Generate random circ: Generates a random circuit with num_qubits and depth (each wire has the specified depth). 
-    The circuit uses h, s, t, cx gates and no measurements.
-    Derived from https://qiskit.org/documentation/_modules/qiskit/circuit/random/utils.html#random_circuit.
-
-    Returns:
-        QuantumCircuit: constructed circuit
-    """
-
-    # This code is part of Qiskit.
-    #
-    # (C) Copyright IBM 2017.
-    #
-    # This code is licensed under the Apache License, Version 2.0. You may
-    # obtain a copy of this license in the LICENSE.txt file in the root directory
-    # of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
-    #
-    # Any modifications or derivative works of this code must retain this
-    # copyright notice, and modified files need to carry a notice indicating
-    # that they have been altered from the originals.
-
-    max_operands=2 
-    one_q_ops = [HGate, SGate, TGate]
-    two_q_ops = [CXGate]
-
-    qr = QuantumRegister(num_qubits, 'q')
-    qc = QuantumCircuit(num_qubits)
-
-    if seed is None:
-        seed = np.random.randint(0, np.iinfo(np.int32).max)
-    rng = np.random.default_rng(seed)
-
-    # apply arbitrary random operations at every depth
-    for _ in range(depth):
-        # choose either 1, 2, or 3 qubits for the operation
-        remaining_qubits = list(range(num_qubits))
-        while remaining_qubits:
-            max_possible_operands = min(len(remaining_qubits), max_operands)
-            num_operands = rng.choice(range(max_possible_operands)) + 1
-            rng.shuffle(remaining_qubits) # We shuffle and then apply the operations to the necessary number of qubits
-            #  at the beginning.
-            operands = remaining_qubits[:num_operands]
-            remaining_qubits = [q for q in remaining_qubits if q not in operands]
-            if num_operands == 1:
-                operation = rng.choice(one_q_ops)
-            else:
-                operation = rng.choice(two_q_ops)
-
-            register_operands = [qr[i] for i in operands]
-            op = operation()
-
-            qc.append(op, register_operands)
-
-    assert len(list(circuit_to_dag(qc).multigraph_layers()))-2 == depth, "The depth is wrong in the generated circuit."
-
-    return qc
 
 class PushOperator:
     '''Finding checks: Symbolic: push operations.'''
@@ -493,13 +432,13 @@ class TestCircuits:
         noisy_rho_with_checks=get_result_rho(noisy_cirq_circ_with_checks, number_of_qubits+1, keep_qubits)
         print("taking trace...")
         ancilla_zero_outcome_probability=np.trace(noisy_rho_with_checks)
-        fidelity_noisy_rho_with_check=fidelity(np.around(noisy_rho_with_checks* 1/ancilla_zero_outcome_probability, 5), 
+        fidelity_noisy_rho_with_check=cirq.fidelity(np.around(noisy_rho_with_checks* 1/ancilla_zero_outcome_probability, 5), 
             rho_correct, qid_shape=(2**(number_of_qubits),), validate=False)
         
         noisy_cirq_circ_no_checks=add_noise(cirq_circ_no_checks, single_qubit_error)
         # print(noisy_cirq_circ_with_checks)
         noisy_rho_no_checks=get_result_rho(noisy_cirq_circ_no_checks, number_of_qubits, keep_qubits)
-        fidelity_noisy_rho_no_check=fidelity(noisy_rho_no_checks, rho_correct, qid_shape=(2**(number_of_qubits),), validate=False)
+        fidelity_noisy_rho_no_check=cirq.fidelity(noisy_rho_no_checks, rho_correct, qid_shape=(2**(number_of_qubits),), validate=False)
         print(f"single qubit error rate: {single_qubit_error}")
         print(f"ancilla 0 prob outcome: {ancilla_zero_outcome_probability}")
         print(f"fidelity no check: {fidelity_noisy_rho_no_check}")
@@ -601,41 +540,7 @@ def get_weight(pauli_string):
     for character in pauli_string:
         if character!="I":
             count+=1
-    return count
-
-def create_controlU(npmat, number_of_qubits):
-    '''Testing circuits:
-    Finding checks: Helper of numpy method.
-    Returns: np.array'''
-    return np.kron(np.array([[1,0],[0,0]]),np.eye(2**number_of_qubits))+np.kron(np.array([[0,0],[0,1]]),npmat)    
-
-def check_p2(control_p1, control_p2, unitary, number_of_qubits):
-    '''Finding checks: Helper for numpy method.
-    Sanity check for p2. U\otimes I- ControlP2^\dagger(U\otimes I)ControlP1==0'''
-    assert np.allclose(np.kron(np.eye(2),unitary.data)-control_p2.dot(np.kron(np.eye(2),unitary.data)).dot(control_p1), np.zeros(2**(number_of_qubits+1))), "wrong p2"
-
-def layer_to_circ(layer, temp_layer_circ):
-    '''Finding checks: Helper for transpile method. 
-    Convert layer to circiut.'''
-    for node in layer:
-        if node.type == "op":
-            copy_node(temp_layer_circ, node)
-
-def pauli_to_circuit(pauli_str):
-    '''Finding checks: Helper for transpile method. 
-    Converts the Pauli string to a circuit. Returns: QuantumCircuit'''
-    circ=QuantumCircuit(len(pauli_str))
-    qubit_pos=len(pauli_str)-1
-    for char in pauli_str:
-        if char=="X":
-            # print(phase_added, phase, char)
-            circ.x(qubit_pos)
-        elif char=="Y":
-            circ.y(qubit_pos)
-        elif char=="Z":
-            circ.z(qubit_pos)
-        qubit_pos-=1
-    return circ
+    return count    
 
 def append_checks_to_circ(circ_properties, checks_properties):
     '''Finding checks: combines everything into one circuit.'''
@@ -722,106 +627,6 @@ def find_checks_sym(pauli_group_elem, circ):
                 temp_check_reversed.forward=True
             else:
                 temp_check_reversed.layer_idx-=1
-
-def find_checks_with_numpy(pauli_group_tuple, unitary, number_of_qubits, ABS_TOL, 
-    pauli_labels, pauli_group_positive, table_length, count, p2_weights, pauli_str_p1s, pauli_str_p2s):
-    '''Finding checks: Uses numpy. Probably depricate.'''
-    idx1=pauli_group_tuple[0]
-    # to_matrix() returns a list.
-    p1=pauli_group_tuple[1].to_matrix()[0]
-    if idx1 >= table_length:
-        p1 = p1*-1
-    #U.p1=p2.U ---->U.p1.U^\dagger=p2. Operator class so we need .data to access numpy array.
-    p2=unitary.dot(p1).dot(unitary.adjoint()).data
-    #Sanity check. Can comment out.
-    control_p1=create_controlU(p1, number_of_qubits)
-    control_p2=create_controlU(p2, number_of_qubits)
-    if not check_p2(control_p1, control_p2, unitary, number_of_qubits):
-        return
-    # Check if p2 is traceless. All elements of the pauli group are traceless except identity.
-    if not math.isclose(0.0,np.trace(p2), abs_tol=ABS_TOL):
-        return
-    #Only need p2 with +1 phase since the global phase can be absorbed into p1. Faster this way.
-    for idx2, label_element in enumerate(pauli_group_positive):
-        # to_matrix() returns a list.
-        element=label_element.to_matrix()[0]
-        # allclose checks if the values are within tolerance of atol=10^-8.
-        if np.allclose(p2, element):
-            #Have to check which part of the table p1 belongs to so we can print the correct phase.
-            if idx1-table_length<0:
-                p1_str=f"+1{pauli_labels[idx1 % table_length]}"
-            else:
-                p1_str=f"-1{pauli_labels[idx1 % table_length]}"
-            # elif idx1-2*table_length<0:
-            #     p1_str="-1"+pauli_labels[idx1 % table_length]
-            # elif idx1-3*table_length<0:
-            #     p1_str="+j"+pauli_labels[idx1 % table_length]
-            # else:
-            #     p1_str="-j"+pauli_labels[idx1 % table_length]
-            #P2 is always +1 phase.
-            p2_str=f"+1{pauli_labels[idx2]}"
-            print(f"p1: {p1_str}")
-            print(f"p2: {p2_str}")
-
-            # Print the weight. We care about P2 weight since we commute p1 through U.
-            p2_weight=get_weight(pauli_labels[idx2])
-            print(f"Pauli weight P2: {p2_weight}")
-            print()
-            #Need to lock the value so it doesn't change while checking. Since we write only
-            #after locking the weight we don't need to lock the other values.
-            with count.get_lock():
-                count.value+=1
-                if p2_weight>p2_weights[0]:
-                    # We store the max values in the beginning.
-                    p2_weights[0]=p2_weight
-                    pauli_str_p1s[0]=p1_str
-                    pauli_str_p2s[0]=p2_str
-                pauli_str_p1s.append(p1_str)
-                pauli_str_p2s.append(p2_str)
-                p2_weights.append(p2_weight)
-
-            # #Need to lock the value so it doesn't change. Nonatomic operation.
-            # with count.get_lock():
-            #     count.value+=1
-            #We found p2 so just return.
-            return
-
-def find_checks_with_transpile(pauli_group_elem, circ):
-    '''Finding checks: Uses transpile. May deprecate.'''
-    # Temporay storage
-    temp_p2_circ=pauli_to_circuit(pauli_group_elem)
-
-    #Go through the layers of the circ
-    circ_dag=circuit_to_dag(circ)
-    layers=list(circ_dag.multigraph_layers())
-    for layer in layers:
-        #Convert layer to circuit.
-        temp_layer_circ=QuantumCircuit(circ.num_qubits)
-        layer_to_circ(layer, temp_layer_circ)
-        # for node in layer:
-        #     if node.type == "op":
-        #         mymodule.copy_node(temp_layer_circ, node)
-        temp_p2_circ=find_intermediate_p2(temp_p2_circ, temp_layer_circ)
-    print(f"p2: {pauli_group_elem}")
-    print("Temp_p2: ")
-    print(temp_p2_circ)
-    return(temp_p2_circ)
-
-def find_intermediate_p2(p1_circ, circ):
-    '''Finding checks: Helper function for transpile method.'''
-    circ_inverse=QuantumCircuit.inverse(circ)
-    # U.p_1=c_2.U---->Up_1U^dagger=c_2
-    p2_circ=circ_inverse.compose(p1_circ).compose(circ)
-    # print(c2_circ)
-    #Optimize the circuit
-    basis_gates=['id', 'rz', 'sx', 'cx']
-    p2_circ=transpile(p2_circ, basis_gates=basis_gates, optimization_level=2)
-    # print(c2_circ)
-    return p2_circ
-
-# def create_controlU(npmat, number_of_qubits):
-#     '''Testing cricuits: Returns a controlled operation. Type is np.array'''
-#     return np.kron(np.array([[1,0],[0,0]]),np.eye(2**number_of_qubits))+np.kron(np.array([[0,0],[0,1]]),npmat)
 
 def write_outputs(circ_properties, checks_properties, file_number, file_info_path, file_qasm_path, output_file):
     '''Finding checks: write outputs.'''
@@ -975,40 +780,6 @@ def result_exists(base_path, file_name, result_num):
     output_file_txt_path=os.path.join(base_path, result_name)
     # print(output_file_txt_path)
     return os.path.isfile(output_file_txt_path)
-
-def get_number_of_results(job):
-    '''Testing circuits: Get's the number of measurement outcomes. Before post selecting this should be number of tomography circuits*shots.'''
-    tot=0
-    for idx, _ in enumerate(job.results):
-        # Each idx represents one tomography circuit. The number of shots is how much we repeat the circuit.
-        # The list given by get_counts contains all the outcomes from running that specific tomography circuit. get_counts
-        # returns a list of outcomes for that specific tomography circuit. The number of outcomes for that specific circuit
-        # is equal to the number of shots.
-        curr_exp=job.get_counts(idx)
-        # print(curr_exp)
-        tot+=sum(curr_exp.values())
-    # print(tot)
-    return tot
-
-def run_job(job, basis_gates, noise_model, shots_arg, simulator):
-    '''Testing cricuits: Runs the given job. Returns result.'''
-    print("running job...")
-    # simulator=Aer.get_backend('qasm_simulator')
-    # simulator.set_option("method", "density_matrix")
-    # simulator.set_option("max_parallel_experiments", psutil.cpu_count(logical=False))
-    # simulator.set_option("max_parallel_shots", psutil.cpu_count(logical=False))
-    # simulator.set_option("max_parallel_threads", psutil.cpu_count(logical=False))
-    # result= execute(job, Aer.get_backend('qasm_simulator'),
-    #             basis_gates=basis_gates,
-    #             noise_model=noise_model, 
-    #             shots=shots_arg, optimization_level=0).result()
-    result= execute(job, simulator,
-                basis_gates=basis_gates,
-                noise_model=noise_model, 
-                shots=shots_arg, optimization_level=0).result()
-    print("job done.")
-    
-    return result
 
 def store_results(circ, circ_full_with_ancilla, base_path, circ_file_name, number_of_qubits, results, cnot_count, rz_count, circuit_num,
     count, p2_weight, pauli_str_p1, pauli_str_p2):
@@ -1235,32 +1006,6 @@ def add_noise(circ, single_qubit_error):
     noisy_cirq+=cirq.Circuit(moments)
     # noisy_cirq=circ.with_noise(cirq.depolarize(p=single_qubit_error))
     return noisy_cirq
-
-def post_select_on_ancilla(res, ancilla_value, new_nqubits): 
-    """Testing circuits:
-    strip the results where ancilla was not equal to `ancilla_value`
-    This is some voodoo copied from 
-    https://qiskit.org/documentation/tutorials/noise/8_tomography.html#2-Qubit-Conditional-State-Tomography  
-    """
-    assert(isinstance(ancilla_value, str))
-    res_new = deepcopy(res)
-    for resultidx, _ in enumerate(res.results):
-        old_counts = res.get_counts(resultidx)
-        new_counts = {}
-        # print(res_new.results[resultidx].header.clbit_labels)
-        res_new.results[resultidx].header.creg_sizes = [res_new.results[resultidx].header.creg_sizes[0]]
-        res_new.results[resultidx].header.clbit_labels = res_new.results[resultidx].header.clbit_labels[0:-1]
-        # print(res_new.results[resultidx].header.clbit_labels)
-        res_new.results[resultidx].header.memory_slots = new_nqubits 
-        for reg_key in old_counts:
-            # print(reg_key)
-            reg_bits = reg_key.split(' ')
-            assert(len(reg_bits) == 2)
-            assert(len(reg_bits[0]) == 1)
-            if reg_bits[0]==ancilla_value:
-                new_counts[reg_bits[1]]=old_counts[reg_key]
-            res_new.results[resultidx].data.counts = new_counts
-    return res_new
 
 if __name__ == "__main__":
     pass
