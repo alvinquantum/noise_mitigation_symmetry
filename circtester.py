@@ -226,7 +226,22 @@ class CircuitTester:
         return rho
 
     def _get_sanity_check_fidelity(self):
+        '''No reason to expose this since the sanity check fidelity can be accessed directly.'''
         return fidelity(self.rho_checks, self.rho_correct, qid_shape=(2**(self.number_of_qubits),), validate=False)
+
+    def run_all_tests_parallel(self, pool, single_qubit_error_space):
+        '''single_qubit_error_space: iterable containing the error numbers.'''
+        #In some cases pool.imap_unordered needs to be wrapped in list in order to return properly. 
+        #see: https://stackoverflow.com/questions/5481104/multiprocessing-pool-imap-broken
+        return list(pool.imap_unordered(self.run_test, enumerate(single_qubit_error_space), chunksize=1))
+
+    def run_all_tests(self, single_qubit_error_space):
+        '''Non parallel tests. single_qubit_error_space: iterable containing the error numbers.'''
+        results=[]
+        for error_info in enumerate(single_qubit_error_space):
+                results.append(self.run_test(error_info))
+        return results
+
 
 class FilesManipulator:
     '''Class for dealing with files.'''
@@ -250,11 +265,6 @@ class FilesManipulator:
         base_path=self.base_path
         with open(os.path.join(base_path, circ_porp_file_name), "rb") as circ_file:
             circ_info=pickle.load(circ_file)
-        # circtester.store_results(
-        #     noiseless_circs.cirq_circ_compute, noiseless_circs.cirq_circ_with_checks, BASE_PATH, file_name, 
-        #     NUMBER_OF_QUBITS, results, CNOT_COUNT, circ_info["rz"], circ_info["circuit_num"], 
-        #     circ_info["found_matches"], circ_info["max_pauli_weight"], circ_info["max_pauli_str_p1"], 
-        #     circ_info["max_pauli_str_p2"])
 
         #File naming stuff. 
         #Strip the extension.
