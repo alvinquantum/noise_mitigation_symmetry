@@ -3,3 +3,4 @@ __pycache__
 desktop.ini
 data/
 data/*
+exec_gen_test.py
