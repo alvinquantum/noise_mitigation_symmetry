@@ -6,3 +6,5 @@ data/*
 qubits_5_results/
 qubits_5_results/*
 exec_gen_test.py
+qubits_10_results/
+qubits_10_results/*
