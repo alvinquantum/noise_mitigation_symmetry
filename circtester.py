@@ -1,5 +1,4 @@
 from copy import deepcopy
-from matplotlib.pyplot import cla
 import numpy as np
 from qiskit import transpile, QuantumCircuit
 from qiskit.circuit import QuantumRegister
@@ -13,7 +12,6 @@ import json
 from cirq.contrib.qasm_import import circuit_from_qasm
 from os import listdir
 from os.path import isfile
-import utilities
 from cirq.qis import fidelity
 
 

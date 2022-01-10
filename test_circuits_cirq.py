@@ -19,10 +19,10 @@ if __name__ == "__main__":
     #Determines if we run parallel or not.
     PARALLEL=True
     # File stuff
-    SUBDIR="/data/"
+    SUBDIR="data"
     # Gets the file path of the script
     CODE_DIR=os.path.abspath(os.path.dirname(__file__))
-    BASE_PATH=CODE_DIR+SUBDIR
+    BASE_PATH=os.path.join(CODE_DIR,SUBDIR)
     #Error space
     SINGLE_QUBIT_ERROR_SPACE=np.logspace(-5, -2, num=21) #goes from 10^-5 to 10^-2
     files_manipulator=circtester.FilesManipulator(BASE_PATH, NUMBER_OF_QUBITS, CNOT_COUNT)

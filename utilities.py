@@ -46,41 +46,42 @@ def add_controlU(circ, pauli_str, number_of_qubits, quantum_register, ancilla_re
     """.strip())
 
     #Check the length of the pauli string. It maybe empty when there were no matches found.
+    ancilla_qpos=ancilla_register[0]
     if len(pauli_str)>number_of_qubits:
         phase=pauli_str[:2]
         pauli_str=pauli_str[2:]
         qubit_pos=number_of_qubits-1
         phase_added=False
-        for pos, char in enumerate(pauli_str):
+        for _, char in enumerate(pauli_str):
             # First case is most common
             if phase_added or phase=="+1":
                 if char=="X":
                     # print(phase_added, phase, char)
-                    circ.cx(ancilla_register, quantum_register[qubit_pos])
+                    circ.cx(ancilla_qpos, quantum_register[qubit_pos])
                 elif char=="Y":
                     # print(phase_added, phase, char)
                     circ.sdg(quantum_register[qubit_pos])
-                    circ.cx(ancilla_register, quantum_register[qubit_pos])
+                    circ.cx(ancilla_qpos, quantum_register[qubit_pos])
                     circ.s(quantum_register[qubit_pos])
                 elif char=="Z":
                     # print(phase_added, phase, char)
                     circ.h(quantum_register[qubit_pos])
-                    circ.cx(ancilla_register, quantum_register[qubit_pos])
+                    circ.cx(ancilla_qpos, quantum_register[qubit_pos])
                     circ.h(quantum_register[qubit_pos])
             # -1 phase
             else:
                 if char=="X":
                     # print(phase_added, phase, char)
-                    circ.compose(c_minus_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                    circ.compose(c_minus_x, qubits=[ancilla_qpos, quantum_register[qubit_pos]], inplace=True)
                 elif char=="Y":
                     # print(phase_added, phase, char)
                     circ.sdg(quantum_register[qubit_pos])
-                    circ.compose(c_minus_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                    circ.compose(c_minus_x, qubits=[ancilla_qpos, quantum_register[qubit_pos]], inplace=True)
                     circ.s(quantum_register[qubit_pos])
                 elif char=="Z":
                     # print(phase_added, phase, char)
                     circ.h(quantum_register[qubit_pos])
-                    circ.compose(c_minus_x, qubits=[ancilla_register[0], quantum_register[qubit_pos]], inplace=True)
+                    circ.compose(c_minus_x, qubits=[ancilla_qpos, quantum_register[qubit_pos]], inplace=True)
                     circ.h(quantum_register[qubit_pos])
                 # Note the phase added needs this check because of identity terms in the pauli strings.
                 # With no check, if there is an identity it will change phase_added to true and we won't get the

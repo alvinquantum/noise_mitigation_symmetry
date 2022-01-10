@@ -258,7 +258,7 @@ def insert_rz_gate(circ, rng, prob, operand):
 def add_rz_gates_det(num_qubits, qc, rng):
     '''Generate random circ: Helper function. Add a set number of rz gates randomly to the circuit. Returns: QuantumCircuit'''
     qc_dag=circuit_to_dag(qc)
-    new_qc=QuantumCircuit(QuantumRegister(num_qubits))
+    new_qc=QuantumCircuit(QuantumRegister(num_qubits, name="q"))
     NUM_RZ=5
 
     # Each dag has layers and each layer has nodes.
@@ -331,7 +331,7 @@ def add_rz_gates_prob(num_qubits, qc, rng):
     prob=const/length
 
     qc_dag=circuit_to_dag(qc)
-    new_qc=QuantumCircuit(QuantumRegister(num_qubits))
+    new_qc=QuantumCircuit(QuantumRegister(num_qubits, name="q"))
 
     # Each dag has layers and each layer has nodes.
     layers=list(qc_dag.multigraph_layers())
@@ -553,8 +553,8 @@ def append_checks_to_circ(circ_properties, checks_properties):
     pauli_str_p1=checks_properties.pauli_str_p1s[0]
     pauli_str_p2=checks_properties.pauli_str_p2s[0]
     number_of_qubits=circ_properties.number_of_qubits
-    quant_comp_reg=QuantumRegister(number_of_qubits)
-    ancilla_reg=QuantumRegister(1)
+    quant_comp_reg=QuantumRegister(number_of_qubits, name="q")
+    ancilla_reg=QuantumRegister(1, name="a")
     temp_circ=QuantumCircuit(quant_comp_reg, ancilla_reg)
 
     # temp_circ.h(ancilla_reg)
