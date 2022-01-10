@@ -17,10 +17,12 @@ import scipy
 
 class NoiselessCircuits:
     '''Testing Circuits'''
-    def __init__(self, qiskit_circ_with_checks, cirq_circ_with_checks, cirq_circ_no_checks):
+    def __init__(self, qiskit_circ_with_checks, cirq_circ_with_checks, cirq_circ_no_checks, qubits_label):
         self.qiskit_circ_with_checks = qiskit_circ_with_checks
         self.cirq_circ_with_checks = cirq_circ_with_checks
         self.cirq_circ_no_checks = cirq_circ_no_checks
+        #This is useful for getting a handle on specific qubits for cirq versions of the circuits.
+        self.qubits_label=qubits_label
 
 class CircuitMaker:
     '''Contains methods for generating the full circuits.'''
@@ -110,11 +112,12 @@ class CircuitMaker:
             validate=False
         )
         cirq_circ_with_checks.append([projector0_channel.on(ancilla_qubit)])        
-        return NoiselessCircuits(qiskit_circ_with_checks_store, cirq_circ_with_checks, cirq_circ_no_checks)    
+        return NoiselessCircuits(qiskit_circ_with_checks_store, cirq_circ_with_checks, cirq_circ_no_checks, qubits_label)    
 
 class CircuitTester:
     '''Testing circuits: For running the simulations.'''
     def __init__(self, noiseless_circs, number_of_qubits, keep_qubits):
+        self.qubits_label=noiseless_circs.qubits_label
         self.cirq_circ_with_checks=noiseless_circs.cirq_circ_with_checks
         self.cirq_circ_no_checks=noiseless_circs.cirq_circ_no_checks
         self.number_of_qubits=number_of_qubits
@@ -140,7 +143,7 @@ class CircuitTester:
         noisy_rho_with_checks=self.get_result_rho(noisy_cirq_circ_with_checks, number_of_qubits+1, keep_qubits)
         print("taking trace...")
         ancilla_zero_outcome_probability=np.real(np.trace(noisy_rho_with_checks))
-        fidelity_noisy_rho_with_check=self._get_fidelity(np.around(noisy_rho_with_checks* 1/ancilla_zero_outcome_probability, 5), rho_correct)
+        fidelity_noisy_rho_with_check=self._get_fidelity(noisy_rho_with_checks* 1/ancilla_zero_outcome_probability, rho_correct)
         
         # print(noisy_cirq_circ_with_checks)
         noisy_cirq_circ_no_checks=self.add_noise(cirq_circ_no_checks, single_qubit_error)
@@ -169,9 +172,15 @@ class CircuitTester:
             # Iterate through the moments. For two qubit gates we add a two qubit depolarization at a two qubit error rate.
             # print(all_qubits)
             for idx, moment in enumerate(circ):
-                # Skip the initial state.
+                # Skip the initial state. Which consists of the first 3 moments.
                 if idx <3:
                     moments+=[moment]
+                    # We're dealing with the check circuit. Add a depolarizing noise after the hadamard gate.
+                    # W have to add the noise here because the hadamard goes into the first moment.
+                    if len(circ.all_qubits())==self.number_of_qubits+1 and idx == 2:
+                        ancila=cirq.NamedQubit(f"{self.qubits_label}_{self.number_of_qubits}")
+                        error_op=singlequbit_noise_model.on_each(ancila)
+                        moments+=[cirq.ops.Moment(error_op)]
                 else:
                     error_ops=[]
                     # TODO: Should we do this? 
@@ -254,7 +263,7 @@ class CircuitTester:
         # functions in cirq and qutip. Credit to https://github.com/qutip/qutip/issues/925#issuecomment-542318121
         rho1_sqrt=scipy.linalg.sqrtm(rho1)
         rho2_sqrt=scipy.linalg.sqrtm(rho2)
-        return scipy.linalg.svdvals(np.dot(rho1_sqrt,rho2_sqrt)).sum()**2
+        return scipy.linalg.svdvals(rho1_sqrt @ rho2_sqrt).sum()**2
 
 class FilesManipulator:
     '''Class for dealing with files.'''
