@@ -45,10 +45,6 @@ def get_checks_parallel(pauli_group_elem):
     global ABS_TOL, circ_properties, pauli_labels, table_length
     return circgenerator.find_checks_sym(pauli_group_elem, circ_properties.circ)
 
-def print_circ_to_file():
-    '''Prints the circ to the file.'''
-    circuit_drawer(circ, filename=output_file_path)
-
 if __name__ == "__main__":
     # #Disable qiskit parallel.
     os.environ['QISKIT_IN_PARALLEL'] = 'TRUE'
