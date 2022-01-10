@@ -3,4 +3,6 @@ __pycache__
 desktop.ini
 data/
 data/*
+qubits_5_results/
+qubits_5_results/*
 exec_gen_test.py
