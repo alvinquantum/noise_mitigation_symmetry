@@ -3,26 +3,17 @@
 
 import os
 # The number of threads is capped on Bebop.
-os.environ['OPENBLAS_NUM_THREADS'] = '1'
-from qiskit.circuit.quantumregister import QuantumRegister
+# os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
-from qiskit.converters.circuit_to_dag import circuit_to_dag
-from qiskit.converters.dag_to_circuit import dag_to_circuit
-from scipy.sparse.extract import find
-from re import M
-import numpy as np
-import math, sys, pickle, ctypes, psutil, json
-from qiskit import QuantumCircuit, transpile
-from matplotlib import pyplot as plt
-from qiskit.quantum_info import Statevector, Pauli, Operator
-from qiskit.circuit.random import random_circuit
+import sys
+import psutil
+import json
+from qiskit.quantum_info import Operator
 from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
 import circgenerator
 import utilities
 from qiskit.visualization import circuit_drawer
-from multiprocessing import Pool, Value, Array, Manager
-from copy import deepcopy
-from pprint import pprint
+from multiprocessing import Pool
 import time
 import cProfile
 
@@ -46,6 +37,7 @@ def get_checks_parallel(pauli_group_elem):
     return circgenerator.find_checks_sym(pauli_group_elem, circ_properties.circ)
 
 if __name__ == "__main__":
+    time0=time.time()
     # #Disable qiskit parallel.
     os.environ['QISKIT_IN_PARALLEL'] = 'TRUE'
     print("running...")
@@ -62,13 +54,14 @@ if __name__ == "__main__":
     ABS_TOL=.2*2**(NUMBER_OF_QUBITS-1)
     #Paths for outputs and pickle file of circuit. sys.path[0] on laptop and the other on hpc.
     # code_dir1=os.path.dirname(os.path.realpath("__file__"))
-    CODE_DIR=sys.path[0]
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
     # print(code_dir1)
     # print(code_dir2)
-    SUBDIR="/data/"
+    SUBDIR="data"
     # BASE_FILE_PATH=code_dir+SUBDIR+"depth"+ str(DEPTH) +"_"
-    BASE_FILE_PATH=CODE_DIR+SUBDIR+"qubits_"+str(NUMBER_OF_QUBITS)+"_CNOTS_"+ str(CNOT_COUNT) +"_"
-
+    # BASE_FILE_PATH=CODE_DIR+SUBDIR+"qubits_"+str(NUMBER_OF_QUBITS)+"_CNOTS_"+ str(CNOT_COUNT) +"_"
+    BASE_PATH=os.path.join(CODE_DIR, SUBDIR)
+    
     #Create +1 phase pauli group
     #Note that we can restrict the search for p1 to the +/-1 phases. This is due to passing the phase
     #from p2 to p1 and then realizing that the eigenvalues of p2 is restricted to +/-1. The unitary
@@ -79,49 +72,30 @@ if __name__ == "__main__":
     #Labels will be used to print pauli strings in the loop
     pauli_labels=pauli_table.to_labels()
     pauli_group=pauli_table
-    
-    # #Convert to matrices
-    # pauli_group_positive=list(map(lambda x:x.to_matrix(),pauli_table))
-    # #Flatten the list
-    # pauli_group_positive=[val for sublist in pauli_group_positive for val in sublist]
-    # # Make the other phases and merge
-    # pauli_group_negative=[element * -1 for element in pauli_group_positive]
-    # pauli_group=pauli_group_positive+pauli_group_negative
 
     table_length=len(pauli_table)
     #main loop
     file_number=0
     for _ in range(NUMBER_OF_CIRCUITS):
-        time0=time.time()
-        output_file_path=BASE_FILE_PATH+ "circuit_" + str(file_number) +"_.txt"
-        while os.path.isfile(output_file_path):
+        time1=time.time()
+        # output_file_path=BASE_FILE_PATH+ "circuit_" + str(file_number) +"_.txt"
+        output_file_name=f"qubits_{NUMBER_OF_QUBITS}_CNOTS_{CNOT_COUNT}_circuit_{file_number}_.txt"
+        while os.path.isfile(os.path.join(BASE_PATH, output_file_name)):
             file_number+=1
-            output_file_path=BASE_FILE_PATH+ "circuit_" + str(file_number) +"_.txt"
-        file_info_path=BASE_FILE_PATH+ "circuit_" + str(file_number)+"_.obj"
-        file_qasm_path=BASE_FILE_PATH+ "circuit_" + str(file_number)+"_.qasm"
+            # output_file_name=BASE_FILE_PATH+ "circuit_" + str(file_number) +"_.txt"
+            output_file_name=f"qubits_{NUMBER_OF_QUBITS}_CNOTS_{CNOT_COUNT}_circuit_{file_number}_.txt"
+        info_file_name=f"qubits_{NUMBER_OF_QUBITS}_CNOTS_{CNOT_COUNT}_circuit_{file_number}_.obj"
+        qasm_file_name=f"qubits_{NUMBER_OF_QUBITS}_CNOTS_{CNOT_COUNT}_circuit_{file_number}_.qasm"
         #Random circuit.
         circ=circgenerator.random_circuit_cnot(NUMBER_OF_QUBITS, CNOT_COUNT)
-        # circ=mymodule.random_circuit_depth(NUMBER_OF_QUBITS, CNOT_COUNT)
-        # # # Load circuit.
-        # circ_file=open(BASE_FILE_PATH+ "circuit_0_.obj", "rb")
-        # circ=pickle.load(circ_file)["circ"]
-        # circ.x(0)
-        # circ_file.close()
-        # Don't delete! Qiskit random circuit
-        # circ=random_circuit(5,10)
-
-        # #Test
-        # circ=QuantumCircuit(5)
-        # for idx in range(5):
-        #     circ.s(idx)
 
         # We use this to find P1 and P2.
         unitary = Operator(circ)
         #Draw to file
-        circuit_drawer(circ, filename=output_file_path)
+        circuit_drawer(circ, filename=os.path.join(BASE_PATH, output_file_name))
         print(circ)
         
-        output_file=open(output_file_path, "a")
+        output_file=open(os.path.join(BASE_PATH, output_file_name), "a")
         output_file.write("\n")
         # Count the number of CNOT gates
         circ_operations=circ.count_ops()
@@ -184,7 +158,8 @@ if __name__ == "__main__":
         # Combine the circuit and checks.
         if p2_weights[0]>0:
             circ_properties.circ=circgenerator.append_checks_to_circ(circ_properties, checks_properties)
-        circgenerator.write_outputs(circ_properties, checks_properties, file_number, file_info_path, file_qasm_path, output_file)
+        circgenerator.write_outputs(circ_properties, checks_properties, file_number, os.path.join(BASE_PATH, info_file_name),os.path.join(BASE_PATH, qasm_file_name), output_file)
 
-        print("execution time", time.time()-time0)
+        print(f"file execution time {time.time()-time1}")
+    print(f"total execution time {time.time()-time0}")
     print("done")
