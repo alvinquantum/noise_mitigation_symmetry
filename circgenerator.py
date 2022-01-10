@@ -557,13 +557,13 @@ def append_checks_to_circ(circ_properties, checks_properties):
     ancilla_reg=QuantumRegister(1)
     temp_circ=QuantumCircuit(quant_comp_reg, ancilla_reg)
 
-    temp_circ.h(ancilla_reg)
+    # temp_circ.h(ancilla_reg)
     utilities.add_controlU(temp_circ, pauli_str_p1, number_of_qubits, quant_comp_reg, ancilla_reg)
     temp_circ.barrier()
     temp_circ.compose(circ, quant_comp_reg, inplace=True)
     temp_circ.barrier()
     utilities.add_controlU(temp_circ, pauli_str_p2, number_of_qubits, quant_comp_reg, ancilla_reg)
-    temp_circ.h(ancilla_reg)
+    # temp_circ.h(ancilla_reg)
     
     return temp_circ
 
