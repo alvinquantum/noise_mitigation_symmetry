@@ -12,10 +12,10 @@ if __name__ == "__main__":
     time0=time.time()
     print("running...")
     #Program parameters.
-    NUMBER_OF_QUBITS=5#int(sys.argv[1])
-    CNOT_COUNT=10#int(sys.argv[2])
-    START_CIRC_NUMBER=0#int(sys.argv[3])
-    END_CIRC_NUMBER=10#int(sys.argv[4])
+    NUMBER_OF_QUBITS=int(sys.argv[1])
+    CNOT_COUNT=int(sys.argv[2])
+    START_CIRC_NUMBER=int(sys.argv[3])
+    END_CIRC_NUMBER=int(sys.argv[4])
     #Determines if we run parallel or not.
     PARALLEL=True
     # File stuff

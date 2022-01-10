@@ -1,7 +1,9 @@
 from copy import deepcopy
+from matplotlib.pyplot import cla
 import numpy as np
 from qiskit import transpile, QuantumCircuit
 from qiskit.circuit import QuantumRegister
+from qiskit.circuit.classicalregister import ClassicalRegister
 from qiskit.visualization import circuit_drawer
 from qiskit.opflow import X,Y,Z
 import os
@@ -65,43 +67,52 @@ class CircuitMaker:
         number_of_qubits=self.number_of_qubits 
         qubits_label="q"
         quantum_register=QuantumRegister(number_of_qubits+1, qubits_label)
+        ancilla_qreg=quantum_register[-1]
         qiskit_circ_with_checks=QuantumCircuit(quantum_register)
-        #Create the circuit with no checks
-        circ_no_checks=QuantumCircuit(quantum_register)
-        self.add_rand_input_state(number_of_qubits, quantum_register[:number_of_qubits:], qiskit_circ_with_checks, circ_no_checks)
-        # Save the initial state circuit.
-        circ_initial_state=deepcopy(circ_no_checks)
-        # print("random initial state", rand_initial_state)
-        # circ_with_checks.barrier()
-        # qiskit_circ_with_checks.h(number_of_qubits)
+        qiskit_circ_no_checks=QuantumCircuit(quantum_register)
+        self.add_rand_input_state(number_of_qubits, quantum_register[:number_of_qubits:], qiskit_circ_with_checks, qiskit_circ_no_checks)
+        # For saving the initial qiskit circuit with added initial state. We do this because cirq cannot handle barriers. Thus,
+        # the cirq printing of circuits is not so good.
+        qiskit_circ_with_checks_store=deepcopy(qiskit_circ_no_checks)
+        # Initial hadamard.
+        qiskit_circ_with_checks.h(ancilla_qreg)
+        qiskit_circ_with_checks_store.barrier()
+        qiskit_circ_with_checks_store.h(ancilla_qreg)
+        # Copy the pieces in the circuit.
         for elem in self.circ_pieces:
-            # circ_with_checks.barrier()
             qiskit_circ_with_checks.compose(elem, inplace=True)
-        # circ_with_checks.barrier()
-        circ_no_checks.compose(self.circ_pieces[1], inplace=True)
-        # qiskit_circ_with_checks.h(number_of_qubits)
+            qiskit_circ_with_checks_store.barrier()
+            qiskit_circ_with_checks_store.compose(elem, inplace=True)
+        # The final hadamard.
+        qiskit_circ_with_checks.h(ancilla_qreg)
+        qiskit_circ_with_checks_store.barrier()
+        qiskit_circ_with_checks_store.h(ancilla_qreg)
+        # The no checks only uses the main compute circuit.
+        qiskit_circ_no_checks.compose(self.circ_pieces[1], inplace=True)
 
-        #Test
+        # Add the measurement for the qiskit circuit that we will print out.
+        classical_register=ClassicalRegister(1, "c")
+        qiskit_circ_with_checks_store.add_register(classical_register)
+        qiskit_circ_with_checks_store.barrier()
+        qiskit_circ_with_checks_store.measure(quantum_register[-1], classical_register[0])
+
+        # We should transpile to a basis.
         basis_gates=['u1', 'u2', 'u3', 'cx']
         qiskit_circ_with_checks=transpile(qiskit_circ_with_checks, basis_gates=basis_gates, optimization_level=0)
-        circ_no_checks=transpile(circ_no_checks, basis_gates=basis_gates, optimization_level=0)
-        circ_initial_state=transpile(circ_initial_state, basis_gates=basis_gates, optimization_level=0)
+        qiskit_circ_no_checks=transpile(qiskit_circ_no_checks, basis_gates=basis_gates, optimization_level=0)
         cirq_circ_with_checks =circuit_from_qasm(qiskit_circ_with_checks.qasm())
-        cirq_circ_no_checks=circuit_from_qasm(circ_no_checks.qasm())
-        print(qiskit_circ_with_checks)
-        print(circ_no_checks)
+        cirq_circ_no_checks=circuit_from_qasm(qiskit_circ_no_checks.qasm())
 
         ancilla_qubit=cirq.NamedQubit(f"{qubits_label}_{number_of_qubits}")
         # Creates a channel that applies the zero projector. We use this to get the measurement zero outcome of the
         # density matrix. Since the resulting trial density matrix is unormalized we can get the percentages of outcomes that
-        # we discard.
+        # we keep. In the protocol, we keep the zero measurement outcome results for the ancilla.
         projector0_channel=cirq.KrausChannel(
             kraus_ops=(np.array([[1,0],[0,0]]),),
             validate=False
         )
-        cirq_circ_with_checks.append([projector0_channel.on(ancilla_qubit)])
-
-        return NoiselessCircuits(qiskit_circ_with_checks, cirq_circ_with_checks, cirq_circ_no_checks)    
+        cirq_circ_with_checks.append([projector0_channel.on(ancilla_qubit)])        
+        return NoiselessCircuits(qiskit_circ_with_checks_store, cirq_circ_with_checks, cirq_circ_no_checks)    
 
 class CircuitTester:
     '''Testing circuits: For running the simulations.'''
@@ -112,7 +123,7 @@ class CircuitTester:
         self.rho_correct=self.get_result_rho(self.cirq_circ_no_checks, number_of_qubits, keep_qubits)
         self.rho_checks=self.get_result_rho(self.cirq_circ_with_checks, number_of_qubits+1, keep_qubits)
         self.keep_qubits=keep_qubits
-        self.sanity_check_fidelity=self._get_sanity_check_fidelity()
+        self.sanity_check_fidelity=fidelity(self.rho_checks, self.rho_correct, qid_shape=(2**(self.number_of_qubits),), validate=False)
 
     def run_test(self, error_info):
         '''Testing circuits: runs the test.'''
@@ -130,7 +141,7 @@ class CircuitTester:
         noisy_cirq_circ_with_checks=self.add_noise(cirq_circ_with_checks, single_qubit_error)
         noisy_rho_with_checks=self.get_result_rho(noisy_cirq_circ_with_checks, number_of_qubits+1, keep_qubits)
         print("taking trace...")
-        ancilla_zero_outcome_probability=np.trace(noisy_rho_with_checks)
+        ancilla_zero_outcome_probability=np.real(np.trace(noisy_rho_with_checks))
         fidelity_noisy_rho_with_check=cirq.fidelity(np.around(noisy_rho_with_checks* 1/ancilla_zero_outcome_probability, 5), 
             rho_correct, qid_shape=(2**(number_of_qubits),), validate=False)
         
@@ -206,8 +217,12 @@ class CircuitTester:
         Returns resulting rho from simulation of circ.'''
         simulator=cirq.DensityMatrixSimulator()
         print("simulating....")
-        trial_result=simulator.simulate(circ)
-        rho= np.around(trial_result.final_density_matrix, 5)
+        zero_state = np.array([[1, 0], [0, 0]], dtype=np.complex64)
+        initial_state = zero_state
+        for _ in range(number_of_qubits-1):
+            initial_state = np.kron(initial_state, zero_state)
+        trial_result = simulator.simulate(circ, initial_state=initial_state)
+        rho=np.around(trial_result.final_density_matrix, 5)
         final_size=len(keep_qubits)
         if number_of_qubits!=final_size:
             # Have to expand the indices for each qubit, e.g., for 2 qubits a_ij|i><j|-->a_ijkl|ij><kl|. Then 
@@ -220,20 +235,13 @@ class CircuitTester:
             rho_reduced=cirq.partial_trace(np.reshape(rho, [2,2]*(number_of_qubits)), keep_indices=keep_qubits)
             # We have to reshape back to a square matrix. We reasign to rho so we can just return rho.
             rho=np.reshape(rho_reduced, (2**final_size, 2**final_size))
-            # print("reduced....")
-            # print(rho)
-            # print(rho.shape)
         return rho
-
-    def _get_sanity_check_fidelity(self):
-        '''No reason to expose this since the sanity check fidelity can be accessed directly.'''
-        return fidelity(self.rho_checks, self.rho_correct, qid_shape=(2**(self.number_of_qubits),), validate=False)
 
     def run_all_tests_parallel(self, pool, single_qubit_error_space):
         '''single_qubit_error_space: iterable containing the error numbers.'''
         #In some cases pool.imap_unordered needs to be wrapped in list in order to return properly. 
         #see: https://stackoverflow.com/questions/5481104/multiprocessing-pool-imap-broken
-        return list(pool.imap_unordered(self.run_test, enumerate(single_qubit_error_space), chunksize=1))
+        return list(pool.imap(self.run_test, enumerate(single_qubit_error_space), chunksize=1))
 
     def run_all_tests(self, single_qubit_error_space):
         '''Non parallel tests. single_qubit_error_space: iterable containing the error numbers.'''
