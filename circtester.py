@@ -150,12 +150,12 @@ class CircuitTester:
         noisy_rho_no_checks=self.get_result_rho(noisy_cirq_circ_no_checks, number_of_qubits, keep_qubits)
         fidelity_noisy_rho_no_check=self._get_fidelity(noisy_rho_no_checks, rho_correct)
         print(f"single qubit error rate: {single_qubit_error}")
-        print(f"ancilla 0 prob outcome: {ancilla_zero_outcome_probability}")
+        print(f"ancilla probability of 0 outcome: {ancilla_zero_outcome_probability}")
         print(f"fidelity no check: {fidelity_noisy_rho_no_check}")
         print(f"fidelity with check: {fidelity_noisy_rho_with_check}")
         print()
 
-        return {"num_results_before_postselect": 1, "num_results_after_postselect": ancilla_zero_outcome_probability, "error_idx": error_idx, 
+        return {"percent_results_before_postselect": 1, "percent_results_after_postselect": ancilla_zero_outcome_probability, "error_idx": error_idx, 
             "one_qubit_err": single_qubit_error, "two_qubit_err": 10*single_qubit_error, 
             "state_fidelity_no_checks_with_errors": fidelity_noisy_rho_no_check, 
             "state_fidelity_with_checks_with_errors": fidelity_noisy_rho_with_check, 
@@ -330,6 +330,7 @@ class FilesManipulator:
                 # print("One_qubit_err:", one_qubit_err)
                 output_file_txt.write(f"Two qubit error: {result['two_qubit_err']}\n")
                 # print("Two qubit error:", two_qubit_err)
+                output_file_txt.write(f"ancilla probability of 0 outcome: {result['percent_results_after_postselect']}\n")
                 output_file_txt.write(f"State fidelity no checks and with errors: {result['state_fidelity_no_checks_with_errors']}\n")
                 output_file_txt.write(f"State fidelity with checks and with errors: {result['state_fidelity_with_checks_with_errors']}\n")
                 output_file_txt.write(f"Sanity check fidelity with checks and no errors: {result['state_fidelity_with_checks_no_errors']}\n")
