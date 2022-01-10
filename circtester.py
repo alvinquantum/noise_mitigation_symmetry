@@ -12,7 +12,7 @@ import json
 from cirq.contrib.qasm_import import circuit_from_qasm
 from os import listdir
 from os.path import isfile
-from cirq.qis import fidelity
+import scipy
 
 
 class NoiselessCircuits:
@@ -121,7 +121,7 @@ class CircuitTester:
         self.rho_correct=self.get_result_rho(self.cirq_circ_no_checks, number_of_qubits, keep_qubits)
         self.rho_checks=self.get_result_rho(self.cirq_circ_with_checks, number_of_qubits+1, keep_qubits)
         self.keep_qubits=keep_qubits
-        self.sanity_check_fidelity=fidelity(self.rho_checks, self.rho_correct, qid_shape=(2**(self.number_of_qubits),), validate=False)
+        self.sanity_check_fidelity=self._get_fidelity(self.rho_checks, self.rho_correct)
 
     def run_test(self, error_info):
         '''Testing circuits: runs the test.'''
@@ -140,13 +140,12 @@ class CircuitTester:
         noisy_rho_with_checks=self.get_result_rho(noisy_cirq_circ_with_checks, number_of_qubits+1, keep_qubits)
         print("taking trace...")
         ancilla_zero_outcome_probability=np.real(np.trace(noisy_rho_with_checks))
-        fidelity_noisy_rho_with_check=cirq.fidelity(np.around(noisy_rho_with_checks* 1/ancilla_zero_outcome_probability, 5), 
-            rho_correct, qid_shape=(2**(number_of_qubits),), validate=False)
+        fidelity_noisy_rho_with_check=self._get_fidelity(np.around(noisy_rho_with_checks* 1/ancilla_zero_outcome_probability, 5), rho_correct)
         
         # print(noisy_cirq_circ_with_checks)
         noisy_cirq_circ_no_checks=self.add_noise(cirq_circ_no_checks, single_qubit_error)
         noisy_rho_no_checks=self.get_result_rho(noisy_cirq_circ_no_checks, number_of_qubits, keep_qubits)
-        fidelity_noisy_rho_no_check=cirq.fidelity(noisy_rho_no_checks, rho_correct, qid_shape=(2**(number_of_qubits),), validate=False)
+        fidelity_noisy_rho_no_check=self._get_fidelity(noisy_rho_no_checks, rho_correct)
         print(f"single qubit error rate: {single_qubit_error}")
         print(f"ancilla 0 prob outcome: {ancilla_zero_outcome_probability}")
         print(f"fidelity no check: {fidelity_noisy_rho_no_check}")
@@ -220,7 +219,7 @@ class CircuitTester:
         for _ in range(number_of_qubits-1):
             initial_state = np.kron(initial_state, zero_state)
         trial_result = simulator.simulate(circ, initial_state=initial_state)
-        rho=np.around(trial_result.final_density_matrix, 5)
+        rho=trial_result.final_density_matrix
         final_size=len(keep_qubits)
         if number_of_qubits!=final_size:
             # Have to expand the indices for each qubit, e.g., for 2 qubits a_ij|i><j|-->a_ijkl|ij><kl|. Then 
@@ -248,6 +247,14 @@ class CircuitTester:
                 results.append(self.run_test(error_info))
         return results
 
+    def _get_fidelity(self, rho1, rho2):
+        '''Returns the fidelity through the qutip package.'''
+        # Sums up the singular value of sqrt(rho1)*sqrt(rho2). The square of
+        # this sum is equal to the fidelity. This calcuation is better than the builtin
+        # functions in cirq and qutip. Credit to https://github.com/qutip/qutip/issues/925#issuecomment-542318121
+        rho1_sqrt=scipy.linalg.sqrtm(rho1)
+        rho2_sqrt=scipy.linalg.sqrtm(rho2)
+        return scipy.linalg.svdvals(np.dot(rho1_sqrt,rho2_sqrt)).sum()**2
 
 class FilesManipulator:
     '''Class for dealing with files.'''

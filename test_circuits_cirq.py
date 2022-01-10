@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import os 
+import os
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import numpy as np
 import circtester 
 import psutil
@@ -46,7 +47,8 @@ if __name__ == "__main__":
 
         keep_qubits=list(range(NUMBER_OF_QUBITS))
         circ_tester=circtester.CircuitTester(noiseless_circs, NUMBER_OF_QUBITS, keep_qubits)
-        assert circ_tester.sanity_check_fidelity, f"Sanity check fidelity failed for circuit {file_name}"
+        assert circ_tester.sanity_check_fidelity>0.98, f"Sanity check fidelity {circ_tester.sanity_check_fidelity} failed for circuit {file_name}"
+        print(f"sanity check fidelity: {circ_tester.sanity_check_fidelity}")
 
         if PARALLEL:
             results=circ_tester.run_all_tests_parallel(pool, SINGLE_QUBIT_ERROR_SPACE)
