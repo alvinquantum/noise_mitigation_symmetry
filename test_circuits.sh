@@ -12,7 +12,7 @@
 #SBATCH --time=72:00:00
 
 # Run My Program
-# pass the number qubits, cnot, and range
+# pass the number qubits, cnot, circuit number initial, circuit number final.
 # srun python -m cProfile -o test_circuits.profile test_circuits.py $1 $2 $3 $4
 # srun kernprof -l -v test_circuits.py $1 $2 $3 $4
-srun python test_circuits.py $1 $2 $3 $4
+srun python test_circuits_cirq.py $1 $2 $3 $4

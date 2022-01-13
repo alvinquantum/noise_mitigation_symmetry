@@ -13,7 +13,7 @@ from cirq.contrib.qasm_import import circuit_from_qasm
 from os import listdir
 from os.path import isfile
 import scipy
-
+from math import sqrt
 
 class NoiselessCircuits:
     '''Testing Circuits'''
@@ -33,7 +33,8 @@ class CircuitMaker:
         self.circ_pieces = circ_pieces
         self.number_of_qubits = number_of_qubits
 
-    def split_circuit_by_barrier(self, qasm_file_path):
+    @staticmethod
+    def split_circuit_by_barrier(qasm_file_path):
         '''Testing circuits: Split circuits by barrier.'''
         with open(qasm_file_path, "r") as file:
             qasm = file.read()
@@ -49,7 +50,8 @@ class CircuitMaker:
             circuits_with_prelude = [prelude+circuit for circuit in circuits]
             return list(map(lambda x: QuantumCircuit.from_qasm_str("\n".join(x)), circuits_with_prelude))
 
-    def add_rand_input_state(self, number_of_qubits, quantum_register, circ_with_checks, circ_no_checks):
+    @staticmethod
+    def add_rand_input_state(number_of_qubits, quantum_register, circ_with_checks, circ_no_checks):
         '''Testing circuits: Create a random state. Need to send both circs at the same time so they have the same random initial state.'''
         #Insert random state generator
         random_params = np.random.uniform(size=(number_of_qubits, 3))
@@ -264,6 +266,17 @@ class CircuitTester:
         rho1_sqrt=scipy.linalg.sqrtm(rho1)
         rho2_sqrt=scipy.linalg.sqrtm(rho2)
         return scipy.linalg.svdvals(rho1_sqrt @ rho2_sqrt).sum()**2
+
+    @staticmethod
+    def get_sso(dist1, dist2):
+        '''Returns the square of the statistical overlap. dist1 and dist2 are probability distributions.
+        dist1: list
+        dits2: list'''
+        sum=0
+        for probs in zip(dist1,dist2):
+            sum+=sqrt(probs[0])*sqrt(probs[1])
+        return sum**2
+
 
 class FilesManipulator:
     '''Class for dealing with files.'''
