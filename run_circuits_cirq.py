@@ -46,15 +46,15 @@ if __name__ == "__main__":
         noiseless_circs, noiseless_circs_meas=circuit_maker.make_noiseless_circs()
 
         keep_qubits=list(range(NUMBER_OF_QUBITS))
-        circ_tester=circtester.CircuitSimulator(noiseless_circs, NUMBER_OF_QUBITS, keep_qubits)
-        assert circ_tester.sanity_check_fidelity>0.98, f"Sanity check fidelity {circ_tester.sanity_check_fidelity} failed for circuit {file_name}"
-        print(f"sanity check fidelity: {circ_tester.sanity_check_fidelity}")
+        circ_tester=circtester.CircuitRunner(noiseless_circs_meas, NUMBER_OF_QUBITS)
+        # assert circ_tester.sanity_check_sso>0.90, f"Sanity check sso {circ_tester.sanity_check_sso} failed for circuit {file_name}"
+        print(f"sanity check sso: {circ_tester.sanity_check_sso}")
 
         if PARALLEL:
-            results=circ_tester.simulate_all_tests_parallel(pool, SINGLE_QUBIT_ERROR_SPACE)
+            results=circ_tester.run_all_tests_parallel(pool, SINGLE_QUBIT_ERROR_SPACE)
         else:
-            results=circ_tester.simulate_all_tests(SINGLE_QUBIT_ERROR_SPACE)
-        files_manipulator.store_fidelity_results(circ_properties_files[file_idx], noiseless_circs, results)
+            results=circ_tester.run_all_tests(SINGLE_QUBIT_ERROR_SPACE)
+        files_manipulator.store_sso_results(circ_properties_files[file_idx], noiseless_circs, results)
 
         print(f"file execution time {time.time()-time1}")
     if PARALLEL:
