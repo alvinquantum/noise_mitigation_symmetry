@@ -15,6 +15,7 @@ import utilities
 from qiskit.visualization import circuit_drawer
 from multiprocessing import Pool
 import time
+import checksfinder
 import cProfile
 
 def initialize(ABS_TOL_ARG, circ_properties_arg,
@@ -138,7 +139,7 @@ if __name__ == "__main__":
         else:
             for elem in pauli_labels:
                 # temp_p2_circ=find_p2s(elem, circ)
-                result=circgenerator.find_checks_sym(elem, circ)
+                result=checksfinder.find_checks_sym(elem, circ)
                 if result:
                     count+=1
                     if result[0]>p2_weights[0]:
@@ -157,8 +158,8 @@ if __name__ == "__main__":
         checks_properties=utilities.ChecksProperties(count, p2_weights, pauli_str_p1s, pauli_str_p2s)
         # Combine the circuit and checks.
         if p2_weights[0]>0:
-            circ_properties.circ=circgenerator.append_checks_to_circ(circ_properties, checks_properties)
-        circgenerator.write_outputs(circ_properties, checks_properties, file_number, os.path.join(BASE_PATH, info_file_name),os.path.join(BASE_PATH, qasm_file_name), output_file)
+            circ_properties.circ=checksfinder.append_checks_to_circ(circ_properties, checks_properties)
+        checksfinder.write_outputs(circ_properties, checks_properties, file_number, os.path.join(BASE_PATH, info_file_name),os.path.join(BASE_PATH, qasm_file_name), output_file)
 
         print(f"file execution time {time.time()-time1}")
     print(f"total execution time {time.time()-time0}")
