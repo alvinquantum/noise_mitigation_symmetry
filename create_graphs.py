@@ -56,6 +56,7 @@ def create_fidelity_plot_cnot(base_path, number_of_qubits, cnot_count, one_qubit
                 circ_outcomes_temp.append(result["state_fidelity_with_checks_with_errors"]-result["state_fidelity_no_checks_with_errors"])
             fidelity_gains.append(circ_outcomes_temp)
         
+        print("raw fidelity", fidelity_gains)
         average_fidelity_gains=[sum(x)/len(x) for x in zip(*fidelity_gains)]
         print(average_fidelity_gains)
         std_deviations=[np.std(x) for x in zip(*fidelity_gains)]
@@ -137,7 +138,7 @@ def create_all_count_percentage_plots(base_path, number_of_qubits, cnot_counts, 
     plt.legend()    
     plt.savefig(os.path.join(base_path, f"qubits_{number_of_qubits}_allCNOTS_counts_.png"))
 
-def create_sso_plot(base_path, number_of_qubits, cnot_count, one_qubit_error_space):
+def create_sso_gain_plot(base_path, number_of_qubits, cnot_count, one_qubit_error_space):
     '''Creates plots based on CNOT counts.'''
     # Gets the file path of the script.
     all_sorted_circ_results=get_all_sorted_circ_results(base_path, cnot_count, number_of_qubits, result_str="resultsso")
@@ -150,7 +151,6 @@ def create_sso_plot(base_path, number_of_qubits, cnot_count, one_qubit_error_spa
             for result in circ_result:
                 circ_outcomes_temp.append(result["sso_with_checks_with_errors"]-result["sso_no_checks_with_errors"])
             fidelity_gains.append(circ_outcomes_temp)
-        
         average_fidelity_gains=[sum(x)/len(x) for x in zip(*fidelity_gains)]
         print(average_fidelity_gains)
         std_deviations=[np.std(x) for x in zip(*fidelity_gains)]
@@ -165,12 +165,12 @@ def create_sso_plot(base_path, number_of_qubits, cnot_count, one_qubit_error_spa
         plt.savefig(os.path.join(base_path, f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_sso_.png"))
         return (cnot_count, average_fidelity_gains, std_deviations)
 
-def create_all_sso_plots(base_path, number_of_qubits, cnot_counts, one_qubit_error_space):
+def create_all_sso_gain_plots(base_path, number_of_qubits, cnot_counts, one_qubit_error_space):
     '''Wrapper for create_count_percentage_plot(). Makes individual plots with all the lines and a single plot'''
     plt.clf()
     all_results=[]
     for cnot_count in cnot_counts:
-        result=create_sso_plot(base_path, number_of_qubits, cnot_count, one_qubit_error_space)
+        result=create_sso_gain_plot(base_path, number_of_qubits, cnot_count, one_qubit_error_space)
         if result:
             all_results.append(result)
 
@@ -181,14 +181,51 @@ def create_all_sso_plots(base_path, number_of_qubits, cnot_counts, one_qubit_err
     plt.ylabel("Average SSO Gain")
     plt.xscale("log")
     plt.legend()    
-    plt.savefig(os.path.join(base_path, f"qubits_{number_of_qubits}_allCNOTS_sso_.png"))     
+    plt.savefig(os.path.join(base_path, f"qubits_{number_of_qubits}_allCNOTS_sso_.png"))
+
+def create_raw_sso_plot(base_path, number_of_qubits, cnot_count, one_qubit_error_space):
+    '''Creates plots based on CNOT counts.'''
+    # Gets the file path of the script.
+    all_sorted_circ_results=get_all_sorted_circ_results(base_path, cnot_count, number_of_qubits, result_str="resultsso")
+    if all_sorted_circ_results:    
+        # average_fidelity_gains=[]
+        ssos_with_checks=[]
+        ssos_no_checks=[]
+        for circ_result in all_sorted_circ_results:
+            temp_sso_with_checks=[]
+            temp_sso_no_checks=[]
+            for result in circ_result:
+                temp_sso_with_checks.append(result["sso_with_checks_with_errors"])
+                temp_sso_no_checks.append(result["sso_no_checks_with_errors"])
+            ssos_with_checks.append(temp_sso_with_checks)
+            ssos_no_checks.append(temp_sso_no_checks)
+
+        print(ssos_with_checks)
+        average_ssos_with_checks=[sum(x)/len(x) for x in zip(*ssos_with_checks)]
+        average_ssos_no_checks=[sum(x)/len(x) for x in zip(*ssos_no_checks)]
+
+        std_deviations_sso_with_checks=[np.std(x) for x in zip(*ssos_with_checks)]
+        std_deviations_sso_no_checks=[np.std(x) for x in zip(*ssos_no_checks)]
+
+        plt.clf()
+        plt.errorbar(one_qubit_error_space, average_ssos_with_checks, 
+            yerr=std_deviations_sso_with_checks, capsize=3.0, label="SSO with Checks")
+        plt.errorbar(one_qubit_error_space, average_ssos_no_checks, 
+            yerr=std_deviations_sso_no_checks, capsize=3.0, label="SSO No Checks")
+        plt.title("Qubits: "+str(number_of_qubits)+ " CNOTS: " + str(cnot_count))
+        plt.xlabel("Single Qubit Error")
+        plt.ylabel("SSO")
+        plt.xscale("log")
+        plt.legend()
+        plt.savefig(os.path.join(base_path, f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_rawsso_.png"))
+        # return (cnot_count, average_fidelity_gains, std_deviations)
 
 if __name__ == "__main__":
     # File path stuff
     CODE_DIR=sys.path[0]
     NUMBER_OF_QUBITS=5
     # SUBDIR=f"qubits_{number_of_qubits}_results"
-    SUBDIR="data"
+    SUBDIR="sso_test_qubits_5_cnot_25_circuit_0"
     BASE_PATH=os.path.join(CODE_DIR,SUBDIR)
     os.chdir(BASE_PATH)
     # CNOT_COUNT=30
@@ -204,6 +241,6 @@ if __name__ == "__main__":
     cnot_counts=[1,5,10,15,20,25,30,35,40, 80]
     create_all_fidelity_plot_cnots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE)
     # Plots the percentages of circuits we keep.
-    create_all_count_percentage_plots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE)
-    create_all_sso_plots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE)
-        
+    # create_all_count_percentage_plots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE)
+    # create_all_sso_gain_plots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE)
+    create_raw_sso_plot(BASE_PATH, NUMBER_OF_QUBITS, 25, ONE_QUBIT_ERROR_SPACE)
