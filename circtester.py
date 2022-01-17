@@ -319,7 +319,7 @@ class CircuitRunner:
         self.cirq_circ_measurements_with_checks=noiseless_circs_measurements.cirq_circ_measurements_with_checks
         self.cirq_circ_measurements_no_checks=noiseless_circs_measurements.cirq_circ_measurements_no_checks
         self.number_of_qubits=number_of_qubits
-        self.number_of_runs=4000
+        self.number_of_runs=100
         # Get distribution returns the final counts.
         _, self.distribution_correct=self.get_distribution(self.cirq_circ_measurements_no_checks, self.number_of_runs)
         _, self.distribution_checks=self.get_distribution(self.cirq_circ_measurements_with_checks, self.number_of_runs)
@@ -380,7 +380,7 @@ class CircuitRunner:
             elif idx <3:
                 moments+=[moment]
                 # We're dealing with the check circuit. Add a depolarizing noise after the hadamard gate.
-                # W have to add the noise here because the hadamard goes into the first moment.
+                # We have to add the noise here because the hadamard goes into the first moment.
                 if len(circ.all_qubits())==self.number_of_qubits+1 and idx == 2:
                     ancila=cirq.NamedQubit(f"{self.qubits_label}_{self.number_of_qubits}")
                     error_op=singlequbit_noise_model.on_each(ancila)
@@ -430,26 +430,27 @@ class CircuitRunner:
         # Returns a pnadas DataFrame
         distribution=simulator.sample(circ, repetitions=number_of_runs)
         print("finished running...")
-        print(f"running time: {time.time()-t0}")
-        print(f"original distribution: {distribution}")
+        # print(f"running time: {time.time()-t0}")
+        # print(f"original distribution: {distribution}")
         distribution.sort_index(axis="columns", ascending=True, inplace=True)
-        print("sorted", distribution)
+        # print("sorted", distribution)
         circ_num_qubits=len(circ.all_qubits())
         # Sort the columns
         if circ_num_qubits!=self.number_of_qubits:
             ancilla=f"{self.qubits_label}_{self.number_of_qubits}"
             distribution=distribution[distribution[ancilla] ==0]
             distribution=distribution.drop(ancilla, axis="columns")
-            print("dropped", distribution)
+            # print("dropped", distribution)
         # Concatenate the columns
         output_col="outcomes"
         concatenated=df(distribution.astype(str).agg("".join, axis="columns"),columns=[output_col])
-        print(f"combined: {concatenated}")
+        # print(f"combined: {concatenated}")
         histogram=df(concatenated[output_col].value_counts(), columns=[output_col])
-        print("counts", histogram)
+        # print("counts", histogram)
         counts_final=histogram[output_col].sum()
+        print(f"counts final: {counts_final}")
         histogram=(histogram[output_col]/counts_final).to_dict()
-        print("histogram", histogram)
+        # print("histogram", histogram)
         return counts_final, histogram
 
     def run_all_tests_parallel(self, pool, single_qubit_error_space):
@@ -473,8 +474,13 @@ class CircuitRunner:
         dits2: list'''
         sum=0
         common_keys=dist1.keys() & dist2.keys()
+        # print(f"dist1: {dist1}")
+        # print(f"dist2: {dist2}")
         for key in common_keys:
-            sum+=sqrt(dist1[key])*sqrt(dist2[key])
+            # print(f"key: {key}")
+            # print(f"dist1[key]: {dist1[key]}")
+            # print(f"dist2[key]: {dist2[key]}")
+            sum+=sqrt(dist1[key]*dist2[key])
         return sum**2
 
 

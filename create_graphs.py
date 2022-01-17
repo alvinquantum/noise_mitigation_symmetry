@@ -201,7 +201,7 @@ if __name__ == "__main__":
 #  6.30957344e-04, 8.91250938e-04, 1.25892541e-03, 1.77827941e-03,
 #  2.51188643e-03, 3.54813389e-03, 5.01187234e-03, 7.07945784e-03,
 #  1.00000000e-02, 0.015, 0.02, 0.025, 0.03, 0.035, 0.06]
-    cnot_counts=[1,5,10,15,20,25,30,35,40]
+    cnot_counts=[1,5,10,15,20,25,30,35,40, 80]
     create_all_fidelity_plot_cnots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE)
     # Plots the percentages of circuits we keep.
     create_all_count_percentage_plots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE)

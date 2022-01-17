@@ -50,7 +50,7 @@ if __name__ == "__main__":
     START_CIRC_NUMBER=0#int(sys.argv[3])
     END_CIRC_NUMBER=0#int(sys.argv[4])
     #Determines if we run parallel or not.
-    PARALLEL=True
+    PARALLEL=False
     # File stuff
     SUBDIR="data"
     # Gets the file path of the script
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     # Gets the files that match the string. Files include the path.
     # The returned files correspond accordingly, e.g., circ_file[0] and circ_properties_files[0] refer
     # to the same circuit.
-    file_name="qubits_5_CNOTS_25_circuit_0_result_0_.qasm"
+    file_name="qubits_5_CNOTS_40_circuit_45_result_0_.qasm"
     if files_manipulator.result_sso_exists(file_name):
         print(f"total execution time {time.time()-time0}")
         print("Finished.")
