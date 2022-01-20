@@ -3,6 +3,9 @@ from qiskit.converters import circuit_to_dag
 from qiskit.circuit import QuantumRegister
 from qiskit import QuantumCircuit
 import pickle
+import itertools
+import time
+import sys
 
 class CheckOperator:
     '''Finding checks: Symbolic: Stores the check operation along with the phase. operations is a list of strings.'''
@@ -243,7 +246,8 @@ def get_check_strs(p1, p2):
     print(f"Pauli weight P2: {p2_weight}")
     print()
 
-    return (p2_weight, p1_str, p2_str)
+    check_result=ChecksResult(p2_weight, p1_str, p2_str)
+    return check_result
 
 def can_continue(forward, op1, op2):
     '''Finding checks: Symbolic: Determine if can continue. If we're going backwards and op1 is not I or Z and op2 is RZ then don't continue.'''
@@ -262,74 +266,165 @@ def get_current_qubits(node):
     else:
         assert False, "Overlooked a node operation."
 
-def find_checks_sym(pauli_group_elem, circ):
-    '''Finding checks: Symbolic: Finds p1 and p2 elements symbolically.'''
-    print(pauli_group_elem)
+class ChecksResult:
+    def __init__(self, p2_weight, p1_str, p2_str):
+        self.p2_weight= p2_weight
+        self.p1_str=p1_str
+        self.p2_str=p2_str
 
-    # We will just iterate over the +1 phase elements of the pauli group since the 
-    # scenarios can be recovered by just multiplying by the phase constant.
-    pauli_group_elem_ops=list(pauli_group_elem)
-    p1=CheckOperator(1, pauli_group_elem_ops)
-    p2=CheckOperator(1, ["I" for _ in range(len(pauli_group_elem))])
-    temp_check_reversed=TempCheckOperator(1, list(reversed(pauli_group_elem_ops)))
+class ChecksFinder:
+    '''Finds checks symbolically.'''
+    def __init__(self, number_of_qubits, circ):
+        self.circ = circ
+        self.number_of_qubits= number_of_qubits
 
-    # Iterate through the circuit. We manually keep track of the idx since
-    # we can either go forward or backwards. This is kept track of inside the temp_check_reversed
-    # We also track layer_idx in temp_check_reversed.
-    # forward=True
-    circ_dag = circuit_to_dag(circ)
-    layers = list(circ_dag.multigraph_layers())
-    num_layers=len(layers)
-    # # We start index 1 since the first layer are just in nodes.
-    # layer_idx = 1
+    def get_checks_linear(self, pauli_labels):
+        count=0
+        p2_weights=[0]
+        pauli_str_p1s=[""]
+        pauli_str_p2s=[""]
+        for elem in pauli_labels:
+            # temp_p2_circ=find_p2s(elem, circ)
+            checks_result=self.find_checks_sym(elem)
+            if checks_result:
+                count+=1
+                append_result(checks_result, p2_weights, pauli_str_p1s, pauli_str_p2s)
+                # Terminate the pool when found is true, i.e., found=1.
+                
+                if checks_result.p2_weight==self.number_of_qubits:
+                    break
+        return count, p2_weights, pauli_str_p1s, pauli_str_p2s
 
-    while True:
-        # Get current layer
-        layer=layers[temp_check_reversed.layer_idx]
-        for node in layer:
-            # Iterate through layers and nodes.
-            # if found.value:
-            #     print("exiting.")
-            #     return
-            # elif node.type=="op":
-            if node.type=="op":
-                current_qubits=get_current_qubits(node)
-                current_ops=[temp_check_reversed.operations[qubit] for qubit in current_qubits]
-                node_op= node.name.upper()
+    def _feed(self, pauli_labels, chunk_size):
+        '''Generator of p2s. TODO: Instead of passing the pauli_labels
+        we should generate the pauli_labels here and yield the ones needed.'''
+        test_paulis=[]
+        for pauli_elem in pauli_labels:
+            test_paulis.append(pauli_elem)
+            if len(test_paulis)==chunk_size:
+                yield test_paulis
+                #Reset the list
+                test_paulis=[]
 
-                # Update temp_check_reversed if possible
-                if can_continue(temp_check_reversed.forward, current_ops[0], node_op):
-                    update_current_ops(current_ops, node_op, temp_check_reversed, current_qubits)
+    def get_checks_parallel(self, pool, pauli_labels):
+        '''Wrapper function. Get the checks in parallel.'''
+        chunk_size=5
+        count=0
+        p2_weights=[0]
+        pauli_str_p1s=[""]
+        pauli_str_p2s=[""]
+        optimal_weight=self.number_of_qubits
+        # Highest weight first.
+        paulis_by_weight=sorted(pauli_labels, key=get_weight, reverse=True)
+        time.sleep(10)
+        pauli_feed=self._feed(paulis_by_weight, chunk_size)
+        found_solution=False
+        #In some cases pool.imap_unordered needs to be wrapped in list in order to return properly. 
+        #see: https://stackoverflow.com/questions/5481104/multiprocessing-pool-imap-broken
+        for chunk in pauli_feed:
+            if found_solution:
+                break
+            # Set the possible optimal_weight. Since we traverse the possible p2s backwards
+            # The best possible p2 weight is given by the weight of the first element in 
+            # chunk.
+            test_paulis_max_weight=get_weight(chunk[0])
+            if test_paulis_max_weight<optimal_weight:
+                optimal_weight=test_paulis_max_weight
+
+            for result in pool.imap_unordered(self.find_checks_sym, chunk):
+                if found_solution:
+                    continue
+                #Store the results.
+                elif result:
+                    count+=1
+                    append_result(result, p2_weights, pauli_str_p1s, pauli_str_p2s)
+                    # Terminate the pool when found is true, i.e., found=1.
+                    if result.p2_weight>=optimal_weight:
+                        print("terminating...")
+                        found_solution=True
+        return count, p2_weights, pauli_str_p1s, pauli_str_p2s
+
+    def find_checks_sym(self, pauli_group_elem):
+        '''Finding checks: Symbolic: Finds p1 and p2 elements symbolically.'''
+        circ=self.circ
+        print(pauli_group_elem)
+
+        # We will just iterate over the +1 phase elements of the pauli group since the 
+        # scenarios can be recovered by just multiplying by the phase constant.
+        pauli_group_elem_ops=list(pauli_group_elem)
+        p1=CheckOperator(1, pauli_group_elem_ops)
+        p2=CheckOperator(1, ["I" for _ in range(len(pauli_group_elem))])
+        temp_check_reversed=TempCheckOperator(1, list(reversed(pauli_group_elem_ops)))
+
+        # Iterate through the circuit. We manually keep track of the idx since
+        # we can either go forward or backwards. This is kept track of inside the temp_check_reversed
+        # We also track layer_idx in temp_check_reversed.
+        # forward=True
+        circ_dag = circuit_to_dag(circ)
+        layers = list(circ_dag.multigraph_layers())
+        num_layers=len(layers)
+        # # We start index 1 since the first layer are just in nodes.
+        # layer_idx = 1
+
+        while True:
+            # Get current layer
+            layer=layers[temp_check_reversed.layer_idx]
+            for node in layer:
+                # Iterate through layers and nodes.
+                # if found.value:
+                #     print("exiting.")
+                #     return
+                # elif node.type=="op":
+                if node.type=="op":
+                    current_qubits=get_current_qubits(node)
+                    current_ops=[temp_check_reversed.operations[qubit] for qubit in current_qubits]
+                    node_op= node.name.upper()
+
+                    # Update temp_check_reversed if possible
+                    if can_continue(temp_check_reversed.forward, current_ops[0], node_op):
+                        update_current_ops(current_ops, node_op, temp_check_reversed, current_qubits)
+                    else:
+                        return
+            
+            # See if we should start going backwards.
+            if temp_check_reversed.change_to_backwards:
+                temp_check_reversed.forward=False
+                temp_check_reversed.change_to_backwards=False
+                # we don't increment or decrement the layer_idx since we processed this layer.
+                # We have to process the same layer going backwards.
+
+            # Since we're not changing to backwards, either move forward or backards
+            elif temp_check_reversed.forward:
+                if temp_check_reversed.layer_idx==num_layers-1:
+                    p2.phase=temp_check_reversed.phase
+                    p2.operations=list(reversed(temp_check_reversed.operations))
+                    # Append operations.
+                    # with count.get_lock():
+                    checks_result =get_check_strs(p1, p2)
+                    return checks_result
                 else:
-                    return
-        
-        # See if we should start going backwards.
-        if temp_check_reversed.change_to_backwards:
-            temp_check_reversed.forward=False
-            temp_check_reversed.change_to_backwards=False
-            # we don't increment or decrement the layer_idx since we processed this layer.
-            # We have to process the same layer going backwards.
+                    temp_check_reversed.layer_idx+=1            
+            else:
+                if temp_check_reversed.layer_idx==1:
+                    # We reached the first layer of operation nodes so move forward. Note
+                    # the zero index are all input nodes so we can skip.
+                    p1.phase=temp_check_reversed.phase
+                    p1.operations=list(reversed(temp_check_reversed.operations))
+                    temp_check_reversed.forward=True
+                else:
+                    temp_check_reversed.layer_idx-=1
 
-        # Since we're not changing to backwards, either move forward or backards
-        elif temp_check_reversed.forward:
-            if temp_check_reversed.layer_idx==num_layers-1:
-                p2.phase=temp_check_reversed.phase
-                p2.operations=list(reversed(temp_check_reversed.operations))
-                # Append operations.
-                # with count.get_lock():
-                result =get_check_strs(p1, p2)
-                return result
-            else:
-                temp_check_reversed.layer_idx+=1            
-        else:
-            if temp_check_reversed.layer_idx==1:
-                # We reached the first layer of operation nodes so move forward. Note
-                # the zero index are all input nodes so we can skip.
-                p1.phase=temp_check_reversed.phase
-                p1.operations=list(reversed(temp_check_reversed.operations))
-                temp_check_reversed.forward=True
-            else:
-                temp_check_reversed.layer_idx-=1
+def append_result(result, p2_weights, pauli_str_p1s, pauli_str_p2s):
+    p2_weight=result.p2_weight
+    p1_str=result.p1_str
+    p2_str=result.p2_str
+    if p2_weight>p2_weights[0]:
+        p2_weights[0]=p2_weight
+        pauli_str_p1s[0]=p1_str
+        pauli_str_p2s[0]=p2_str
+    p2_weights.append(p2_weight)
+    pauli_str_p1s.append(p1_str)
+    pauli_str_p2s.append(p2_str)
 
 def get_weight(pauli_string):
     '''Gets the weight of a Pauli string. Returns: int'''
