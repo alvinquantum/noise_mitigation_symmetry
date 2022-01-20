@@ -7,7 +7,9 @@ qubits_5_results/
 qubits_5_results/*
 qubits_10_results/
 qubits_10_results/*
-sso_test_qubits_5_cnot_25_circuit_0/
-sso_test_qubits_5_cnot_25_circuit_0/*
+sso_test_qubits_5_cnots_25_circuit_0/
+sso_test_qubits_5_cnots_25_circuit_0/*
 sso_test_qubits_5_CNOTS_40_circuit_45/
 sso_test_qubits_5_CNOTS_40_circuit_45/*
+sso_checks_and_no_checks/
+sso_checks_and_no_checks/*
