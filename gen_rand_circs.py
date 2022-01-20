@@ -18,25 +18,6 @@ import time
 import checksfinder
 import cProfile
 
-def initialize(ABS_TOL_ARG, circ_properties_arg,
-                    pauli_labels_arg, table_length_arg):
-    '''Initialize globals for pool'''
-    global ABS_TOL, circ_properties, pauli_labels, table_length
-    #Passed from the main
-    #Program parameters passed from main
-    # Absolute tolerance for checking if the trace of p2 is close to zero with the isclose function.
-    circ_properties=circ_properties_arg
-    ABS_TOL=ABS_TOL_ARG
-
-    #Tables passed from main
-    pauli_labels=pauli_labels_arg
-    table_length=table_length_arg
-
-def get_checks_parallel(pauli_group_elem):
-    '''Wrapper function. Get the checks in parallel.'''
-    global ABS_TOL, circ_properties, pauli_labels, table_length
-    return circgenerator.find_checks_sym(pauli_group_elem, circ_properties.circ)
-
 if __name__ == "__main__":
     time0=time.time()
     # #Disable qiskit parallel.
@@ -47,8 +28,9 @@ if __name__ == "__main__":
     NUMBER_OF_QUBITS=int(sys.argv[1])
     CNOT_COUNT=int(sys.argv[2])
     NUMBER_OF_CIRCUITS=int(sys.argv[3])
+    pool=Pool(psutil.cpu_count(logical=False))
     if NUMBER_OF_QUBITS<=5:
-        PARALLEL=False
+        PARALLEL=True
     else:
         PARALLEL=True
     # Absolute tolerance for checking if the trace of p2 is close to zero with the isclose function.
@@ -88,7 +70,7 @@ if __name__ == "__main__":
         info_file_name=f"qubits_{NUMBER_OF_QUBITS}_CNOTS_{CNOT_COUNT}_circuit_{file_number}_.obj"
         qasm_file_name=f"qubits_{NUMBER_OF_QUBITS}_CNOTS_{CNOT_COUNT}_circuit_{file_number}_.qasm"
         #Random circuit.
-        circ=circgenerator.random_circuit_cnot(NUMBER_OF_QUBITS, CNOT_COUNT)
+        circ=circgenerator.random_circuit_cnot(NUMBER_OF_QUBITS, CNOT_COUNT)            
 
         # We use this to find P1 and P2.
         unitary = Operator(circ)
@@ -104,54 +86,15 @@ if __name__ == "__main__":
         print(circ_operations)
         # max_pauli_str_p2=Array(ctypes.c_char, "+1"+"I"*NUMBER_OF_QUBITS)
 
-        #Results
-        count=0
-        p2_weights=[0]
-        pauli_str_p1s=[""]
-        pauli_str_p2s=[""]
-
         circ_properties=circgenerator.CircuitProperties(NUMBER_OF_QUBITS, CNOT_COUNT, NUMBER_OF_CIRCUITS, circ, circ_operations)
+        checks_finder=checksfinder.ChecksFinder(NUMBER_OF_QUBITS, circ_properties.circ)
         # Doing pool this way is faster when the circuits become large since the cpus will be fully utilized
         # each time. If we parallelize across individual circuits, each generation of circuit will be slow.
         if PARALLEL:
-            with Pool(psutil.cpu_count(logical=False), initialize, initargs=(ABS_TOL, circ_properties,
-                    pauli_labels, table_length)) as pool:
-                #In some cases pool.imap_unordered needs to be wrapped in list in order to return properly. 
-                #see: https://stackoverflow.com/questions/5481104/multiprocessing-pool-imap-broken
-                for result in pool.imap_unordered(get_checks_parallel, reversed(pauli_labels), chunksize=100):
-                # pool.map(find_p1s_p2s, enumerate(pauli_group))                    
-                    #Store the results.
-                    if result:
-                        count+=1
-                        if result[0]>p2_weights[0]:
-                            p2_weights[0]=result[0]
-                            pauli_str_p1s[0]=result[1]
-                            pauli_str_p2s[0]=result[2]
-                        p2_weights.append(result[0])
-                        pauli_str_p1s.append(result[1])
-                        pauli_str_p2s.append(result[2])
-                        # Terminate the pool when found is true, i.e., found=1.
-                        if result[0]==NUMBER_OF_QUBITS:
-                            print("terminating...")
-                            pool.close() #Stops passing jobs to processes.
-                            pool.join() #Waits for processes to finish.
-                            break
+            count, p2_weights, pauli_str_p1s, pauli_str_p2s=checks_finder.get_checks_parallel(pool, pauli_labels)
+            # with Pool(psutil.cpu_count(logical=False)) as pool:
         else:
-            for elem in pauli_labels:
-                # temp_p2_circ=find_p2s(elem, circ)
-                result=checksfinder.find_checks_sym(elem, circ)
-                if result:
-                    count+=1
-                    if result[0]>p2_weights[0]:
-                        p2_weights[0]=result[0]
-                        pauli_str_p1s[0]=result[1]
-                        pauli_str_p2s[0]=result[2]
-                    p2_weights.append(result[0])
-                    pauli_str_p1s.append(result[1])
-                    pauli_str_p2s.append(result[2])
-                    # Terminate the pool when found is true, i.e., found=1.
-                    if result[0]==NUMBER_OF_QUBITS:
-                        break
+            count, p2_weights, pauli_str_p1s, pauli_str_p2s=checks_finder.get_checks_linear(pauli_labels)
                 # print(pauli_to_circuit(elem))
                 #Test
                 # cProfile.run("find_p1s_p2s(elem)", filename="rand_circ_stats.txt")
@@ -163,4 +106,7 @@ if __name__ == "__main__":
 
         print(f"file execution time {time.time()-time1}")
     print(f"total execution time {time.time()-time0}")
+    # if PARALLEL:
+    pool.close() #Stops passing jobs to processes.
+    pool.join() #Waits for processes to finish.
     print("done")
