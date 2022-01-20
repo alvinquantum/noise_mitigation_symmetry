@@ -39,13 +39,33 @@ class CircuitMaker:
     '''Contains methods for generating the full circuits.'''
     def __init__(self, qasm_file, number_of_qubits):
         '''circ_pieces: iterable containing p1, main circuit, p2.'''
-        circ_pieces=self.split_circuit_by_barrier(qasm_file)
+        circ_pieces=self.split_qasmfile_by_barrier(qasm_file)
         assert len(circ_pieces)==3, f"{qasm_file} does not have the propper qasm format. There should be barriers between p1, main circuit, and p2."
         self.circ_pieces = circ_pieces
         self.number_of_qubits = number_of_qubits
 
     @staticmethod
-    def split_circuit_by_barrier(qasm_file_path):
+    def qasm_file_to_cirq_circ(base_path, file_name):
+        '''Outputs a cirq.circuit. Cirq can't import qasm with barriers.'''
+        circ_pieces=CircuitMaker.split_qasmfile_by_barrier(os.path.join(base_path, file_name))
+        new_circ=circ_pieces[0]
+        if len(circ_pieces)>1:
+            for piece in circ_pieces[1:]:
+                new_circ.compose(piece, inplace=True)
+        return circuit_from_qasm(new_circ.qasm())
+
+    @staticmethod
+    def qasm_string_to_cirq_circ(qasm_string):
+        '''Outputs a cirq.circuit. Cirq can't import qasm with barriers.'''
+        circ_pieces=CircuitMaker.split_qasm_str_by_barrier(qasm_string)
+        new_circ=circ_pieces[0]
+        if len(circ_pieces)>1:
+            for piece in circ_pieces[1:]:
+                new_circ.compose(piece, inplace=True)
+        return circuit_from_qasm(new_circ.qasm())
+
+    @staticmethod
+    def split_qasmfile_by_barrier(qasm_file_path):
         '''Testing circuits: Split circuits by barrier.'''
         with open(qasm_file_path, "r") as file:
             qasm = file.read()
@@ -151,7 +171,8 @@ class CircuitMaker:
 
     @staticmethod
     def add_measurements(circ):
-        '''Adds measurements on all the qubits.'''
+        '''Adds measurements on all the qubits. Does this in place because 
+        cirq.Circuit.append does append inplace.'''
         all_qubits=circ.all_qubits()
         ops=[]
         for qubit in all_qubits:
@@ -314,12 +335,12 @@ class CircuitSimulator:
 
 class CircuitRunner:
     '''Testing circuits: For running the simulations.'''
-    def __init__(self, noiseless_circs_measurements, number_of_qubits):
+    def __init__(self, noiseless_circs_measurements, number_of_qubits, number_of_runs):
         self.qubits_label=noiseless_circs_measurements.qubits_label
         self.cirq_circ_measurements_with_checks=noiseless_circs_measurements.cirq_circ_measurements_with_checks
         self.cirq_circ_measurements_no_checks=noiseless_circs_measurements.cirq_circ_measurements_no_checks
         self.number_of_qubits=number_of_qubits
-        self.number_of_runs=100
+        self.number_of_runs=number_of_runs
         # Get distribution returns the final counts.
         _, self.distribution_correct=self.get_distribution(self.cirq_circ_measurements_no_checks, self.number_of_runs)
         _, self.distribution_checks=self.get_distribution(self.cirq_circ_measurements_with_checks, self.number_of_runs)
@@ -360,7 +381,8 @@ class CircuitRunner:
             "one_qubit_err": single_qubit_error, "two_qubit_err": 10*single_qubit_error, 
             "sso_no_checks_with_errors": sso_noisy_distribution_no_checks, 
             "sso_with_checks_with_errors": sso_noisy_distribution_with_checks, 
-            "sso_with_checks_no_errors": sanity_check_sso}
+            "sany_check_sso": sanity_check_sso,
+            "correct_distribution": self.distribution_correct}
     
     def add_noise(self, circ, single_qubit_error):
         '''Testing circuits: Uses Google Cirq. Adds noise to circ.'''
@@ -448,9 +470,9 @@ class CircuitRunner:
         histogram=df(concatenated[output_col].value_counts(), columns=[output_col])
         # print("counts", histogram)
         counts_final=histogram[output_col].sum()
-        print(f"counts final: {counts_final}")
         histogram=(histogram[output_col]/counts_final).to_dict()
         # print("histogram", histogram)
+        print(f"counts final: {counts_final}")
         return counts_final, histogram
 
     def run_all_tests_parallel(self, pool, single_qubit_error_space):
@@ -614,7 +636,7 @@ class FilesManipulator:
                 output_file_txt.write(f"ancilla probability of 0 outcome: {result['percent_results_after_postselect']}\n")
                 output_file_txt.write(f"State sso no checks and with errors: {result['sso_no_checks_with_errors']}\n")
                 output_file_txt.write(f"State sso with checks and with errors: {result['sso_with_checks_with_errors']}\n")
-                output_file_txt.write(f"Sanity check sso with checks and no errors: {result['sso_with_checks_no_errors']}\n") 
+                output_file_txt.write(f"Sanity check sso with checks and no errors: {result['sany_check_sso']}\n") 
 
     def get_files(self, start_circ_number, end_circ_number):
         '''Testing circuits: Get the desired files for testing.'''
@@ -639,6 +661,58 @@ class FilesManipulator:
         return rand_circ_files, circ_properties_files
 
     @staticmethod
+    def store_basic_sso_result(base_path, circ_file_name, results):
+        '''Testing circuits: Stores all the results.'''
+        #File naming stuff. 
+        #Strip the extension.
+        split_circ_file_name=circ_file_name.split("_")
+        # Pick the elements of the list that are numbers and then choose the last one.
+        file_name_no_extension="_".join(split_circ_file_name[:-1])
+
+        temp_file_number=0
+        output_file_name_obj=f"{file_name_no_extension}_resultsso_{temp_file_number}_.obj"
+        while os.path.isfile(os.path.join(base_path,output_file_name_obj)):
+            temp_file_number+=1
+            output_file_name_obj=f"{file_name_no_extension}_resultsso_{temp_file_number}_.obj"
+        output_file_name_txt=f"{file_name_no_extension}_resultsso_{temp_file_number}_.txt"
+
+        # Dump all the results into a pickle
+        with open(os.path.join(base_path, output_file_name_obj), "wb") as circ_file:
+            pickle.dump({"results": results}, circ_file)
+
+        #Print text results to file
+        output_file_txt_full_path=os.path.join(base_path, output_file_name_txt)
+        with open(output_file_txt_full_path, "w") as output_file_txt:
+            for result in results:
+                output_file_txt.write("\n")
+                output_file_txt.write(f"Error idx: {result['error_idx']}\n")
+                output_file_txt.write(f"One qubit error: {result['one_qubit_err']}\n")
+                # print("One_qubit_err:", one_qubit_err)
+                output_file_txt.write(f"Two qubit error: {result['two_qubit_err']}\n")
+                # print("Two qubit error:", two_qubit_err)
+                output_file_txt.write(f"ancilla probability of 0 outcome: {result['percent_results_after_postselect']}\n")
+                output_file_txt.write(f"State sso no checks and with errors: {result['sso_no_checks_with_errors']}\n")
+                output_file_txt.write(f"State sso with checks and with errors: {result['sso_with_checks_with_errors']}\n")
+                output_file_txt.write(f"Sanity check sso with checks and no errors: {result['sany_check_sso']}\n") 
+
+    @staticmethod
+    def remove_checks_in_complete_qasm(base_path, input_file_name, output_file_name):
+        circ_pieces=CircuitMaker.split_qasmfile_by_barrier(os.path.join(base_path, input_file_name))
+        #init|h|p1|main|p2|h
+        assert len(circ_pieces)>=6, f"number of pieces in {input_file_name} is wrong."
+        initstate=circ_pieces[0]
+        main_circ=circ_pieces[3]
+        circ_new=deepcopy(initstate)
+        circ_new.barrier()
+        circ_new.compose(main_circ, inplace=True)
+        circ_new.qasm(filename=os.path.join(base_path, output_file_name))
+
+    @staticmethod
+    def get_qasm_files(base_path):
+        all_files=[f for f in listdir(base_path) if isfile(os.path.join(base_path, f))]
+        return [file_name for file_name in all_files if file_name.endswith(".qasm")]
+
+    @staticmethod
     def get_result_qasm_and_original_prop(base_path, search_file):
         '''Testing circuits: Get the desired files for testing.'''
         # Gets the files that match the string. Files include the path
@@ -649,6 +723,29 @@ class FilesManipulator:
             name_split.remove("result")
             if current_file==search_file:
                 return current_file, f"qubits_{name_split_nums[0]}_CNOTS_{name_split_nums[1]}_circuit_{name_split_nums[2]}_.obj"
+
+    @staticmethod
+    def remove_measurements_in_qasm_file(base_path, file_name):
+        '''Strips measurements from qasm file.'''
+        absolute_file_name=os.path.join(base_path, file_name)
+        circ=QuantumCircuit.from_qasm_file(absolute_file_name)
+        circ.remove_final_measurements(inplace=True)
+        circ.qasm(filename=absolute_file_name)
+
+    @staticmethod
+    def add_all_measurements_in_qasm_file(base_path, file_name):
+        '''Strips measurements from qasm file.'''
+        absolute_file_name=os.path.join(base_path, file_name)
+        circ=QuantumCircuit.from_qasm_file(absolute_file_name)
+        circ.measure_all()
+        circ.qasm(filename=absolute_file_name)
+
+    @staticmethod
+    def transpile_qasm_file(base_path, file_name, basis_gates):
+        absolute_file_name=os.path.join(base_path, file_name)
+        qiskit_circ=QuantumCircuit.from_qasm_file(absolute_file_name)
+        qiskit_circ=transpile(qiskit_circ, basis_gates=basis_gates, optimization_level=0)
+        qiskit_circ.qasm(filename=absolute_file_name)
 
 if __name__ == "__main__":
     pass
