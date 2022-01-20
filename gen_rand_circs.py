@@ -30,7 +30,7 @@ if __name__ == "__main__":
     NUMBER_OF_CIRCUITS=int(sys.argv[3])
     pool=Pool(psutil.cpu_count(logical=False))
     if NUMBER_OF_QUBITS<=5:
-        PARALLEL=True
+        PARALLEL=False
     else:
         PARALLEL=True
     # Absolute tolerance for checking if the trace of p2 is close to zero with the isclose function.

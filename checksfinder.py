@@ -22,7 +22,7 @@ class TempCheckOperator:
         self.operations=operations
         self.change_to_backwards=False
         self.forward=True
-        self.layer_idx=1
+        self.layer_idx=0
 
 class PushOperator:
     '''Finding checks: Symbolic: push operations.'''
@@ -275,7 +275,7 @@ class ChecksResult:
 class ChecksFinder:
     '''Finds checks symbolically.'''
     def __init__(self, number_of_qubits, circ):
-        self.circ = circ
+        self.circ_reversed = circ.inverse()
         self.number_of_qubits= number_of_qubits
 
     def get_checks_linear(self, pauli_labels):
@@ -283,7 +283,8 @@ class ChecksFinder:
         p2_weights=[0]
         pauli_str_p1s=[""]
         pauli_str_p2s=[""]
-        for elem in pauli_labels:
+        paulis_by_weight=sorted(pauli_labels, key=get_weight, reverse=True)
+        for elem in paulis_by_weight:
             # temp_p2_circ=find_p2s(elem, circ)
             checks_result=self.find_checks_sym(elem)
             if checks_result:
@@ -316,7 +317,6 @@ class ChecksFinder:
         optimal_weight=self.number_of_qubits
         # Highest weight first.
         paulis_by_weight=sorted(pauli_labels, key=get_weight, reverse=True)
-        time.sleep(10)
         pauli_feed=self._feed(paulis_by_weight, chunk_size)
         found_solution=False
         #In some cases pool.imap_unordered needs to be wrapped in list in order to return properly. 
@@ -346,24 +346,24 @@ class ChecksFinder:
 
     def find_checks_sym(self, pauli_group_elem):
         '''Finding checks: Symbolic: Finds p1 and p2 elements symbolically.'''
-        circ=self.circ
+        circ_reversed=self.circ_reversed
         print(pauli_group_elem)
 
         # We will just iterate over the +1 phase elements of the pauli group since the 
         # scenarios can be recovered by just multiplying by the phase constant.
         pauli_group_elem_ops=list(pauli_group_elem)
-        p1=CheckOperator(1, pauli_group_elem_ops)
-        p2=CheckOperator(1, ["I" for _ in range(len(pauli_group_elem))])
+        p2=CheckOperator(1, pauli_group_elem_ops)
+        p1=CheckOperator(1, ["I" for _ in range(len(pauli_group_elem))])
         temp_check_reversed=TempCheckOperator(1, list(reversed(pauli_group_elem_ops)))
 
         # Iterate through the circuit. We manually keep track of the idx since
         # we can either go forward or backwards. This is kept track of inside the temp_check_reversed
         # We also track layer_idx in temp_check_reversed.
         # forward=True
-        circ_dag = circuit_to_dag(circ)
+        circ_dag = circuit_to_dag(circ_reversed)
         layers = list(circ_dag.multigraph_layers())
         num_layers=len(layers)
-        # # We start index 1 since the first layer are just in nodes.
+        # # We start index 1 since the first layer are just out nodes.
         # layer_idx = 1
 
         while True:
@@ -396,8 +396,8 @@ class ChecksFinder:
             # Since we're not changing to backwards, either move forward or backards
             elif temp_check_reversed.forward:
                 if temp_check_reversed.layer_idx==num_layers-1:
-                    p2.phase=temp_check_reversed.phase
-                    p2.operations=list(reversed(temp_check_reversed.operations))
+                    p1.phase=temp_check_reversed.phase
+                    p1.operations=list(reversed(temp_check_reversed.operations))
                     # Append operations.
                     # with count.get_lock():
                     checks_result =get_check_strs(p1, p2)
@@ -408,8 +408,8 @@ class ChecksFinder:
                 if temp_check_reversed.layer_idx==1:
                     # We reached the first layer of operation nodes so move forward. Note
                     # the zero index are all input nodes so we can skip.
-                    p1.phase=temp_check_reversed.phase
-                    p1.operations=list(reversed(temp_check_reversed.operations))
+                    p2.phase=temp_check_reversed.phase
+                    p2.operations=list(reversed(temp_check_reversed.operations))
                     temp_check_reversed.forward=True
                 else:
                     temp_check_reversed.layer_idx-=1
