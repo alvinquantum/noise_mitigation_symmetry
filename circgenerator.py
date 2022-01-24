@@ -5,7 +5,16 @@ from qiskit.circuit import QuantumRegister
 from qiskit.converters.dag_to_circuit import dag_to_circuit
 from qiskit.quantum_info import random_clifford, decompose_clifford
 from qiskit.converters import circuit_to_dag
-# import utilities
+import checksfinder
+from multiprocessing import Pool
+import psutil
+import time
+import os
+import utilities
+from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
+from qiskit.quantum_info import Operator
+from qiskit.visualization import circuit_drawer
+import json
 # import pickle
 
 class CircuitProperties:
@@ -18,7 +27,7 @@ class CircuitProperties:
         self.circ=circ
         self.circ_operations=circ_operations
 
-def random_circuit_cnot(num_qubits, num_cnots_required, seed=None):
+def generate_a_random_circuit(num_qubits, num_cnots_required, seed=None):
     """Generate random circ: Generates a random circuit with num_qubits, 5 rz gates and num_cnots
     The circuit uses h, s, cz, cx, swap gates and no measurements. 
 
@@ -76,6 +85,10 @@ def add_rz_gates_det(num_qubits, qc, rng):
     qc_dag=circuit_to_dag(qc)
     new_qc=QuantumCircuit(QuantumRegister(num_qubits, name="q"))
     NUM_RZ=5
+    # This number here seems to be "ok" (some circuits had no paulie checks)
+    # for circuits with 200 cnots.
+    # NUM_RZ=int(qc.count_ops()["cx"]/20)
+
 
     # Each dag has layers and each layer has nodes.
     layers=list(qc_dag.multigraph_layers())
@@ -211,3 +224,120 @@ def copy_node(new_qc, node):
     else:
         # We have overlooked a gate type.
         assert False, f"{node.name} gate wasn't matched in the DAG."
+
+def generate_circuits_with_checks_to_files(number_of_qubits, cnot_count, number_of_circuits):
+    time0=time.time()
+    #Disable qiskit parallel.
+    os.environ['QISKIT_IN_PARALLEL'] = 'TRUE'
+    print("running...")
+    #Program parameters
+    # func_params=FunctionParams()
+    pool=Pool(psutil.cpu_count(logical=False))
+    if number_of_qubits<=5:
+        PARALLEL=False
+    else:
+        PARALLEL=True
+    #Paths for outputs and pickle file of circuit. sys.path[0] on laptop and the other on hpc.
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    SUBDIR="data"
+    BASE_PATH=os.path.join(CODE_DIR, SUBDIR)
+    
+    #Create +1 phase pauli group
+    #Note that we can restrict the search for p2 to the +1 phase. The other results
+    #can all be recovered by multiplying by the corresponding phase, e.g., -i. 
+    pauli_table=pauli_basis(number_of_qubits)
+    # pauli_group_positive=deepcopy(pauli_table)
+    #Labels will be used to print pauli strings in the loop
+    pauli_labels=pauli_table.to_labels()
+
+    #main loop
+    file_number=0
+    for _ in range(number_of_circuits):
+        time1=time.time()
+        # output_file_path=BASE_FILE_PATH+ "circuit_" + str(file_number) +"_.txt"
+        output_file_name=f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_circuit_{file_number}_.txt"
+        while os.path.isfile(os.path.join(BASE_PATH, output_file_name)):
+            file_number+=1
+            # output_file_name=BASE_FILE_PATH+ "circuit_" + str(file_number) +"_.txt"
+            output_file_name=f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_circuit_{file_number}_.txt"
+        info_file_name=f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_circuit_{file_number}_.obj"
+        qasm_file_name=f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_circuit_{file_number}_.qasm"
+        #Random circuit.
+        circ=generate_a_random_circuit(number_of_qubits, cnot_count)            
+
+        #Draw to file
+        circuit_drawer(circ, filename=os.path.join(BASE_PATH, output_file_name))
+        print(circ)
+        
+        output_file=open(os.path.join(BASE_PATH, output_file_name), "a")
+        output_file.write("\n")
+        # Count the number of CNOT gates
+        circ_operations=circ.count_ops()
+        output_file.write(json.dumps(circ_operations))
+        print(circ_operations)
+        # max_pauli_str_p2=Array(ctypes.c_char, "+1"+"I"*number_of_qubits)
+
+        circ_properties=CircuitProperties(number_of_qubits, cnot_count, number_of_circuits, circ, circ_operations)
+        checks_finder=checksfinder.ChecksFinder(number_of_qubits, circ_properties.circ)
+        # Doing pool this way is faster when the circuits become large since the cpus will be fully utilized
+        # each time. If we parallelize across individual circuits, each generation of circuit will be slow.
+        if PARALLEL:
+            count, p2_weights, pauli_str_p1s, pauli_str_p2s=checks_finder.get_checks_parallel(pool, pauli_labels)
+            # with Pool(psutil.cpu_count(logical=False)) as pool:
+        else:
+            count, p2_weights, pauli_str_p1s, pauli_str_p2s=checks_finder.get_checks_linear(pauli_labels)
+                # print(pauli_to_circuit(elem))
+                #Test
+                # cProfile.run("find_p1s_p2s(elem)", filename="rand_circ_stats.txt")
+        checks_properties=utilities.ChecksProperties(count, p2_weights, pauli_str_p1s, pauli_str_p2s)
+        # Combine the circuit and checks.
+        if p2_weights[0]>0:
+            circ_properties.circ=checksfinder.append_checks_to_circ(circ_properties, checks_properties)
+        checksfinder.write_outputs(circ_properties, checks_properties, file_number, os.path.join(BASE_PATH, info_file_name),os.path.join(BASE_PATH, qasm_file_name), output_file)
+
+        print(f"file execution time {time.time()-time1}")
+    print(f"total execution time {time.time()-time0}")
+    # if PARALLEL:
+    pool.close() #Stops passing jobs to processes.
+    pool.join() #Waits for processes to finish.
+    print("done")
+
+def generate_random_circuits(number_of_qubits, cnot_count, number_of_circuits):
+    '''Returns a list of random cricuits each with the proper cnot count.'''
+    print("running...")
+    circuits=[]
+    for _ in range(number_of_circuits):
+        circ=generate_a_random_circuit(number_of_qubits, cnot_count)
+        circuits.append(circ)
+        print(circ)
+    print("done")
+    return circuits
+
+def generate_random_circuits_to_qasm_files(number_of_qubits, cnot_count, number_of_circuits, subdir="data"):
+    '''Generates random cricuits each with the proper cnot count and saves them
+    as qasm files.'''
+    circuits=[]
+    for _ in range(number_of_circuits):
+        circuits.append(generate_a_random_circuit(number_of_qubits, cnot_count))
+    write_circs_no_checks_to_qasm_file(circuits, number_of_qubits, cnot_count, subdir)
+
+def write_circs_no_checks_to_qasm_file(circuits, number_of_qubits, cnot_count, subdir="data"):
+    '''Saves the circuits into qasm files in the specified subdirectory. Note that
+    that this is for saving circuits that have no checks.
+    circuits: iterable'''
+    print("running...")
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    subdir="data"
+    BASE_PATH=os.path.join(CODE_DIR, subdir)
+    circ_number=0
+    for circ in circuits:
+        # Increment the circuit number until we find one that's not taken.
+        qasm_file_name=f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_circuit_{circ_number}_raw_.qasm"
+        while os.path.isfile(os.path.join(BASE_PATH, qasm_file_name)):
+            circ_number+=1
+            # output_file_name=BASE_FILE_PATH+ "circuit_" + str(file_number) +"_.txt"
+            qasm_file_name=f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_circuit_{circ_number}_raw_.qasm"
+        print(qasm_file_name)
+        circ.qasm(filename=os.path.join(BASE_PATH, qasm_file_name))
+    print("done")
+    
