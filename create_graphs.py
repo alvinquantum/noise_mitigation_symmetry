@@ -7,6 +7,7 @@ import numpy as np
 from os import listdir
 from os.path import isfile
 import circtester
+import seaborn as sns
 
 def get_all_sorted_circ_results(base_path, cnot_count, number_of_qubits, result_str="result"):
     '''Gets the sorted (by error idx, i.e., smallest single qubit error to largest) test results for 
@@ -73,7 +74,7 @@ def create_fidelity_plot_cnot(base_path, number_of_qubits, cnot_count, one_qubit
         plt.savefig(os.path.join(base_path, f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_fidelity_.png"))
         return (cnot_count, average_fidelity_gains, std_deviations)
 
-def create_all_fidelity_plot_cnots(base_path, number_of_qubits, cnot_counts, one_qubit_error_space):
+def create_all_fidelity_plot_cnots(base_path, number_of_qubits, cnot_counts, one_qubit_error_space, palette, NLINES):
     '''Wrapper for create_fidelity_plot_cnots(). Makes individual plots with all the lines and a single plot'''
     plt.clf()
     all_results=[]
@@ -83,8 +84,8 @@ def create_all_fidelity_plot_cnots(base_path, number_of_qubits, cnot_counts, one
             all_results.append(result)
 
 
-    for elem in all_results:
-        plt.errorbar(one_qubit_error_space, elem[1], yerr=elem[2], capsize=3.0, label="CNOT Count: "+str(elem[0]))
+    for idx, elem in enumerate(all_results):
+        plt.errorbar(one_qubit_error_space, elem[1], yerr=elem[2], capsize=3.0, color=palette[idx*5], label="CNOT Count: "+str(elem[0]))
     plt.title("Qubits: "+str(number_of_qubits)+ " All CNOTS")
     plt.xlabel("Single Qubit Error")
     plt.ylabel("Average Fidelity Gain")
@@ -122,7 +123,7 @@ def create_count_percentage_plot(base_path, number_of_qubits, cnot_count, one_qu
         plt.savefig(os.path.join(base_path, f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_counts_.png"))
         return (cnot_count, average_counts_diffs, std_deviations)
 
-def create_all_count_percentage_plots(base_path, number_of_qubits, cnot_counts, one_qubit_error_space):
+def create_all_count_percentage_plots(base_path, number_of_qubits, cnot_counts, one_qubit_error_space, palette, NLINES):
     '''Wrapper for create_count_percentage_plot(). Makes individual plots with all the lines and a single plot'''
     plt.clf()
     all_results=[]
@@ -131,8 +132,8 @@ def create_all_count_percentage_plots(base_path, number_of_qubits, cnot_counts, 
         if result:
             all_results.append(result)
 
-    for elem in all_results:
-        plt.errorbar(one_qubit_error_space, elem[1], yerr=elem[2], capsize=3.0, label="CNOT Count: "+str(elem[0]))
+    for idx, elem in enumerate(all_results):
+        plt.errorbar(one_qubit_error_space, elem[1], yerr=elem[2], capsize=3.0, color=palette[idx*5], label="CNOT Count: "+str(elem[0]))
     plt.title("Qubits: "+str(number_of_qubits)+ " All CNOTS")
     plt.xlabel("Single Qubit Error")
     plt.ylabel("Average Probability of Zero Measurement on Ancilla")
@@ -271,6 +272,7 @@ if __name__ == "__main__":
     # SUBDIR=f"qubits_{number_of_qubits}_results"
     # SUBDIR="sso_testing"
     SUBDIR="data"
+    # SUBDIR="qubits_10\qubits_10_results"
 
     BASE_PATH=os.path.join(CODE_DIR,SUBDIR)
     os.chdir(BASE_PATH)
@@ -278,16 +280,25 @@ if __name__ == "__main__":
     NUMBER_OF_ERROR_POINTS=21
     # NUMBER_OF_ERROR_POINTS=23
     ONE_QUBIT_ERROR_SPACE=np.logspace(-5, -2, num=NUMBER_OF_ERROR_POINTS)
+    
+    # ax.plot(
+    #             x,y,
+    #             label=f"CNOT count: {count}", 
+    #             color=palette[count]
+    # )
 #     ONE_QUBIT_ERROR_SPACE=[1.00000000e-05, 1.41253754e-05, 1.99526231e-05, 2.81838293e-05,
 #  3.98107171e-05, 5.62341325e-05, 7.94328235e-05, 1.12201845e-04,
 #  1.58489319e-04, 2.23872114e-04, 3.16227766e-04, 4.46683592e-04,
 #  6.30957344e-04, 8.91250938e-04, 1.25892541e-03, 1.77827941e-03,
 #  2.51188643e-03, 3.54813389e-03, 5.01187234e-03, 7.07945784e-03,
 #  1.00000000e-02, 0.015, 0.02, 0.025, 0.03, 0.035, 0.06]
-    cnot_counts=[1,5,10,15,20,25,30,35,40, 80]
-    create_all_fidelity_plot_cnots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE)
+    # NLINES = 50
+    NLINES = 45
+    palette = sns.color_palette("viridis",NLINES)
+    cnot_counts=[1,5,10,15,20,25,30,35,40]#, 80, 100, 200]
+    create_all_fidelity_plot_cnots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE, palette, NLINES)
     # # Plots the percentages of circuits we keep.
-    create_all_count_percentage_plots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE)
+    create_all_count_percentage_plots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE, palette, NLINES)
     # create_all_sso_gain_plots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE)
     # create_raw_sso_plot(BASE_PATH, NUMBER_OF_QUBITS, 25, ONE_QUBIT_ERROR_SPACE)
     # create_baseline_sso_plot(BASE_PATH, NUMBER_OF_QUBITS, 25, ONE_QUBIT_ERROR_SPACE)
