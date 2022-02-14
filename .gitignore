@@ -3,10 +3,10 @@ __pycache__
 desktop.ini
 data/
 data/*
-qubits_5_results/
-qubits_5_results/*
-qubits_10_results/
-qubits_10_results/*
+qubits_5/
+qubits_5/*
+qubits_10/
+qubits_10/*
 sso_test_qubits_5_cnots_25_circuit_0/
 sso_test_qubits_5_cnots_25_circuit_0/*
 sso_test_qubits_5_CNOTS_40_circuit_45/
