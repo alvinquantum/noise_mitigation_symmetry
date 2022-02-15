@@ -1,14 +1,5 @@
 from qiskit import QuantumCircuit
 
-class ChecksProperties:
-    '''Checks properties holder.'''
-    __slots__=["count", "p2_weights", "pauli_str_p1s", "pauli_str_p2s"]
-    def __init__(self, count, p2_weights, pauli_str_p1s, pauli_str_p2s):
-        self.count=count
-        self.p2_weights=p2_weights
-        self.pauli_str_p1s=pauli_str_p1s
-        self.pauli_str_p2s=pauli_str_p2s
-
 def add_controlU(circ, pauli_str, number_of_qubits, quantum_register, ancilla_register):
     '''Testing cricuits: Adds a controlled Pauli to circ.'''
     print(pauli_str)

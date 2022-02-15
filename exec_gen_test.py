@@ -7,15 +7,16 @@ if __name__ == "__main__":
     qubits=5
     start_circ=0
     end_circ=num_circs-1
-    cnots=[40]#[1,5,10,15,20,25,30,35,40]
+    cnots=[1,5,10,15,20,25,30,35,40]
     dir=os.path.abspath(os.path.dirname(__file__))
     # 5 qubit process
-    # for cnot_count in cnots:
-    #     os.system(f"python {os.path.join(dir, 'gen_rand_circs.py')} {qubits} {cnot_count} {num_circs}")
     for cnot_count in cnots:
-        # os.system(f"python {os.path.join(dir, 'test_circuits_cirq.py')} {qubits} {cnot_count} {start_circ} {end_circ}")
+        os.system(f"python {os.path.join(dir, 'gen_rand_circs.py')} {qubits} {cnot_count} {num_circs}")
+    for cnot_count in cnots:
+        os.system(f"python {os.path.join(dir, 'simulate_circuits_cirq.py')} {qubits} {cnot_count} {start_circ} {end_circ}")
+        # os.system(f"python {os.path.join(dir, 'gen_circs_with_splitting.py')} {qubits} {cnot_count} {start_circ} {end_circ}")
         # os.system(f"python {os.path.join(dir, 'run_circuits_cirq.py')} {qubits} {cnot_count} {start_circ} {end_circ}")
-        os.system(f"python {os.path.join(dir, 'sso_test.py')} {qubits} {cnot_count} {start_circ} {end_circ}")
+        # os.system(f"python {os.path.join(dir, 'sso_test.py')} {qubits} {cnot_count} {start_circ} {end_circ}")
 
 
         # The following is for debugging.

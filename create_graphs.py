@@ -271,7 +271,7 @@ if __name__ == "__main__":
     NUMBER_OF_QUBITS=5
     # SUBDIR=f"qubits_{number_of_qubits}_results"
     # SUBDIR="sso_testing"
-    SUBDIR="data"
+    SUBDIR=os.path.join("data", "results")
     # SUBDIR="qubits_10\qubits_10_results"
 
     BASE_PATH=os.path.join(CODE_DIR,SUBDIR)
@@ -292,10 +292,11 @@ if __name__ == "__main__":
 #  6.30957344e-04, 8.91250938e-04, 1.25892541e-03, 1.77827941e-03,
 #  2.51188643e-03, 3.54813389e-03, 5.01187234e-03, 7.07945784e-03,
 #  1.00000000e-02, 0.015, 0.02, 0.025, 0.03, 0.035, 0.06]
-    # NLINES = 50
     NLINES = 45
+    # NLINES = 45
     palette = sns.color_palette("viridis",NLINES)
-    cnot_counts=[1,5,10,15,20,25,30,35,40]#, 80, 100, 200]
+    # cnot_counts=[1,5,10,15,20,25,30,35,40]#, 80, 100, 200]
+    cnot_counts=[1,5,10,15,20,25,30,35,40]
     create_all_fidelity_plot_cnots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE, palette, NLINES)
     # # Plots the percentages of circuits we keep.
     create_all_count_percentage_plots(BASE_PATH, NUMBER_OF_QUBITS, cnot_counts, ONE_QUBIT_ERROR_SPACE, palette, NLINES)

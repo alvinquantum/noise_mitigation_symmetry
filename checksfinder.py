@@ -1,8 +1,15 @@
+from tokenize import Number
 import utilities
 from qiskit.converters import circuit_to_dag
 from qiskit.circuit import QuantumRegister
 from qiskit import QuantumCircuit
 import pickle
+from cirq.contrib.qasm_import import circuit_from_qasm
+from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
+from multiprocessing import Pool
+import circgenerator
+import psutil
+import os
 import itertools
 import time
 import sys
@@ -22,7 +29,7 @@ class TempCheckOperator:
         self.operations=operations
         self.change_to_backwards=False
         self.forward=True
-        self.layer_idx=0
+        self.layer_idx=1
 
 class PushOperator:
     '''Finding checks: Symbolic: push operations.'''
@@ -191,81 +198,6 @@ class PushOperator:
         result=[1]
         return result+result_ops
 
-def update_current_ops(op1, op2, temp_check_reversed, current_qubits):
-    '''Finding checks: Symbolic: Finds the intermediate check. Always push op1 through op2. '''
-    if len(op1)==1:
-        if op1[0]=="X":
-            result= PushOperator.x(op2, temp_check_reversed)
-        elif op1[0]=="Y":
-            result= PushOperator.y(op2, temp_check_reversed)
-        elif op1[0]=="Z":
-            result= PushOperator.z(op2)
-        elif op1[0]=="I":
-            result= [1, "I"]
-        else:
-            # Can expand to accomodate non pauli + I in the future.
-            assert False, op1[0] + " is not I, X, Y, or Z."
-    else:
-        # Two qubit operations
-        if op2=="CX":
-            result = PushOperator.cx(op1)
-        elif op2=="SWAP":
-            result= PushOperator.swap(op1)
-        else:
-            assert False, op2 + " is not cx or swap."
-
-    result_phase=result[0]
-    result_ops=result[1::1]
-    temp_check_reversed.phase=temp_check_reversed.phase*result_phase
-    # Coppy the current ops into temp_check_reversed.
-    for idx, op in enumerate(result_ops):
-        temp_check_reversed.operations[current_qubits[idx]]=op
-
-def get_check_strs(p1, p2):
-    '''Finding checks: Symbolic: turns p1 and p2 to strings results.'''
-    #P1s
-    p1_operations=p1.operations
-    p1_phase=str(p1.phase)
-    if len(p1_phase)==1:#Add if + if positive phase
-        p1_phase="+"+p1_phase
-    p1_operations.insert(0, p1_phase)
-
-    #P2s
-    p2_operations=p2.operations
-    p2_weight=get_weight(p2_operations)
-    p2_phase=str(p2.phase)
-    if len(p2_phase)==1:#Add + if positive phase
-        p2_phase="+"+p2_phase
-    p2_operations.insert(0, p2_phase)
-
-    p1_str="".join(p1_operations)
-    p2_str="".join(p2_operations)
-    
-    print(f"p1: {p1_str}")
-    print(f"p2: {p2_str}")
-    print(f"Pauli weight P2: {p2_weight}")
-    print()
-
-    check_result=ChecksResult(p2_weight, p1_str, p2_str)
-    return check_result
-
-def can_continue(forward, op1, op2):
-    '''Finding checks: Symbolic: Determine if can continue. If we're going backwards and op1 is not I or Z and op2 is RZ then don't continue.'''
-    if forward==False and op2=="RZ" and op1!="I" and op1!="Z":
-        return False
-    else:
-        return True
-
-def get_current_qubits(node):
-    '''Finding checks: Symbolic: get the current qubits whose operations that will be passed through.'''
-    # We have to check for single or two qubit gates.
-    if node.name in ["x", "y", "z", "h", "s", "sdg", "rz"]:
-        return [node.qargs[0].index]
-    elif node.name in ["cx", "swap"]:
-        return [node.qargs[0].index, node.qargs[1].index]
-    else:
-        assert False, "Overlooked a node operation."
-
 class ChecksResult:
     def __init__(self, p2_weight, p1_str, p2_str):
         self.p2_weight= p2_weight
@@ -278,6 +210,85 @@ class ChecksFinder:
         self.circ_reversed = circ.inverse()
         self.number_of_qubits= number_of_qubits
 
+    @staticmethod
+    def update_current_ops(op1, op2, temp_check_reversed, current_qubits):
+        '''Finding checks: Symbolic: Finds the intermediate check. Always push op1 through op2. '''
+        if len(op1)==1:
+            if op1[0]=="X":
+                result= PushOperator.x(op2, temp_check_reversed)
+            elif op1[0]=="Y":
+                result= PushOperator.y(op2, temp_check_reversed)
+            elif op1[0]=="Z":
+                result= PushOperator.z(op2)
+            elif op1[0]=="I":
+                result= [1, "I"]
+            else:
+                # Can expand to accomodate non pauli + I in the future.
+                assert False, op1[0] + " is not I, X, Y, or Z."
+        else:
+            # Two qubit operations
+            if op2=="CX":
+                result = PushOperator.cx(op1)
+            elif op2=="SWAP":
+                result= PushOperator.swap(op1)
+            else:
+                assert False, op2 + " is not cx or swap."
+
+        result_phase=result[0]
+        result_ops=result[1::1]
+        temp_check_reversed.phase=temp_check_reversed.phase*result_phase
+        # Coppy the current ops into temp_check_reversed.
+        for idx, op in enumerate(result_ops):
+            temp_check_reversed.operations[current_qubits[idx]]=op
+
+    @staticmethod
+    def get_check_strs(p1, p2):
+        '''Finding checks: Symbolic: turns p1 and p2 to strings results.'''
+        #P1s
+        p1_operations=p1.operations
+        p1_phase=str(p1.phase)
+        if len(p1_phase)==1:#Add if + if positive phase
+            p1_phase="+"+p1_phase
+        p1_operations.insert(0, p1_phase)
+
+        #P2s
+        p2_operations=p2.operations
+        p2_weight=get_weight(p2_operations)
+        p2_phase=str(p2.phase)
+        if len(p2_phase)==1:#Add + if positive phase
+            p2_phase="+"+p2_phase
+        p2_operations.insert(0, p2_phase)
+
+        p1_str="".join(p1_operations)
+        p2_str="".join(p2_operations)
+        
+        print(f"p1: {p1_str}")
+        print(f"p2: {p2_str}")
+        print(f"Pauli weight P2: {p2_weight}")
+        print()
+
+        check_result=ChecksResult(p2_weight, p1_str, p2_str)
+        return check_result
+
+    @staticmethod
+    def can_continue(forward, op1, op2):
+        '''Finding checks: Symbolic: Determine if can continue. If we're going backwards and op1 is not I or Z and op2 is RZ then don't continue.'''
+        if forward==False and op2=="RZ" and op1!="I" and op1!="Z":
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def get_current_qubits(node):
+        '''Finding checks: Symbolic: get the current qubits whose operations that will be passed through.'''
+        # We have to check for single or two qubit gates.
+        if node.name in ["x", "y", "z", "h", "s", "sdg", "rz"]:
+            return [node.qargs[0].index]
+        elif node.name in ["cx", "swap"]:
+            return [node.qargs[0].index, node.qargs[1].index]
+        else:
+            assert False, "Overlooked a node operation."
+
     def get_checks_linear(self, pauli_labels):
         count=0
         p2_weights=[0]
@@ -289,7 +300,7 @@ class ChecksFinder:
             checks_result=self.find_checks_sym(elem)
             if checks_result:
                 count+=1
-                append_result(checks_result, p2_weights, pauli_str_p1s, pauli_str_p2s)
+                self._append_result(checks_result, p2_weights, pauli_str_p1s, pauli_str_p2s)
                 # Terminate the pool when found is true, i.e., found=1.
                 
                 if checks_result.p2_weight==self.number_of_qubits:
@@ -337,7 +348,7 @@ class ChecksFinder:
                 #Store the results.
                 elif result:
                     count+=1
-                    append_result(result, p2_weights, pauli_str_p1s, pauli_str_p2s)
+                    self._append_result(result, p2_weights, pauli_str_p1s, pauli_str_p2s)
                     # Terminate the pool when found is true, i.e., found=1.
                     if result.p2_weight>=optimal_weight:
                         print("terminating...")
@@ -376,14 +387,15 @@ class ChecksFinder:
                 #     return
                 # elif node.type=="op":
                 if node.type=="op":
-                    current_qubits=get_current_qubits(node)
+                    current_qubits=self.get_current_qubits(node)
                     current_ops=[temp_check_reversed.operations[qubit] for qubit in current_qubits]
                     node_op= node.name.upper()
 
                     # Update temp_check_reversed if possible
-                    if can_continue(temp_check_reversed.forward, current_ops[0], node_op):
-                        update_current_ops(current_ops, node_op, temp_check_reversed, current_qubits)
+                    if self.can_continue(temp_check_reversed.forward, current_ops[0], node_op):
+                        self.update_current_ops(current_ops, node_op, temp_check_reversed, current_qubits)
                     else:
+                        #Exit point with no checks.
                         return
             
             # See if we should start going backwards.
@@ -400,7 +412,8 @@ class ChecksFinder:
                     p1.operations=list(reversed(temp_check_reversed.operations))
                     # Append operations.
                     # with count.get_lock():
-                    checks_result =get_check_strs(p1, p2)
+                    checks_result =self.get_check_strs(p1, p2)
+                    # Exit point with checks.
                     return checks_result
                 else:
                     temp_check_reversed.layer_idx+=1            
@@ -414,17 +427,19 @@ class ChecksFinder:
                 else:
                     temp_check_reversed.layer_idx-=1
 
-def append_result(result, p2_weights, pauli_str_p1s, pauli_str_p2s):
-    p2_weight=result.p2_weight
-    p1_str=result.p1_str
-    p2_str=result.p2_str
-    if p2_weight>p2_weights[0]:
-        p2_weights[0]=p2_weight
-        pauli_str_p1s[0]=p1_str
-        pauli_str_p2s[0]=p2_str
-    p2_weights.append(p2_weight)
-    pauli_str_p1s.append(p1_str)
-    pauli_str_p2s.append(p2_str)
+    @staticmethod
+    def _append_result(result, p2_weights, pauli_str_p1s, pauli_str_p2s):
+        '''Helper for appending results for found checks.'''
+        p2_weight=result.p2_weight
+        p1_str=result.p1_str
+        p2_str=result.p2_str
+        if p2_weight>p2_weights[0]:
+            p2_weights[0]=p2_weight
+            pauli_str_p1s[0]=p1_str
+            pauli_str_p2s[0]=p2_str
+        p2_weights.append(p2_weight)
+        pauli_str_p1s.append(p1_str)
+        pauli_str_p2s.append(p2_str)
 
 def get_weight(pauli_string):
     '''Gets the weight of a Pauli string. Returns: int'''
@@ -435,7 +450,9 @@ def get_weight(pauli_string):
     return count
 
 def append_checks_to_circ(circ_properties, checks_properties):
-    '''Finding checks: combines everything into one circuit.'''
+    '''Finding checks: combines everything into one circuit.
+    circ_properties: circgenerator.CircuitProperties
+    checks_properties: circgenerator.ChecksProperties'''
     circ=circ_properties.circ
     pauli_str_p1=checks_properties.pauli_str_p1s[0]
     pauli_str_p2=checks_properties.pauli_str_p2s[0]
@@ -444,13 +461,15 @@ def append_checks_to_circ(circ_properties, checks_properties):
     ancilla_reg=QuantumRegister(1, name="a")
     temp_circ=QuantumCircuit(quant_comp_reg, ancilla_reg)
 
-    # temp_circ.h(ancilla_reg)
+    temp_circ.h(ancilla_reg)
+    temp_circ.barrier()
     utilities.add_controlU(temp_circ, pauli_str_p1, number_of_qubits, quant_comp_reg, ancilla_reg)
     temp_circ.barrier()
     temp_circ.compose(circ, quant_comp_reg, inplace=True)
     temp_circ.barrier()
     utilities.add_controlU(temp_circ, pauli_str_p2, number_of_qubits, quant_comp_reg, ancilla_reg)
-    # temp_circ.h(ancilla_reg)
+    temp_circ.barrier()
+    temp_circ.h(ancilla_reg)
     
     return temp_circ
 
@@ -515,3 +534,88 @@ def write_outputs(circ_properties, checks_properties, file_number, file_info_pat
     # # Close the files. 
     circ_file.close()
     output_file.close()
+
+def find_and_append_checks_to_a_circuit(circ, cnot_count):
+    '''Takes a circuit and adds checks to it. Returns a QuantumCircuit
+    with the checks attached.
+    Returns: QuantumCircuit'''
+    number_of_qubits=circ.num_qubits
+    check_finder=ChecksFinder(number_of_qubits, circ)
+    pool=Pool(psutil.cpu_count(logical=False))
+
+    #Create +1 phase pauli group
+    #Note that we can restrict the search for p2 to the +1 phase. The other results
+    #can all be recovered by multiplying by the corresponding phase, e.g., -i. 
+    pauli_table=pauli_basis(number_of_qubits)
+    # pauli_group_positive=deepcopy(pauli_table)
+    #Labels will be used to print pauli strings in the loop
+    pauli_labels=pauli_table.to_labels()
+    count, p2_weights, pauli_str_p1s, pauli_str_p2s= check_finder.get_checks_parallel(pool, pauli_labels)
+    checks_properties=ChecksProperties(count, p2_weights, pauli_str_p1s, pauli_str_p2s)
+    circ_operations=circ.count_ops()
+    circ_properties=circgenerator.CircuitProperties(number_of_qubits, cnot_count, 1, circ, circ_operations)
+
+    circ_with_checks=append_checks_to_circ(circ_properties, checks_properties)
+    print(circ_with_checks)
+    pool.close()
+    pool.join()
+    return circ_with_checks
+
+def find_and_append_checks_to_all_circuits(circuits, cnot_count):
+    '''All the circuits should have the same cnot count.
+    circuits: iterable
+    returns: list of QuantumCircuit'''
+    number_of_qubits=circuits[0].num_qubits
+    pool=Pool(psutil.cpu_count(logical=False))
+
+    #Create +1 phase pauli group
+    #Note that we can restrict the search for p2 to the +1 phase. The other results
+    #can all be recovered by multiplying by the corresponding phase, e.g., -i. 
+    pauli_table=pauli_basis(number_of_qubits)
+    # pauli_group_positive=deepcopy(pauli_table)
+    #Labels will be used to print pauli strings in the loop
+    pauli_labels=pauli_table.to_labels()
+    all_circs_with_checks=[]
+    for circ in circuits:
+        check_finder=ChecksFinder(number_of_qubits, circ)
+        count, p2_weights, pauli_str_p1s, pauli_str_p2s= check_finder.get_checks_parallel(pool, pauli_labels)
+        checks_properties=ChecksProperties(count, p2_weights, pauli_str_p1s, pauli_str_p2s)
+        circ_operations=circ.count_ops()
+        circ_properties=circgenerator.CircuitProperties(number_of_qubits, cnot_count, 1, circ, circ_operations)
+
+        circ_with_checks=append_checks_to_circ(circ_properties, checks_properties)
+        print(circ_with_checks)
+        all_circs_with_checks.append(circ_with_checks)
+    pool.close()
+    pool.join()
+    return all_circs_with_checks
+
+class ChecksProperties:
+    '''Checks properties holder.'''
+    __slots__=["count", "p2_weights", "pauli_str_p1s", "pauli_str_p2s"]
+    def __init__(self, count, p2_weights, pauli_str_p1s, pauli_str_p2s):
+        self.count=count
+        self.p2_weights=p2_weights
+        self.pauli_str_p1s=pauli_str_p1s
+        self.pauli_str_p2s=pauli_str_p2s
+
+def save_circuits_qasm(circuits, number_of_qubits, cnot_count, subdir="data"):
+    '''Circuits should have checks appended. Saves the circuits with checks into 
+    qasm files in the specified subdirectory.
+    circuits: iterable'''
+    print("running...")
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    subdir="data"
+    BASE_PATH=os.path.join(CODE_DIR, subdir)
+    circ_number=0
+    for circ in circuits:
+        # Increment the circuit number until we find one that's not taken.
+        qasm_file_name=f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_circuit_{circ_number}_.qasm"
+        while os.path.isfile(os.path.join(BASE_PATH, qasm_file_name)):
+            circ_number+=1
+            # output_file_name=BASE_FILE_PATH+ "circuit_" + str(file_number) +"_.txt"
+            qasm_file_name=f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_circuit_{circ_number}_.qasm"
+        print(qasm_file_name)
+        circ.qasm(filename=os.path.join(BASE_PATH, qasm_file_name))
+    print("done")
+    

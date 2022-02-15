@@ -1,5 +1,6 @@
 from copy import deepcopy
 from logging import error
+from tkinter import N
 from cirq.sim import density_matrix_simulator, simulator
 import numpy as np
 import psutil
@@ -19,6 +20,7 @@ import scipy
 from math import sqrt
 from pandas import DataFrame as df
 import time
+from multiprocessing import Pool
 
 class NoiselessCircuits:
     '''Testing Circuits'''
@@ -40,7 +42,7 @@ class CircuitMaker:
     def __init__(self, qasm_file, number_of_qubits):
         '''circ_pieces: iterable containing p1, main circuit, p2.'''
         circ_pieces=self.split_qasmfile_by_barrier(qasm_file)
-        assert len(circ_pieces)==3, f"{qasm_file} does not have the propper qasm format. There should be barriers between p1, main circuit, and p2."
+        # assert len(circ_pieces)==3, f"{qasm_file} does not have the propper qasm format. There should be barriers between p1, main circuit, and p2."
         self.circ_pieces = circ_pieces
         self.number_of_qubits = number_of_qubits
 
@@ -122,22 +124,22 @@ class CircuitMaker:
         # For saving the initial qiskit circuit with added initial state. We do this because cirq cannot handle barriers. Thus,
         # the cirq printing of circuits is not so good.
         qiskit_circ_with_checks_store=deepcopy(qiskit_circ_no_checks)
-        # Initial hadamard.
-        qiskit_circ_with_checks.h(ancilla_qreg)
-        qiskit_circ_with_checks_store.barrier()
-        qiskit_circ_with_checks_store.h(ancilla_qreg)
+        # # Initial hadamard.
+        # qiskit_circ_with_checks.h(ancilla_qreg)
+        # qiskit_circ_with_checks_store.barrier()
+        # qiskit_circ_with_checks_store.h(ancilla_qreg)
         # Copy the pieces in the circuit.
         for elem in self.circ_pieces:
             qiskit_circ_with_checks.compose(elem, inplace=True)
             qiskit_circ_with_checks_store.barrier()
             qiskit_circ_with_checks_store.compose(elem, inplace=True)
-        # The final hadamard.
-        qiskit_circ_with_checks.h(ancilla_qreg)
-        qiskit_circ_with_checks_store.barrier()
-        qiskit_circ_with_checks_store.h(ancilla_qreg)
+        # # The final hadamard.
+        # qiskit_circ_with_checks.h(ancilla_qreg)
+        # qiskit_circ_with_checks_store.barrier()
+        # qiskit_circ_with_checks_store.h(ancilla_qreg)
         # The no checks only uses the main compute circuit.
-        qiskit_circ_no_checks.compose(self.circ_pieces[1], inplace=True)
-
+        qiskit_circ_no_checks.compose(self.circ_pieces[2], inplace=True)
+        # print(qiskit_circ_no_checks)
         # Add the measurement for the qiskit circuit that we will print out.
         classical_register=ClassicalRegister(1, "c")
         qiskit_circ_with_checks_store.add_register(classical_register)
@@ -516,6 +518,17 @@ class FilesManipulator:
         self.number_of_qubits=number_of_qubits
         self.cnot_count=cnot_count
 
+    @staticmethod
+    def get_all_qasm_files_by_cnot(base_path_raw_qasm, cnot_count):
+        all_files=[f for f in listdir(base_path_raw_qasm) if isfile(os.path.join(base_path_raw_qasm, f))]
+        found_qasm_files=[]
+        for file_name in all_files:
+            if file_name.endswith(".qasm") and f"CNOTS_{cnot_count}_" in file_name:
+                # split_name_nums=[int(elem) for elem in file_name.split("_") if elem.isdigit()]
+                # if split_name_nums[1]==cnot_count:
+                found_qasm_files.append(file_name)
+        return found_qasm_files
+
     def result_exists(self, file_name, result_num=0):
         '''Testing circuits: Checks if the result file exists.'''
         #Strip file extension. This assumes that the file ends with "_.someextention".
@@ -532,7 +545,7 @@ class FilesManipulator:
             self.base_path, 
             f"qubits_{name_split_nums[0]}_CNOTS_{name_split_nums[1]}_circuit_{name_split_nums[2]}_resultsso_{result_num}_.txt"))
 
-    def store_fidelity_results(self, circ_porp_file_name, noiseless_circs, results):
+    def store_fidelity_results_verbose(self, circ_porp_file_name, noiseless_circs, results):
         '''Testing circuits: Stores all the results.'''
         base_path=self.base_path
         with open(os.path.join(base_path, circ_porp_file_name), "rb") as circ_file:
@@ -568,6 +581,43 @@ class FilesManipulator:
         output_file_txt_full_path=os.path.join(base_path, output_file_name_txt)
         qiskit_circ_with_checks= noiseless_circs.qiskit_circ_with_checks
         output_file_name_qasm=f"{file_name_no_extension}_result_{temp_file_number}_.qasm"
+        qiskit_circ_with_checks.qasm(filename=os.path.join(base_path, output_file_name_qasm))
+        circuit_drawer(qiskit_circ_with_checks, filename=output_file_txt_full_path)
+        with open(output_file_txt_full_path, "a") as output_file_txt:
+            output_file_txt.write("\n")
+            output_file_txt.write(json.dumps(qiskit_circ_with_checks.count_ops()))
+            for result in results:
+                output_file_txt.write("\n")
+                output_file_txt.write(f"Error idx: {result['error_idx']}\n")
+                output_file_txt.write(f"One qubit error: {result['one_qubit_err']}\n")
+                # print("One_qubit_err:", one_qubit_err)
+                output_file_txt.write(f"Two qubit error: {result['two_qubit_err']}\n")
+                # print("Two qubit error:", two_qubit_err)
+                output_file_txt.write(f"ancilla probability of 0 outcome: {result['percent_results_after_postselect']}\n")
+                output_file_txt.write(f"State fidelity no checks and with errors: {result['state_fidelity_no_checks_with_errors']}\n")
+                output_file_txt.write(f"State fidelity with checks and with errors: {result['state_fidelity_with_checks_with_errors']}\n")
+                output_file_txt.write(f"Sanity check fidelity with checks and no errors: {result['state_fidelity_with_checks_no_errors']}\n")
+
+    def store_fidelity_results_concise(self, noiseless_circs, results, file_name_no_extension, extension=""):
+        '''Testing circuits: Stores all the results concisely.'''
+        base_path=self.base_path
+        temp_file_number=0
+        output_file_name_obj=f"{file_name_no_extension}_result{extension}_{temp_file_number}_.obj"
+        while os.path.isfile(os.path.join(base_path,output_file_name_obj)):
+            temp_file_number+=1
+            output_file_name_obj=f"{file_name_no_extension}_result{extension}_{temp_file_number}_.obj"
+        output_file_name_txt=f"{file_name_no_extension}_result{extension}_{temp_file_number}_.txt"
+        # circ_full_no_measure=noiseless_circs.qiskit_circ_with_checks
+        # qiskit_circ_full_no_measure=QuantumCircuit.from_qasm_str(cirq.qasm(circ_full_no_measure))
+
+        # Dump all the results into a pickle
+        with open(os.path.join(base_path, output_file_name_obj), "wb") as circ_file:
+            pickle.dump({"results": results}, circ_file)
+
+        #Print text results to file
+        output_file_txt_full_path=os.path.join(base_path, output_file_name_txt)
+        qiskit_circ_with_checks= noiseless_circs.qiskit_circ_with_checks
+        output_file_name_qasm=f"{file_name_no_extension}_result{extension}_{temp_file_number}_.qasm"
         qiskit_circ_with_checks.qasm(filename=os.path.join(base_path, output_file_name_qasm))
         circuit_drawer(qiskit_circ_with_checks, filename=output_file_txt_full_path)
         with open(output_file_txt_full_path, "a") as output_file_txt:
@@ -639,7 +689,8 @@ class FilesManipulator:
                 output_file_txt.write(f"Sanity check sso with checks and no errors: {result['sany_check_sso']}\n") 
 
     def get_files(self, start_circ_number, end_circ_number):
-        '''Testing circuits: Get the desired files for testing.'''
+        '''Testing circuits: Get the desired files for testing. Grabs qasm files
+        that have checks.'''
         base_path=self.base_path
         # Gets the files that match the string. Files include the path
         all_files=[f for f in listdir(base_path) if isfile(os.path.join(base_path, f))]
@@ -651,7 +702,8 @@ class FilesManipulator:
             # print(name_split)
             # print(name_split_nums)
             if (
-                ".qasm" in name_split and "result" not in name_split 
+                ".qasm" in name_split and "result" not in name_split
+                and "raw" not in name_split 
                 and name_split_nums[1]==self.cnot_count 
                 and name_split_nums[0]==self.number_of_qubits 
                 and start_circ_number<=name_split_nums[2]<=end_circ_number):
@@ -697,8 +749,9 @@ class FilesManipulator:
 
     @staticmethod
     def remove_checks_in_complete_qasm(base_path, input_file_name, output_file_name):
+        '''Initially the circuit has init|h|p1|main|p2|h. This returns
+        init|main.'''
         circ_pieces=CircuitMaker.split_qasmfile_by_barrier(os.path.join(base_path, input_file_name))
-        #init|h|p1|main|p2|h
         assert len(circ_pieces)>=6, f"number of pieces in {input_file_name} is wrong."
         initstate=circ_pieces[0]
         main_circ=circ_pieces[3]
@@ -708,9 +761,40 @@ class FilesManipulator:
         circ_new.qasm(filename=os.path.join(base_path, output_file_name))
 
     @staticmethod
-    def get_qasm_files(base_path):
+    def get_all_qasm_files(base_path):
+        '''Gets all qasm files in base_path.'''
         all_files=[f for f in listdir(base_path) if isfile(os.path.join(base_path, f))]
         return [file_name for file_name in all_files if file_name.endswith(".qasm")]
+
+    @staticmethod
+    def get_all_qasm_files_with_checks(base_path):
+        '''Grabs all qasm files with checks and no initial state from base_path.'''
+        all_files=[f for f in listdir(base_path) if isfile(os.path.join(base_path, f))]
+        circ_files=[]
+        for file in all_files:
+            name_split=file.split("_")
+            name_split_nums=[int(num) for num in name_split if num.isdigit()]
+            # print(name_split)
+            # print(name_split_nums)
+            if (
+                ".qasm" in name_split and "result" not in name_split
+                and "raw" not in name_split):
+                circ_files.append(file)
+        return circ_files
+
+    @staticmethod
+    def get_main_circuit_from_qasm_to_file(input_path, output_path, qasm_files, number_of_qubits):
+        '''Starts with circuits: p1|main|p2
+        Gets the main circuit from the qasm files.'''
+        for file_name in qasm_files:
+            # print(QuantumCircuit.from_qasm_file(os.path.join(input_path, file_name)))
+            circ_pieces=CircuitMaker.split_qasmfile_by_barrier(os.path.join(input_path, file_name))
+            assert len(circ_pieces)==3, f"number of pieces in {file_name} is wrong."
+            main_circ=circ_pieces[1]
+            output_file_name=f"{file_name[:-6]}_raw_.qasm"
+            print(output_file_name)
+            main_circ.qasm(filename=os.path.join(output_path, output_file_name))
+
 
     @staticmethod
     def get_result_qasm_and_original_prop(base_path, search_file):
@@ -747,5 +831,163 @@ class FilesManipulator:
         qiskit_circ=transpile(qiskit_circ, basis_gates=basis_gates, optimization_level=0)
         qiskit_circ.qasm(filename=absolute_file_name)
 
-if __name__ == "__main__":
-    pass
+def simulate_all_circuits_verbose(number_of_qubits, cnot_count, start_circ_number, end_circ_number, subdir="data"):
+    '''Runs simulations on all the circuits in the given subdir (default is data).'''
+    time0=time.time()
+    print("running...")
+    #Program parameters.
+    # NUMBER_OF_QUBITS=int(sys.argv[1])
+    # CNOT_COUNT=int(sys.argv[2])
+    # START_CIRC_NUMBER=int(sys.argv[3])
+    # END_CIRC_NUMBER=int(sys.argv[4])
+    #Determines if we run parallel or not.
+    PARALLEL=True
+    # Gets the file path of the script
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    BASE_PATH=os.path.join(CODE_DIR,subdir)
+    #Error space
+    SINGLE_QUBIT_ERROR_SPACE=np.logspace(-5, -2, num=21) #goes from 10^-5 to 10^-2
+    files_manipulator=FilesManipulator(BASE_PATH, number_of_qubits, cnot_count)
+    # Gets the files that match the string. Files include the path.
+    # The returned files correspond accordingly, e.g., circ_file[0] and circ_properties_files[0] refer
+    # to the same circuit.
+    circ_files, circ_properties_files=files_manipulator.get_files(start_circ_number, end_circ_number)
+    if PARALLEL:
+        pool=Pool(psutil.cpu_count(logical=False))
+
+    #Get the qasm and pickle info
+    for file_idx, file_name in enumerate(circ_files):
+        #Stopwatch
+        time1=time.time()
+        #If the file exists we already did this so just skip. Later on we can remove this for other initial states.
+        if files_manipulator.result_exists(file_name):
+            continue
+
+        circuit_maker=CircuitMaker(os.path.join(BASE_PATH, file_name), number_of_qubits)
+        noiseless_circs, _=circuit_maker.make_noiseless_circs()
+
+        keep_qubits=list(range(number_of_qubits))
+        circ_tester=CircuitSimulator(noiseless_circs, number_of_qubits, keep_qubits)
+        assert circ_tester.sanity_check_fidelity>0.98, f"Sanity check fidelity {circ_tester.sanity_check_fidelity} failed for circuit {file_name}"
+        print(f"sanity check fidelity: {circ_tester.sanity_check_fidelity}")
+
+        if PARALLEL:
+            results=circ_tester.simulate_all_tests_parallel(pool, SINGLE_QUBIT_ERROR_SPACE)
+        else:
+            results=circ_tester.simulate_all_tests(SINGLE_QUBIT_ERROR_SPACE)
+        files_manipulator.store_fidelity_results_verbose(circ_properties_files[file_idx], noiseless_circs, results)
+
+        print(f"file execution time {time.time()-time1}")
+    if PARALLEL:
+        pool.close()
+        pool.join()
+    print(f"total execution time {time.time()-time0}")
+    print("Finished.")
+
+def simulate_all_circuits_concise(number_of_qubits, cnot_count, start_circ_number, end_circ_number, base_path_to_circs):
+    '''Runs simulations on all the circuits in the given subdir (default is data).'''
+    time0=time.time()
+    print("running...")
+    #Program parameters.
+    # NUMBER_OF_QUBITS=int(sys.argv[1])
+    # CNOT_COUNT=int(sys.argv[2])
+    # START_CIRC_NUMBER=int(sys.argv[3])
+    # END_CIRC_NUMBER=int(sys.argv[4])
+    #Determines if we run parallel or not.
+    PARALLEL=True
+    # Gets the file path of the script
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    # BASE_PATH=os.path.join(CODE_DIR,subdir)
+    #Error space
+    SINGLE_QUBIT_ERROR_SPACE=np.logspace(-5, -2, num=21) #goes from 10^-5 to 10^-2
+    files_manipulator=FilesManipulator(base_path_to_circs, number_of_qubits, cnot_count)
+    # Gets the files that match the string. Files include the path.
+    # The returned files correspond accordingly, e.g., circ_file[0] and circ_properties_files[0] refer
+    # to the same circuit.
+    circ_files, _=files_manipulator.get_files(start_circ_number, end_circ_number)
+    if PARALLEL:
+        pool=Pool(psutil.cpu_count(logical=False))
+
+    #Get the qasm and pickle info
+    for file_name in circ_files:
+        #Stopwatch
+        time1=time.time()
+        #If the file exists we already did this so just skip. Later on we can remove this for other initial states.
+        # if files_manipulator.result_exists(file_name):
+        #     continue
+
+        circuit_maker=CircuitMaker(os.path.join(base_path_to_circs, file_name), number_of_qubits)
+        noiseless_circs, _=circuit_maker.make_noiseless_circs()
+
+        keep_qubits=list(range(number_of_qubits))
+        circ_tester=CircuitSimulator(noiseless_circs, number_of_qubits, keep_qubits)
+        assert circ_tester.sanity_check_fidelity>0.98, f"Sanity check fidelity {circ_tester.sanity_check_fidelity} failed for circuit {file_name}"
+        print(f"sanity check fidelity: {circ_tester.sanity_check_fidelity}")
+
+        if PARALLEL:
+            results=circ_tester.simulate_all_tests_parallel(pool, SINGLE_QUBIT_ERROR_SPACE)
+        else:
+            results=circ_tester.simulate_all_tests(SINGLE_QUBIT_ERROR_SPACE)
+        file_name_no_extension=file_name[:-6] #remove _.qasm
+        files_manipulator.store_fidelity_results_concise(noiseless_circs, results, file_name_no_extension,)
+
+        print(f"file execution time {time.time()-time1}")
+    if PARALLEL:
+        pool.close()
+        pool.join()
+    print(f"total execution time {time.time()-time0}")
+    print("Finished.")
+
+def simulate_all_given_circuits_concise(number_of_qubits, cnot_count, circs, circ_file_names, path_to_store_results):
+    '''Runs simulations on all the circuits in the given subdir (default is data).'''
+    time0=time.time()
+    print("running...")
+    #Program parameters.
+    # NUMBER_OF_QUBITS=int(sys.argv[1])
+    # CNOT_COUNT=int(sys.argv[2])
+    # START_CIRC_NUMBER=int(sys.argv[3])
+    # END_CIRC_NUMBER=int(sys.argv[4])
+    #Determines if we run parallel or not.
+    PARALLEL=True
+    # Gets the file path of the script
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    # BASE_PATH=os.path.join(CODE_DIR,subdir)
+    #Error space
+    SINGLE_QUBIT_ERROR_SPACE=np.logspace(-5, -2, num=21) #goes from 10^-5 to 10^-2
+    files_manipulator=FilesManipulator(path_to_store_results, number_of_qubits, cnot_count)
+    # Gets the files that match the string. Files include the path.
+    # The returned files correspond accordingly, e.g., circ_file[0] and circ_properties_files[0] refer
+    # to the same circuit.
+    circ_files, _=files_manipulator.get_files(start_circ_number, end_circ_number)
+    if PARALLEL:
+        pool=Pool(psutil.cpu_count(logical=False))
+
+    #Get the qasm and pickle info
+    for file_name in circ_files:
+        #Stopwatch
+        time1=time.time()
+        #If the file exists we already did this so just skip. Later on we can remove this for other initial states.
+        # if files_manipulator.result_exists(file_name):
+        #     continue
+
+        circuit_maker=CircuitMaker(os.path.join(path_to_store_results, file_name), number_of_qubits)
+        noiseless_circs, _=circuit_maker.make_noiseless_circs()
+
+        keep_qubits=list(range(number_of_qubits))
+        circ_tester=CircuitSimulator(noiseless_circs, number_of_qubits, keep_qubits)
+        assert circ_tester.sanity_check_fidelity>0.98, f"Sanity check fidelity {circ_tester.sanity_check_fidelity} failed for circuit {file_name}"
+        print(f"sanity check fidelity: {circ_tester.sanity_check_fidelity}")
+
+        if PARALLEL:
+            results=circ_tester.simulate_all_tests_parallel(pool, SINGLE_QUBIT_ERROR_SPACE)
+        else:
+            results=circ_tester.simulate_all_tests(SINGLE_QUBIT_ERROR_SPACE)
+        file_name_no_extension=file_name[:-6] #remove _.qasm
+        files_manipulator.store_fidelity_results_concise(noiseless_circs, results, file_name_no_extension,)
+
+        print(f"file execution time {time.time()-time1}")
+    if PARALLEL:
+        pool.close()
+        pool.join()
+    print(f"total execution time {time.time()-time0}")
+    print("Finished.")

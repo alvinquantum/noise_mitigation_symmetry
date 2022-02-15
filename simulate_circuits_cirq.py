@@ -20,7 +20,7 @@ if __name__ == "__main__":
     #Determines if we run parallel or not.
     PARALLEL=True
     # File stuff
-    SUBDIR="data"
+    SUBDIR=os.path.join("data", "results")
     # Gets the file path of the script
     CODE_DIR=os.path.abspath(os.path.dirname(__file__))
     BASE_PATH=os.path.join(CODE_DIR,SUBDIR)
@@ -54,7 +54,7 @@ if __name__ == "__main__":
             results=circ_tester.simulate_all_tests_parallel(pool, SINGLE_QUBIT_ERROR_SPACE)
         else:
             results=circ_tester.simulate_all_tests(SINGLE_QUBIT_ERROR_SPACE)
-        files_manipulator.store_fidelity_results(circ_properties_files[file_idx], noiseless_circs, results)
+        files_manipulator.store_fidelity_results_verbose(circ_properties_files[file_idx], noiseless_circs, results)
 
         print(f"file execution time {time.time()-time1}")
     if PARALLEL:
