@@ -50,7 +50,7 @@ if __name__ == "__main__":
     START_CIRC_NUMBER=0#int(sys.argv[3])
     END_CIRC_NUMBER=0#int(sys.argv[4])
     #Determines if we run parallel or not.
-    PARALLEL=False
+    PARALLEL=True
     # File stuff
     SUBDIR="data"
     # Gets the file path of the script
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     # Gets the files that match the string. Files include the path.
     # The returned files correspond accordingly, e.g., circ_file[0] and circ_properties_files[0] refer
     # to the same circuit.
-    file_name="qubits_5_CNOTS_40_circuit_45_result_0_.qasm"
+    file_name="qubits_5_CNOTS_25_circuit_0_result_0_.qasm"
     if files_manipulator.result_sso_exists(file_name):
         print(f"total execution time {time.time()-time0}")
         print("Finished.")
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     # circ_pieces=circtester.CircuitMaker.split_circuit_by_barrier()
     noiseless_circs, noiseless_circs_meas=make_circuits_from_result(NUMBER_OF_QUBITS, os.path.join(BASE_PATH, circ_file))    
 
-    circ_tester=circtester.CircuitRunner(noiseless_circs_meas, NUMBER_OF_QUBITS)
+    circ_tester=circtester.CircuitRunner(noiseless_circs_meas, NUMBER_OF_QUBITS, 4000)
     # assert circ_tester.sanity_check_sso>0.90, f"Sanity check sso {circ_tester.sanity_check_sso} failed for circuit {file_name}"
     print(f"sanity check sso: {circ_tester.sanity_check_sso}")
 
