@@ -9,7 +9,7 @@ from tkinter import N
 from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
 from qiskit import QuantumCircuit
 import circgenerator
-import checksfinder
+import checksfinder_new as checksfinder
 import circtester
 import sys
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # # print(len(qasm_files))
     # # print(qasm_files)
     # circtester.FilesManipulator.get_main_circuit_from_qasm_to_file(BASE_INPUT_PATH, BASE_OUTPUT_PATH, qasm_files, NUMBER_OF_QUBITS)
-    circgenerator.generate_circuits_with_checks_to_files(NUMBER_OF_QUBITS, CNOT_COUNT, NUMBER_OF_CIRCUITS)
+    circgenerator.generate_random_circuits_to_files(NUMBER_OF_QUBITS, CNOT_COUNT, NUMBER_OF_CIRCUITS)
 
     # # subdir="data"
     # subdir="qubits_10"
