@@ -1,4 +1,7 @@
 # from copy import deepcopy
+# from curses.ascii import isdigit
+import os
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
 from sys import maxsize
 import numpy as np
 from qiskit import QuantumCircuit, transpile
@@ -6,11 +9,10 @@ from qiskit.circuit import QuantumRegister
 from qiskit.converters.dag_to_circuit import dag_to_circuit
 from qiskit.quantum_info import random_clifford, decompose_clifford
 from qiskit.converters import circuit_to_dag
-import checksfinder
+import checksfinder_new as checksfinder
 from multiprocessing import Pool
 import psutil
 import time
-import os
 import utilities
 from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
 from qiskit.quantum_info import Operator
@@ -18,57 +20,7 @@ from qiskit.visualization import circuit_drawer
 from cirq.contrib.qasm_import import circuit_from_qasm
 import json
 # import pickle
-
-# def get_initial_state_file_names(raw_file_names):
-#     initial_states_file_names=[]
-#     for file_name in raw_file_names:
-#         name_split=file_name.split("_")
-#         base_file_name=name_split[:-2]
-#         initial_states_file_names.append(f"{'_'.join(base_file_name)}_result_0_.qasm")
-#     return initial_states_file_names
-
-# class CircuitSplitter:
-#     def __init__(self, circ):
-#         self.unsplit_circ=circ
-#         self.unsplit_circ_dag=circ
-
-#     @staticmethod
-#     def split_circs_by_qubits(base_path, raw_qasm_file, minimum_qubits, max_qubits):
-#         '''splits the given cirq circuit into two circuits at the depth. 
-#         The depth is part of the second circuit.'''
-#         # for file_name in raw_qasm_files:
-#         # print(os.path.join(base_path, file_name))
-#         circ=QuantumCircuit.from_qasm_file(os.path.join(base_path, raw_qasm_file))
-#         circ_dag=circuit_to_dag(circ)
-#         layers=circ_dag.multigraph_layers()
-#         cirq_circ=circuit_from_qasm(circ.qasm())
-#         # while True:
-#         qubit_sets=[]
-#         layer_idx=0
-#         found=False
-#         for idx in range(len(cirq_circ)):
-#             temp_qubit_sets=[]
-#             independent_sets=cirq_circ[:idx].get_independent_qubit_sets()
-#             if found:
-#                 temp_qubit_sets.append()
-#                 break
-#             for elem in list(map(lambda x: len(x), independent_sets)):
-#                 if elem>max_qubits:
-#                     found=True
-#             layer_idx=idx
-#             qubit_sets=independent_sets
-#         print(qubit_sets)
-#         print(layer_idx)
-#             #     layer.
-
-#     # def traverse_forward(self, temp_qubits, temp_layer):
-#     #     '''Go forward and expand number of qubits when hitting a 2 qubit gate.'''
-#     #     for moment in self.unsplit_circ:
-#     #         for ops in moment:
-
-#     # def traverse_backwards(self, temp_qubits, temp_layer):
-#     #     for moment in self.unsplit_circ:
-#     #         for ops in moment:
+from copy import deepcopy
 
 class CircuitProperties:
     '''Circuit properties holder.'''
@@ -77,10 +29,48 @@ class CircuitProperties:
         self.number_of_qubits=number_of_qubits
         self.cnot_count=cnot_count
         self.number_of_circuits=number_of_circuits
-        self.circ=circ
+        self.circ=deepcopy(circ)
         self.circ_operations=circ_operations
 
-def generate_a_random_circuit(num_qubits, num_cnots_required, seed=None):
+def generate_a_random_clifford_circuit(num_qubits, num_cnots_required, seed=None):
+    """Generate random Clifford circ: Generates a random circuit with num_qubits and num_cnots
+    The circuit uses h, s, cz, cx, swap gates and no measurements. 
+
+    Returns:
+        QuantumCircuit: constructed circuit
+    """
+    assert num_cnots_required>0, f"{num_cnots_required} needs to be greater than 0."
+    if seed is None:
+        seed = np.random.randint(0, np.iinfo(np.int32).max)
+    rng = np.random.default_rng(seed)
+
+    qc=QuantumCircuit(QuantumRegister(num_qubits))
+    cnot_count=0
+    #Randomly generate cliffords until we have more than enough cnots
+    #then truncate
+    while cnot_count < num_cnots_required:
+        print("generating.")
+        qc_temp=decompose_clifford(random_clifford(num_qubits))
+        # qc_temp=random_clifford(num_qubits).to_instruction()
+        cnot_count+=count_gate(qc_temp, "cx")
+        print("composing.")
+        qc.compose(qc_temp, inplace=True)
+
+    #Transpile to expand the swaps to CNOTS.
+    # basis_gates=['x', 'y', 'z', 's', 'sdg', 'h', 'cx']
+    # qc=transpile(qc, basis_gates=basis_gates, optimization_level=0)
+    # cnot_count=count_gate(qc, "cx")
+    
+    qc=remove_swap(qc)
+    # Too many cnots so trim.
+    if cnot_count> num_cnots_required:
+        qc=trim(qc, cnot_count, num_cnots_required)
+        assert dict(qc.count_ops())["cx"] == num_cnots_required, "the circuit doesn't have the required cnots"
+    # qc=add_rz_gates_prob(num_qubits, qc, rng) #Non deterministic # of rz.
+    # qc=add_rz_gates_det(num_qubits, qc, rng) #Deterministic # of rz
+    return qc
+
+def generate_a_random_circuit(num_qubits, num_cnots_required, rz_count, seed=None):
     """Generate random circ: Generates a random circuit with num_qubits, 5 rz gates and num_cnots
     The circuit uses h, s, cz, cx, swap gates and no measurements. 
 
@@ -112,7 +102,7 @@ def generate_a_random_circuit(num_qubits, num_cnots_required, seed=None):
         qc=trim(qc, cnot_count, num_cnots_required)
         assert dict(qc.count_ops())["cx"] == num_cnots_required, "the circuit doesn't have the required cnots"
     # qc=add_rz_gates_prob(num_qubits, qc, rng) #Non deterministic # of rz.
-    qc=add_rz_gates_det(num_qubits, qc, rng) #Deterministic # of rz
+    qc=add_rz_gates_det(num_qubits, qc, rng, rz_count) #Deterministic # of rz
     return qc
 
 def remove_swap(qc):
@@ -156,11 +146,12 @@ def insert_rz_gate(circ, rng, prob, operand):
         angle=rng.uniform(0, 2 * np.pi)
         circ.rz(angle, operand)
 
-def add_rz_gates_det(num_qubits, qc, rng):
+def add_rz_gates_det(num_qubits, qc, rng, rz_count):
     '''Generate random circ: Helper function. Add a set number of rz gates randomly to the circuit. Returns: QuantumCircuit'''
     qc_dag=circuit_to_dag(qc)
     new_qc=QuantumCircuit(QuantumRegister(num_qubits, name="q"))
-    NUM_RZ=5
+    # NUM_RZ=5
+    NUM_RZ=rz_count
     # This number here seems to be "ok" (some circuits had no paulie checks)
     # for circuits with 200 cnots.
     # NUM_RZ=int(qc.count_ops()["cx"]/20)
@@ -188,7 +179,11 @@ def add_rz_gates_det(num_qubits, qc, rng):
                 else:
                     all_nodes.append(node)
     # Now we sample.
-    chosen_nodes=rng.choice(all_nodes, replace=False, size=NUM_RZ).tolist()
+    if NUM_RZ>len(all_nodes):
+        NUM_RZ=len(all_nodes)
+        chosen_nodes=all_nodes
+    else:
+        chosen_nodes=rng.choice(all_nodes, replace=False, size=NUM_RZ).tolist()
 
     for layer in layers:
         for node in layer:
@@ -404,24 +399,153 @@ def generate_random_circuits_to_qasm_files(number_of_qubits, cnot_count, number_
         circuits.append(generate_a_random_circuit(number_of_qubits, cnot_count))
     write_circs_no_checks_to_qasm_file(circuits, number_of_qubits, cnot_count, subdir)
 
-def write_circs_no_checks_to_qasm_file(circuits, number_of_qubits, cnot_count, subdir="data"):
+def write_circs_no_checks_to_qasm_file(base_path, circuits, number_of_qubits, cnot_count):
     '''Saves the circuits into qasm files in the specified subdirectory. Note that
     that this is for saving circuits that have no checks. This constraint exists
     because of the file names used.
     circuits: iterable'''
     print("running...")
-    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    # CODE_DIR=os.path.abspath(os.path.dirname(__file__))
     # subdir="data"
-    BASE_PATH=os.path.join(CODE_DIR, subdir)
+    # BASE_PATH=os.path.join(CODE_DIR, subdir)
     circ_number=0
     for circ in circuits:
         # Increment the circuit number until we find one that's not taken.
         qasm_file_name=f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_circuit_{circ_number}_raw_.qasm"
-        while os.path.isfile(os.path.join(BASE_PATH, qasm_file_name)):
+        while os.path.isfile(os.path.join(base_path, qasm_file_name)):
             circ_number+=1
             # output_file_name=BASE_FILE_PATH+ "circuit_" + str(file_number) +"_.txt"
             qasm_file_name=f"qubits_{number_of_qubits}_CNOTS_{cnot_count}_circuit_{circ_number}_raw_.qasm"
-        print(qasm_file_name)
-        circ.qasm(filename=os.path.join(BASE_PATH, qasm_file_name))
+        # print(qasm_file_name)
+        circ.qasm(filename=os.path.join(base_path, qasm_file_name))
     print("done")
+    
+
+def generate_random_circuits_to_files(number_of_qubits, cnot_count, number_of_circuits, rz_count):
+    '''Generates required circuits and saves them to files.'''
+    time0=time.time()
+    #Disable qiskit parallel.
+    os.environ['QISKIT_IN_PARALLEL'] = 'TRUE'
+    print("running...")
+    #Program parameters
+    # func_params=FunctionParams()
+    #Paths for outputs and pickle file of circuit. sys.path[0] on laptop and the other on hpc.
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    MAIN_SUBDIR="qubits_2"
+    CHECKS_SUBDIR="checks"
+    RAWS_SUBDIR="raws"
+    CHECKS_PATH=os.path.join(CODE_DIR, MAIN_SUBDIR, CHECKS_SUBDIR)
+    RAWS_PATH=os.path.join(CODE_DIR, MAIN_SUBDIR, RAWS_SUBDIR)
+    
+    # #Create +1 phase pauli group
+    # #Note that we can restrict the search for p2 to the +1 phase. The other results
+    # #can all be recovered by multiplying by the corresponding phase, e.g., -i. 
+    # pauli_table=pauli_basis(number_of_qubits)
+    # # pauli_group_positive=deepcopy(pauli_table)
+    # #Labels will be used to print pauli strings in the loop
+    # pauli_labels=pauli_table.to_labels()
+
+    # Generate random circuits
+    file_number=0
+    for _ in range(number_of_circuits):
+        time1=time.time()
+        # circ=generate_a_random_circuit(number_of_qubits, cnot_count) 
+        circ=generate_a_random_circuit(number_of_qubits, cnot_count, rz_count)            
+        #Save raw circuit
+        write_circs_no_checks_to_qasm_file(RAWS_PATH, [circ], number_of_qubits, cnot_count)
+
+        print(circ)
+        circ_operations=circ.count_ops()
+        print(circ_operations)
+
+    # if number_of_qubits<=5:
+    #     PARALLEL=False
+    # else:
+    #     PARALLEL=True
+#     PARALLEL=False
+#     if PARALLEL:
+#         pool=Pool(psutil.cpu_count(logical=False))
+#     #Load qasm files and find checks.
+#     input_qasm_file_names=utilities.get_files_from_dir_by_extension(RAWS_PATH, ".qasm")
+#     input_qasm_file_names=filter_by_cnot_qubit(input_qasm_file_names, cnot_count, number_of_qubits)
+#     for input_qasm_file_name in input_qasm_file_names:
+#         # print(qasm_file_name)
+#         # print(qasm_file_name)
+#         # Skip the raw qasm if we already have an output.
+#         if checksfinder.checks_file_exists(CHECKS_PATH, input_qasm_file_name):
+#             continue
+
+#         circ=QuantumCircuit.from_qasm_file(os.path.join(RAWS_PATH, input_qasm_file_name))
+#         circ_operations=circ.count_ops()
+#         circ_properties=CircuitProperties(number_of_qubits, cnot_count, number_of_circuits, circ, circ_operations)
+#         checks_finder=checksfinder.ChecksFinder(number_of_qubits, circ_properties.circ)
+
+#         # # Iterate over the qubits and try to get two p2 checks for each qubit
+#         layers_count=0
+#         check_layers=[]
+#         for qubit_idx in range(number_of_qubits):
+#             time1=time.time()
+#             pauli_labels=checksfinder.get_single_weight_pauli_table_at_qubit_idx(qubit_idx, number_of_qubits)
+#             # output_file_path=BASE_FILE_PATH+ "circuit_" + str(file_number) +"_.txt"
+#             # Doing pool this way is faster when the circuits become large since the cpus will be fully utilized
+#             # each time. If we parallelize across individual circuits, each generation of circuit will be slow.
+#             if PARALLEL:
+#                 count, p2_weights, pauli_str_p1s, pauli_str_p2s=checks_finder.get_checks_parallel(pool, pauli_labels)
+#                 # with Pool(psutil.cpu_count(logical=False)) as pool:
+#             else:
+#                 count, p2_weights, pauli_str_p1s, pauli_str_p2s=checks_finder.get_checks_linear(pauli_labels)
+#                     # print(pauli_to_circuit(elem))
+#                     #Test
+#                     # cProfile.run("find_p1s_p2s(elem)", filename="rand_circ_stats.txt")
+#             # Combine the circuit and checks.
+#             # checks_properties=checksfinder.ChecksProperties(count, p2_weights, pauli_str_p1s, pauli_str_p2s)
+#             if count>0:
+#                 count=0 #Reset the count. Since we only max of 2 checks.
+#                 for idx, elem in enumerate(pauli_str_p1s):
+#                     if idx<=1:
+#                         check_layers.append((elem, pauli_str_p2s[idx]))
+#                         count+=1
+#                 layers_count+=count
+#                 # check_layers.append({"p1s": pauli_str_p1s, "p2s": pauli_str_p2s})
+#                 # p2_weights=p2_weights[1:]
+#                 # pauli_str_p1s=pauli_str_p1s[1:]
+#                 # pauli_str_p2s=pauli_str_p2s[1:]
+#                 # print(input_qasm_file_name)
+#                 # print("calling length ", len(pauli_str_p1s))
+#                 # print("difference, ", count-len(pauli_str_p1s))
+#                 # print("p2_weights: ", p2_weights)
+#         if layers_count>0:
+#             # checks_properties=checksfinder.ChecksProperties(count, p2_weights, pauli_str_p1s, pauli_str_p2s)
+#             circ_properties.circ=checksfinder.append_multilayer_checks_to_circ(circ, layers_count, check_layers)
+
+#         print(circ_properties.circ)
+
+
+#         #Draw to file
+#         output_qasm_file_name=checksfinder.generate_checks_file_name_from_raw_qasm(input_qasm_file_name)
+#         info_file_name=checksfinder.generate_obj_file_name_from_checks_file_name(output_qasm_file_name)
+#         txt_file_name=checksfinder.generate_txt_file_name_from_checks_file_name(output_qasm_file_name)
+#         circuit_drawer(circ_properties.circ, filename=os.path.join(CHECKS_PATH, txt_file_name))        
+#         output_txt_file=open(os.path.join(CHECKS_PATH, txt_file_name), "a")
+#         circuit_number=checksfinder.get_circuit_number(output_qasm_file_name)
+#         checksfinder.write_outputs_multilayer(circ_properties, layers_count, check_layers, circuit_number, 
+#             os.path.join(CHECKS_PATH, info_file_name),os.path.join(CHECKS_PATH, output_qasm_file_name), output_txt_file)
+        
+#         output_txt_file.close()
+        print(f"file execution time {time.time()-time1}")
+    print(f"total execution time {time.time()-time0}")
+#     if PARALLEL:
+#         pool.close() #Stops passing jobs to processes.
+#         pool.join() #Waits for processes to finish.
+#     print("done")
+
+
+def filter_by_cnot_qubit(files, cnot_count, number_of_qubits):
+    '''Only return files that have the specified cnot count and number of qubits.'''
+    filtered_files=[]
+    for file in files:
+        file_nums_info=[int(elem) for elem in file.split("_") if elem.isdigit()]
+        if file_nums_info[0]== number_of_qubits and file_nums_info[1]==cnot_count:
+            filtered_files.append(file)
+    return filtered_files
     
