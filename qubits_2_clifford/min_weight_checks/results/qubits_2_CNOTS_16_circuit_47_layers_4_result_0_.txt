@@ -1,0 +1,233 @@
+     ┌───┐┌─────────────┐┌────────────┐┌────────────┐ ░ ┌───┐ ┌───┐                                                                                               »
+a_0: ┤ I ├┤ Rx(0.39169) ├┤ Ry(1.7183) ├┤ Rz(1.9682) ├─░─┤ I ├─┤ H ├───────────────────────────────────────────────────────────────────────────────────────────────»
+     ├───┤└┬────────────┤├────────────┤├───────────┬┘ ░ ├───┤┌┴───┴┐    ┌─────────────────────┐     ┌───┐┌──────────────────────┐┌───┐┌─────────────────────┐┌───┐»
+a_1: ┤ I ├─┤ Rx(0.7367) ├┤ Ry(1.7686) ├┤ Rz(0.565) ├──░─┤ I ├┤ Sdg ├────┤ U3(π,5.8992,2.7576) ├─────┤ X ├┤ U3(π,0.38401,3.5256) ├┤ S ├┤ U3(π,5.8992,2.7576) ├┤ X ├»
+     ├───┤ └────────────┘└────────────┘└───────────┘  ░ ├───┤└┬───┬┘┌───┴─────────────────────┴────┐└─┬─┘└──────────────────────┘└───┘└─────────────────────┘└─┬─┘»
+b_0: ┤ I ├────────────────────────────────────────────░─┤ I ├─┤ H ├─┤ U3(1.0593e-13,3.2883,2.8116) ├──┼────────────────────────────────────────────────────────┼──»
+     ├───┤                                            ░ ├───┤ ├───┤ ├──────────────────────────────┤  │                                                        │  »
+b_1: ┤ I ├────────────────────────────────────────────░─┤ I ├─┤ H ├─┤ U3(1.0593e-13,3.2883,2.8116) ├──┼────────────────────────────────────────────────────────┼──»
+     ├───┤                                            ░ ├───┤ ├───┤ ├──────────────────────────────┤  │                                                        │  »
+b_2: ┤ I ├────────────────────────────────────────────░─┤ I ├─┤ H ├─┤ U3(1.0593e-13,3.2883,2.8116) ├──┼────────────────────────────────────────────────────────■──»
+     ├───┤                                            ░ ├───┤ ├───┤ ├──────────────────────────────┤  │  ┌──────────────────────┐                                 »
+b_3: ┤ I ├────────────────────────────────────────────░─┤ I ├─┤ H ├─┤ U3(1.0593e-13,3.2883,2.8116) ├──■──┤ U3(2π,5.4995,4.1085) ├─────────────────────────────────»
+     └───┘                                            ░ └───┘ └───┘ └──────────────────────────────┘     └──────────────────────┘                                 »
+«                                    ┌───┐         ┌───┐         ┌───┐┌─────────────────────┐      ┌───┐┌──────────────────────┐┌───┐┌─────┐┌───┐┌───┐ ░ ┌───┐»
+«a_0: ───────────────────────────────┤ X ├─────────┤ H ├─────────┤ H ├┤ U3(π,5.8992,2.7576) ├──────┤ X ├┤ U3(π,0.38401,3.5256) ├┤ H ├┤ Sdg ├┤ X ├┤ S ├─░─┤ I ├»
+«     ┌──────────────────────┐┌─────┐└─┬─┘┌────────┴───┴────────┐├───┤├─────────────────────┴┐┌───┐└─┬─┘└──────────────────────┘└───┘└─────┘└─┬─┘└───┘ ░ ├───┤»
+«a_1: ┤ U3(π,0.38401,3.5256) ├┤ Sdg ├──┼──┤ U3(π,5.8992,2.7576) ├┤ X ├┤ U3(π,0.38401,3.5256) ├┤ S ├──┼────────────────────────────────────────┼────────░─┤ I ├»
+«     └──────────────────────┘└─────┘  │  └─────────────────────┘└─┬─┘├──────────────────────┤└───┘  │                                        │        ░ ├───┤»
+«b_0: ─────────────────────────────────┼───────────────────────────■──┤ U3(2π,5.4995,4.1085) ├───────┼────────────────────────────────────────■────────░─┤ I ├»
+«                                      │                              └──────────────────────┘       │  ┌──────────────────────┐                       ░ ├───┤»
+«b_1: ─────────────────────────────────┼─────────────────────────────────────────────────────────────■──┤ U3(2π,5.4995,4.1085) ├───────────────────────░─┤ I ├»
+«     ┌──────────────────────┐         │                                                                └──────────────────────┘                       ░ ├───┤»
+«b_2: ┤ U3(2π,5.4995,4.1085) ├─────────■───────────────────────────────────────────────────────────────────────────────────────────────────────────────░─┤ I ├»
+«     └──────────────────────┘                                                                                                                         ░ ├───┤»
+«b_3: ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────░─┤ I ├»
+«                                                                                                                                                      ░ └───┘»
+«      ┌───┐ ┌───┐┌───┐     ┌─────┐┌───┐     ┌───┐┌───┐┌───┐┌───┐     ┌─────┐┌───┐┌─────┐┌───┐┌───┐               ┌─────┐┌───┐     ┌───┐┌───┐┌───┐     ┌───┐┌───┐»
+«a_0: ─┤ S ├─┤ H ├┤ S ├──■──┤ Sdg ├┤ H ├──■──┤ X ├┤ S ├┤ H ├┤ S ├──■──┤ Sdg ├┤ H ├┤ Sdg ├┤ H ├┤ H ├────────────■──┤ Sdg ├┤ H ├──■──┤ H ├┤ S ├┤ H ├──■──┤ H ├┤ S ├»
+«     ┌┴───┴┐├───┤└───┘┌─┴─┐├─────┤├───┤┌─┴─┐├───┤├───┤└───┘└───┘┌─┴─┐├─────┤├───┤└┬───┬┘├───┤├───┤┌───┐┌───┐┌─┴─┐├─────┤├───┤┌─┴─┐├───┤├───┤└───┘┌─┴─┐├───┤├───┤»
+«a_1: ┤ Sdg ├┤ H ├─────┤ X ├┤ Sdg ├┤ H ├┤ X ├┤ X ├┤ H ├──────────┤ X ├┤ Sdg ├┤ H ├─┤ Y ├─┤ S ├┤ H ├┤ S ├┤ S ├┤ X ├┤ Sdg ├┤ H ├┤ X ├┤ X ├┤ H ├─────┤ X ├┤ H ├┤ S ├»
+«     └─────┘└───┘     └───┘└─────┘└───┘└───┘└───┘└───┘          └───┘└─────┘└───┘ └───┘ └───┘└───┘└───┘└───┘└───┘└─────┘└───┘└───┘└───┘└───┘     └───┘└───┘└───┘»
+«b_0: ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────»
+«                                                                                                                                                                »
+«b_1: ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────»
+«                                                                                                                                                                »
+«b_2: ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────»
+«                                                                                                                                                                »
+«b_3: ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────»
+«                                                                                                                                                                »
+«     ┌───┐┌───┐┌───┐┌───┐     ┌─────┐┌───┐     ┌───┐┌───┐┌───┐                 ┌─────┐┌───┐     ┌───┐┌───┐     ┌───┐          ┌─────┐┌───┐     ┌───┐┌───┐┌───┐┌───┐»
+«a_0: ┤ Y ├┤ S ├┤ H ├┤ S ├──■──┤ Sdg ├┤ H ├──■──┤ X ├┤ H ├┤ S ├──────────────■──┤ Sdg ├┤ H ├──■──┤ H ├┤ S ├──■──┤ S ├───────■──┤ Sdg ├┤ H ├──■──┤ H ├┤ S ├┤ Y ├┤ S ├»
+«     ├───┤├───┤└───┘└───┘┌─┴─┐├─────┤├───┤┌─┴─┐├───┤├───┤├───┤┌─────┐┌───┐┌─┴─┐├─────┤├───┤┌─┴─┐├───┤├───┤┌─┴─┐├───┤┌───┐┌─┴─┐├─────┤├───┤┌─┴─┐├───┤├───┤├───┤└───┘»
+«a_1: ┤ Z ├┤ S ├──────────┤ X ├┤ Sdg ├┤ H ├┤ X ├┤ H ├┤ S ├┤ Z ├┤ Sdg ├┤ H ├┤ X ├┤ Sdg ├┤ H ├┤ X ├┤ H ├┤ S ├┤ X ├┤ Z ├┤ S ├┤ X ├┤ Sdg ├┤ H ├┤ X ├┤ H ├┤ S ├┤ S ├─────»
+«     └───┘└───┘          └───┘└─────┘└───┘└───┘└───┘└───┘└───┘└─────┘└───┘└───┘└─────┘└───┘└───┘└───┘└───┘└───┘└───┘└───┘└───┘└─────┘└───┘└───┘└───┘└───┘└───┘     »
+«b_0: ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────»
+«                                                                                                                                                                   »
+«b_1: ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────»
+«                                                                                                                                                                   »
+«b_2: ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────»
+«                                                                                                                                                                   »
+«b_3: ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────»
+«                                                                                                                                                                   »
+«     ┌───┐┌───┐     ┌───┐┌───┐     ┌───┐┌───┐      ┌───┐ ┌───┐ ░ ┌───┐     ┌───┐┌───┐     ┌───┐┌───┐ ░ ┌───┐
+«a_0: ┤ H ├┤ S ├──■──┤ H ├┤ S ├──■──┤ Y ├┤ S ├──■───┤ H ├─┤ S ├─░─┤ I ├─────┤ X ├┤ H ├─────┤ X ├┤ H ├─░─┤ I ├
+«     └───┘└───┘┌─┴─┐├───┤├───┤┌─┴─┐├───┤└───┘┌─┴─┐┌┴───┴┐├───┤ ░ ├───┤┌───┐└─┬─┘├───┤┌───┐└─┬─┘├───┤ ░ ├───┤
+«a_1: ──────────┤ X ├┤ H ├┤ S ├┤ X ├┤ S ├─────┤ X ├┤ Sdg ├┤ H ├─░─┤ I ├┤ X ├──┼──┤ H ├┤ X ├──┼──┤ H ├─░─┤ I ├
+«               └───┘└───┘└───┘└───┘└───┘     └───┘└─────┘└───┘ ░ ├───┤└─┬─┘  │  ├───┤└─┬─┘  │  └───┘ ░ ├───┤
+«b_0: ──────────────────────────────────────────────────────────░─┤ I ├──■────┼──┤ H ├──┼────┼────────░─┤ I ├
+«                                                               ░ ├───┤       │  └───┘  │    │  ┌───┐ ░ ├───┤
+«b_1: ──────────────────────────────────────────────────────────░─┤ I ├───────┼─────────■────┼──┤ H ├─░─┤ I ├
+«                                                               ░ ├───┤       │  ┌───┐       │  └───┘ ░ ├───┤
+«b_2: ──────────────────────────────────────────────────────────░─┤ I ├───────■──┤ H ├───────┼────────░─┤ I ├
+«                                                               ░ ├───┤          └───┘       │  ┌───┐ ░ ├───┤
+«b_3: ──────────────────────────────────────────────────────────░─┤ I ├──────────────────────■──┤ H ├─░─┤ I ├
+«                                                               ░ └───┘                         └───┘ ░ └───┘
+{"h": 53, "s": 32, "id": 30, "cx": 26, "sdg": 19, "u3": 16, "barrier": 4, "x": 4, "y": 4, "z": 3, "rx": 2, "ry": 2, "rz": 2}
+Error idx: 0
+One qubit error: 1e-05
+Two qubit error: 0.0001
+ancilla probability of 0 outcome: 0.062499865889549255
+State fidelity no checks and with errors: 0.9980328507240049
+State fidelity with checks and with errors: 0.9991004839320495
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 1
+One qubit error: 1.4125375446227555e-05
+Two qubit error: 0.00014125375446227554
+ancilla probability of 0 outcome: 0.0624999925494194
+State fidelity no checks and with errors: 0.9972156353358678
+State fidelity with checks and with errors: 0.9987208722976015
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 2
+One qubit error: 1.9952623149688786e-05
+Two qubit error: 0.00019952623149688785
+ancilla probability of 0 outcome: 0.06250010430812836
+State fidelity no checks and with errors: 0.9960496366906421
+State fidelity with checks and with errors: 0.9981784030620608
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 3
+One qubit error: 2.818382931264455e-05
+Two qubit error: 0.0002818382931264455
+ancilla probability of 0 outcome: 0.0625000074505806
+State fidelity no checks and with errors: 0.99440538952894
+State fidelity with checks and with errors: 0.9974168369477627
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 4
+One qubit error: 3.9810717055349695e-05
+Two qubit error: 0.00039810717055349697
+ancilla probability of 0 outcome: 0.06249982863664627
+State fidelity no checks and with errors: 0.9920767532490269
+State fidelity with checks and with errors: 0.9963359473112758
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 5
+One qubit error: 5.623413251903491e-05
+Two qubit error: 0.0005623413251903491
+ancilla probability of 0 outcome: 0.06249973177909851
+State fidelity no checks and with errors: 0.9887983367433615
+State fidelity with checks and with errors: 0.994809904267389
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 6
+One qubit error: 7.943282347242822e-05
+Two qubit error: 0.0007943282347242822
+ancilla probability of 0 outcome: 0.06249997764825821
+State fidelity no checks and with errors: 0.984198858226742
+State fidelity with checks and with errors: 0.9926520158864682
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 7
+One qubit error: 0.0001122018454301963
+Two qubit error: 0.001122018454301963
+ancilla probability of 0 outcome: 0.06249993294477463
+State fidelity no checks and with errors: 0.9777306419730355
+State fidelity with checks and with errors: 0.9896109053865803
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 8
+One qubit error: 0.00015848931924611142
+Two qubit error: 0.0015848931924611143
+ancilla probability of 0 outcome: 0.06249987706542015
+State fidelity no checks and with errors: 0.9686741663345858
+State fidelity with checks and with errors: 0.9853285920307607
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 9
+One qubit error: 0.00022387211385683378
+Two qubit error: 0.0022387211385683377
+ancilla probability of 0 outcome: 0.06249990314245224
+State fidelity no checks and with errors: 0.9560757595123934
+State fidelity with checks and with errors: 0.9793187617893385
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 10
+One qubit error: 0.00031622776601683794
+Two qubit error: 0.0031622776601683794
+ancilla probability of 0 outcome: 0.06249985843896866
+State fidelity no checks and with errors: 0.9386260547684461
+State fidelity with checks and with errors: 0.9708994281569087
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 11
+One qubit error: 0.00044668359215096305
+Two qubit error: 0.0044668359215096305
+ancilla probability of 0 outcome: 0.06250003725290298
+State fidelity no checks and with errors: 0.9146882221259393
+State fidelity with checks and with errors: 0.9591610779246258
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 12
+One qubit error: 0.000630957344480193
+Two qubit error: 0.00630957344480193
+ancilla probability of 0 outcome: 0.06249979883432388
+State fidelity no checks and with errors: 0.882219990002806
+State fidelity with checks and with errors: 0.942884508233796
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 13
+One qubit error: 0.0008912509381337459
+Two qubit error: 0.008912509381337459
+ancilla probability of 0 outcome: 0.06249990314245224
+State fidelity no checks and with errors: 0.8389770968618685
+State fidelity with checks and with errors: 0.920499332208273
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 14
+One qubit error: 0.0012589254117941675
+Two qubit error: 0.012589254117941675
+ancilla probability of 0 outcome: 0.06249985471367836
+State fidelity no checks and with errors: 0.7827513155536301
+State fidelity with checks and with errors: 0.8900661661713796
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 15
+One qubit error: 0.0017782794100389228
+Two qubit error: 0.01778279410038923
+ancilla probability of 0 outcome: 0.062499865889549255
+State fidelity no checks and with errors: 0.712138270053207
+State fidelity with checks and with errors: 0.8493458445320666
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 16
+One qubit error: 0.0025118864315095794
+Two qubit error: 0.025118864315095794
+ancilla probability of 0 outcome: 0.06250002235174179
+State fidelity no checks and with errors: 0.6277054562268878
+State fidelity with checks and with errors: 0.7960904141738159
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 17
+One qubit error: 0.0035481338923357532
+Two qubit error: 0.03548133892335753
+ancilla probability of 0 outcome: 0.06250002235174179
+State fidelity no checks and with errors: 0.5335331469945227
+State fidelity with checks and with errors: 0.7286411228646005
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 18
+One qubit error: 0.005011872336272719
+Two qubit error: 0.05011872336272719
+ancilla probability of 0 outcome: 0.06250007450580597
+State fidelity no checks and with errors: 0.43842919320097246
+State fidelity with checks and with errors: 0.6470329764130304
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 19
+One qubit error: 0.00707945784384138
+Two qubit error: 0.0707945784384138
+ancilla probability of 0 outcome: 0.06249991059303284
+State fidelity no checks and with errors: 0.35508205561323986
+State fidelity with checks and with errors: 0.5544911330260125
+Sanity check fidelity with checks and no errors: 0.9999951489148391
+
+Error idx: 20
+One qubit error: 0.01
+Two qubit error: 0.1
+ancilla probability of 0 outcome: 0.06249985471367836
+State fidelity no checks and with errors: 0.2955048803294527
+State fidelity with checks and with errors: 0.4588158202997474
+Sanity check fidelity with checks and no errors: 0.9999951489148391

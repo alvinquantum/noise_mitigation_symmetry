@@ -1,0 +1,195 @@
+     ┌───┐┌────────────┐ ┌────────────┐┌─────────────┐ ░ ┌───┐┌─────┐                                                                  ┌───┐┌───┐»
+a_0: ┤ I ├┤ Rx(1.7994) ├─┤ Ry(1.8774) ├┤ Rz(0.35767) ├─░─┤ I ├┤ Sdg ├──────────────────────────────────────────────────────────────────┤ X ├┤ S ├»
+     ├───┤├────────────┤┌┴────────────┤└┬────────────┤ ░ ├───┤├─────┤    ┌─────────────────────┐     ┌───┐┌──────────────────────┐┌───┐└─┬─┘├───┤»
+a_1: ┤ I ├┤ Rx(1.8008) ├┤ Ry(0.79112) ├─┤ Rz(1.3757) ├─░─┤ I ├┤ Sdg ├────┤ U3(π,5.8992,2.7576) ├─────┤ X ├┤ U3(π,0.38401,3.5256) ├┤ S ├──┼──┤ H ├»
+     ├───┤└────────────┘└─────────────┘ └────────────┘ ░ ├───┤└┬───┬┘┌───┴─────────────────────┴────┐└─┬─┘└──────────────────────┘└───┘  │  └───┘»
+b_0: ┤ I ├─────────────────────────────────────────────░─┤ I ├─┤ H ├─┤ U3(1.0593e-13,3.2883,2.8116) ├──┼─────────────────────────────────┼───────»
+     ├───┤                                             ░ ├───┤ ├───┤ ├──────────────────────────────┤  │  ┌──────────────────────┐       │       »
+b_1: ┤ I ├─────────────────────────────────────────────░─┤ I ├─┤ H ├─┤ U3(1.0593e-13,3.2883,2.8116) ├──■──┤ U3(2π,5.4995,4.1085) ├───────■───────»
+     └───┘                                             ░ └───┘ └───┘ └──────────────────────────────┘     └──────────────────────┘               »
+«                                                               ░ ┌───┐┌───┐               ┌─────┐┌───┐           ┌───┐ ┌───┐     ┌───┐┌─────┐┌───┐          »
+«a_0: ──────────────────────────────────────────────────────────░─┤ I ├┤ S ├────────────■──┤ Sdg ├┤ H ├───────■───┤ H ├─┤ S ├──■──┤ Y ├┤ Sdg ├┤ H ├───────■──»
+«     ┌─────────────────────┐┌───┐┌──────────────────────┐┌───┐ ░ ├───┤├───┤┌───┐┌───┐┌─┴─┐├─────┤├───┤┌───┐┌─┴─┐┌┴───┴┐├───┤┌─┴─┐├───┤└┬───┬┘├───┤┌───┐┌─┴─┐»
+«a_1: ┤ U3(π,5.8992,2.7576) ├┤ X ├┤ U3(π,0.38401,3.5256) ├┤ H ├─░─┤ I ├┤ Z ├┤ H ├┤ S ├┤ X ├┤ Sdg ├┤ H ├┤ Z ├┤ X ├┤ Sdg ├┤ H ├┤ X ├┤ H ├─┤ S ├─┤ Y ├┤ H ├┤ X ├»
+«     └─────────────────────┘└─┬─┘├──────────────────────┤└───┘ ░ ├───┤└───┘└───┘└───┘└───┘└─────┘└───┘└───┘└───┘└─────┘└───┘└───┘└───┘ └───┘ └───┘└───┘└───┘»
+«b_0: ─────────────────────────■──┤ U3(2π,5.4995,4.1085) ├──────░─┤ I ├──────────────────────────────────────────────────────────────────────────────────────»
+«                                 └──────────────────────┘      ░ ├───┤                                                                                      »
+«b_1: ──────────────────────────────────────────────────────────░─┤ I ├──────────────────────────────────────────────────────────────────────────────────────»
+«                                                               ░ └───┘                                                                                      »
+«      ┌───┐ ┌───┐ ░ ┌───┐                     ░ ┌───┐
+«a_0: ─┤ H ├─┤ S ├─░─┤ I ├─────────────────────░─┤ I ├
+«     ┌┴───┴┐├───┤ ░ ├───┤┌───┐┌───┐┌───┐┌───┐ ░ ├───┤
+«a_1: ┤ Sdg ├┤ H ├─░─┤ I ├┤ X ├┤ H ├┤ X ├┤ H ├─░─┤ I ├
+«     └─────┘└───┘ ░ ├───┤└─┬─┘├───┤└─┬─┘└───┘ ░ ├───┤
+«b_0: ─────────────░─┤ I ├──■──┤ H ├──┼────────░─┤ I ├
+«                  ░ ├───┤     └───┘  │  ┌───┐ ░ ├───┤
+«b_1: ─────────────░─┤ I ├────────────■──┤ H ├─░─┤ I ├
+«                  ░ └───┘               └───┘ ░ └───┘
+{"id": 20, "h": 18, "cx": 9, "u3": 8, "sdg": 7, "s": 7, "barrier": 4, "rx": 2, "ry": 2, "rz": 2, "z": 2, "y": 2}
+Error idx: 0
+One qubit error: 1e-05
+Two qubit error: 0.0001
+ancilla probability of 0 outcome: 0.9990519881248474
+State fidelity no checks and with errors: 0.9995188665212287
+State fidelity with checks and with errors: 0.9997591709627138
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 1
+One qubit error: 1.4125375446227555e-05
+Two qubit error: 0.00014125375446227554
+ancilla probability of 0 outcome: 0.9986644387245178
+State fidelity no checks and with errors: 0.9993171924078156
+State fidelity with checks and with errors: 0.9996576616079619
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 2
+One qubit error: 1.9952623149688786e-05
+Two qubit error: 0.00019952623149688785
+ancilla probability of 0 outcome: 0.9981133937835693
+State fidelity no checks and with errors: 0.9990302450343544
+State fidelity with checks and with errors: 0.9995125139852616
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 3
+One qubit error: 2.818382931264455e-05
+Two qubit error: 0.0002818382931264455
+ancilla probability of 0 outcome: 0.9973369836807251
+State fidelity no checks and with errors: 0.9986258072357436
+State fidelity with checks and with errors: 0.9993067936795316
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 4
+One qubit error: 3.9810717055349695e-05
+Two qubit error: 0.00039810717055349697
+ancilla probability of 0 outcome: 0.9962382912635803
+State fidelity no checks and with errors: 0.9980494912626922
+State fidelity with checks and with errors: 0.9990152589923673
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 5
+One qubit error: 5.623413251903491e-05
+Two qubit error: 0.0005623413251903491
+ancilla probability of 0 outcome: 0.9946921467781067
+State fidelity no checks and with errors: 0.9972367260965729
+State fidelity with checks and with errors: 0.9986018721732954
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 6
+One qubit error: 7.943282347242822e-05
+Two qubit error: 0.0007943282347242822
+ancilla probability of 0 outcome: 0.9925163984298706
+State fidelity no checks and with errors: 0.9960921416055777
+State fidelity with checks and with errors: 0.9980177109371372
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 7
+One qubit error: 0.0001122018454301963
+Two qubit error: 0.001122018454301963
+ancilla probability of 0 outcome: 0.9894496202468872
+State fidelity no checks and with errors: 0.9944723585464766
+State fidelity with checks and with errors: 0.9971873520105702
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 8
+One qubit error: 0.00015848931924611142
+Two qubit error: 0.0015848931924611143
+ancilla probability of 0 outcome: 0.9851363301277161
+State fidelity no checks and with errors: 0.9921867155374303
+State fidelity with checks and with errors: 0.9960125699354977
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 9
+One qubit error: 0.00022387211385683378
+Two qubit error: 0.0022387211385683377
+ancilla probability of 0 outcome: 0.9790910482406616
+State fidelity no checks and with errors: 0.9889689409791896
+State fidelity with checks and with errors: 0.9943446538297228
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 10
+One qubit error: 0.00031622776601683794
+Two qubit error: 0.0031622776601683794
+ancilla probability of 0 outcome: 0.9706293344497681
+State fidelity no checks and with errors: 0.9844403006416873
+State fidelity with checks and with errors: 0.9919781165574659
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 11
+One qubit error: 0.00044668359215096305
+Two qubit error: 0.0044668359215096305
+ancilla probability of 0 outcome: 0.9588413834571838
+State fidelity no checks and with errors: 0.978082364845407
+State fidelity with checks and with errors: 0.9886122645625948
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 12
+One qubit error: 0.000630957344480193
+Two qubit error: 0.00630957344480193
+ancilla probability of 0 outcome: 0.9424972534179688
+State fidelity no checks and with errors: 0.9691769555576527
+State fidelity with checks and with errors: 0.9838197488861173
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 13
+One qubit error: 0.0008912509381337459
+Two qubit error: 0.008912509381337459
+ancilla probability of 0 outcome: 0.9200336933135986
+State fidelity no checks and with errors: 0.9567635917075001
+State fidelity with checks and with errors: 0.976969161130424
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 14
+One qubit error: 0.0012589254117941675
+Two qubit error: 0.012589254117941675
+ancilla probability of 0 outcome: 0.8894906044006348
+State fidelity no checks and with errors: 0.939543076721961
+State fidelity with checks and with errors: 0.9671431576991792
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 15
+One qubit error: 0.0017782794100389228
+Two qubit error: 0.01778279410038923
+ancilla probability of 0 outcome: 0.848618745803833
+State fidelity no checks and with errors: 0.915853534395738
+State fidelity with checks and with errors: 0.9529709779188453
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 16
+One qubit error: 0.0025118864315095794
+Two qubit error: 0.025118864315095794
+ancilla probability of 0 outcome: 0.7951415777206421
+State fidelity no checks and with errors: 0.8836170016936689
+State fidelity with checks and with errors: 0.932396019885232
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 17
+One qubit error: 0.0035481338923357532
+Two qubit error: 0.03548133892335753
+ancilla probability of 0 outcome: 0.7273589968681335
+State fidelity no checks and with errors: 0.8404363059315044
+State fidelity with checks and with errors: 0.9022959315782544
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 18
+One qubit error: 0.005011872336272719
+Two qubit error: 0.05011872336272719
+ancilla probability of 0 outcome: 0.6452592015266418
+State fidelity no checks and with errors: 0.7838965537235368
+State fidelity with checks and with errors: 0.8579775558003998
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 19
+One qubit error: 0.00707945784384138
+Two qubit error: 0.0707945784384138
+ancilla probability of 0 outcome: 0.5520405769348145
+State fidelity no checks and with errors: 0.7122197862610657
+State fidelity with checks and with errors: 0.7927447357683985
+Sanity check fidelity with checks and no errors: 0.9999988095161118
+
+Error idx: 20
+One qubit error: 0.01
+Two qubit error: 0.1
+ancilla probability of 0 outcome: 0.45555680990219116
+State fidelity no checks and with errors: 0.6255141479263772
+State fidelity with checks and with errors: 0.69877933689429
+Sanity check fidelity with checks and no errors: 0.9999988095161118
