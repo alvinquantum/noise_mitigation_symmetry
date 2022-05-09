@@ -2,19 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-from tkinter import N
-# The number of threads is capped on Bebop.
-os.environ['OPENBLAS_NUM_THREADS'] = '1'
-
-from qiskit.quantum_info.operators.symplectic.pauli_utils import pauli_basis
-from qiskit import QuantumCircuit, QuantumRegister
 import circgenerator
-import checksfinder_new as checksfinder
-import circtester
 import sys
 import time
-import numpy as np
-# from qiskit.circuit.random import random_circuit
 
 if __name__ == "__main__":
     NUMBER_OF_QUBITS=int(sys.argv[1])
@@ -23,8 +13,7 @@ if __name__ == "__main__":
     RZ_COUNT=int(sys.argv[4])
 
     time0=time.time()
-    #Disable qiskit parallel.
-    # os.environ['QISKIT_IN_PARALLEL'] = 'TRUE'
+
     print("running...")
     #Paths for outputs and pickle file of circuit. sys.path[0] on laptop and the other on hpc.
     CODE_DIR=os.path.abspath(os.path.dirname(__file__))
