@@ -13,8 +13,7 @@ if __name__=="__main__":
     #Program parameters
     NUMBER_OF_QUBITS=int(sys.argv[1])
     CNOT_COUNT=int(sys.argv[2])
-    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
-    #Paths for outputs and pickle file of circuit. sys.path[0] on laptop and the other on hpc.
+    #Paths for outputs and inputs.
     CODE_DIR=os.path.abspath(os.path.dirname(__file__))
     MAIN_SUBDIR=f"qubits_{NUMBER_OF_QUBITS}"
     CHECKS_SUBDIR=os.path.join(MAIN_SUBDIR, "min_weight_checks", "checks")
@@ -26,6 +25,7 @@ if __name__=="__main__":
     RESULTS_PATH=os.path.join(CODE_DIR, RESULTS_SUBDIR)
     INITIAL_STATES_PATH=os.path.join(CODE_DIR, INITIAL_STATES_SUBDIR)
 
+    #We iterate over all the raw qasm files. For each file, we generate an input state.
     input_qasm_file_names=utilities.get_files_from_dir_by_extension(RAWS_PATH, ".qasm")
     input_qasm_file_names=circgenerator.filter_by_cnot_qubit(input_qasm_file_names, CNOT_COUNT, NUMBER_OF_QUBITS)
     for input_qasm_file_name in input_qasm_file_names:
