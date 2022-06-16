@@ -11,7 +11,9 @@ Important files:
 To produce an error mitigated circuit use the function 
 checksfinder.get_error_mitig_circ(qasmstr, target_layers). qasmstr
 is the input qasm string and target_layers is the number of check layers desired. 
-Returns an error mitigated qasm string.
+Returns an error mitigated qasm string. Note that to implement the protocol you 
+still have to postselect on the ancilla measurements (Only keep the state when
+you measure all zeros on the ancillas. Discard otherwise.)
 
 To replicate the graphs in the paper extract the contents of data zip folder to 
 the base directory of the project. Then execute exec_gen_test.py.
