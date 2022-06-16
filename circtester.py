@@ -1,15 +1,13 @@
+import os
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
 from copy import deepcopy
-from logging import error
-from tkinter import N
-from cirq.sim import density_matrix_simulator, simulator
 import numpy as np
 import psutil
 from qiskit import transpile, QuantumCircuit
-from qiskit.circuit import QuantumRegister, AncillaRegister
+from qiskit.circuit import QuantumRegister
 from qiskit.circuit.classicalregister import ClassicalRegister
 from qiskit.visualization import circuit_drawer
 from qiskit.opflow import X,Y,Z
-import os
 import pickle
 import cirq
 import json
@@ -21,8 +19,8 @@ from math import sqrt
 from pandas import DataFrame as df
 import time
 from multiprocessing import Pool
-from qiskit import Aer, execute
-import qiskit.providers.aer.noise as noise
+from functools import partial
+import utilities
 
 class NoiselessCircuits:
     '''Testing Circuits'''
@@ -47,26 +45,6 @@ class CircuitMaker:
         # assert len(circ_pieces)==3, f"{qasm_file} does not have the propper qasm format. There should be barriers between p1, main circuit, and p2."
         self.circ_pieces = circ_pieces
         self.number_of_qubits = number_of_qubits
-
-    @staticmethod
-    def qasm_file_to_cirq_circ(base_path, file_name):
-        '''Outputs a cirq.circuit. Cirq can't import qasm with barriers.'''
-        circ_pieces=CircuitMaker.split_qasmfile_by_barrier(os.path.join(base_path, file_name))
-        new_circ=circ_pieces[0]
-        if len(circ_pieces)>1:
-            for piece in circ_pieces[1:]:
-                new_circ.compose(piece, inplace=True)
-        return circuit_from_qasm(new_circ.qasm())
-
-    @staticmethod
-    def qasm_string_to_cirq_circ(qasm_string):
-        '''Outputs a cirq.circuit. Cirq can't import qasm with barriers.'''
-        circ_pieces=CircuitMaker.split_qasm_str_by_barrier(qasm_string)
-        new_circ=circ_pieces[0]
-        if len(circ_pieces)>1:
-            for piece in circ_pieces[1:]:
-                new_circ.compose(piece, inplace=True)
-        return circuit_from_qasm(new_circ.qasm())
 
     @staticmethod
     def split_qasmfile_by_barrier(qasm_file_path):
@@ -110,91 +88,6 @@ class CircuitMaker:
                 rand_tuple=(random_params[i][j])
                 circ_with_checks.compose((pauli * rand_tuple).exp_i().to_circuit(), [qreg], inplace=True)
                 circ_no_checks.compose((pauli * rand_tuple).exp_i().to_circuit(), [qreg], inplace=True)
-
-    @staticmethod
-    def make_rand_input_state_multilayer(number_of_compute_qubits):
-        '''Testing circuits: Create a random state. Need to send both circs at the same time so they have the same random initial state.'''
-        #Insert random state generator
-        # temp_circ=deepcopy(circ)
-        # total_number_of_qubits=circ.num_qubits
-        quantum_register=QuantumRegister(number_of_compute_qubits, "a")
-        # ancilla_register=AncillaRegister(total_number_of_qubits-number_of_compute_qubits)
-        # idenity_circ=QuantumCircuit(quantum_register, ancilla_register)
-        # for qubit_idx in range(total_number_of_qubits):
-            # idenity_circ.i(qubit_idx)
-        # print(idenity_circ)
-        circ=QuantumCircuit(quantum_register)
-        random_params = np.random.uniform(size=(number_of_compute_qubits, 3))
-        for i,qreg in enumerate(quantum_register):
-            for j, pauli in enumerate([X,Y,Z]):
-                rand_tuple=(random_params[i][j])
-                circ.compose((pauli * rand_tuple).exp_i().to_circuit(), [qreg], inplace=True)
-                # circ_no_checks.compose((pauli * rand_tuple).exp_i().to_circuit(), [qreg], inplace=True)
-        return circ
-
-    # @staticmethod
-    # def make_noiseless_circs_from_complete(checks_circ_qasm):
-    #     '''Testing circuits: Creates circs no checks and with checks. The circs have the same random initial state.
-    #     Return type: list'''
-    #     # The size of the circuit is number_of_qubit+1 since we have an ancila. We label the qubits
-    #     # so that we can access the ancilla qubit later, i.e., the ancilla label is "q_{num}".format(number_of_qubits)
-    #     # number_of_qubits=self.number_of_qubits 
-    #     qubits_label="q"
-    #     # quantum_register=QuantumRegister(number_of_qubits+1, qubits_label)
-    #     # ancilla_qreg=quantum_register[-1]
-    #     qiskit_circ_with_checks=QuantumCircuit.from_qasm_str(checks_circ_qasm)
-    #     circ_pieces=CircuitMaker.split_qasm_str_by_barrier(checks_circ_qasm)
-    #     for circ_piece in circ_pieces:
-    #         print(circ_piece)
-    #     # qiskit_circ_no_checks=QuantumCircuit(quantum_register)
-    #     # self.add_rand_input_state(number_of_qubits, quantum_register[:number_of_qubits:], qiskit_circ_with_checks, qiskit_circ_no_checks)
-    #     # # For saving the initial qiskit circuit with added initial state. We do this because cirq cannot handle barriers. Thus,
-    #     # # the cirq printing of circuits is not so good.
-    #     # qiskit_circ_with_checks_store=deepcopy(qiskit_circ_no_checks)
-    #     # # # Initial hadamard.
-    #     # # qiskit_circ_with_checks.h(ancilla_qreg)
-    #     # # qiskit_circ_with_checks_store.barrier()
-    #     # # qiskit_circ_with_checks_store.h(ancilla_qreg)
-    #     # # Copy the pieces in the circuit.
-    #     # for elem in self.circ_pieces:
-    #     #     qiskit_circ_with_checks.compose(elem, inplace=True)
-    #     #     qiskit_circ_with_checks_store.barrier()
-    #     #     qiskit_circ_with_checks_store.compose(elem, inplace=True)
-    #     # # # The final hadamard.
-    #     # # qiskit_circ_with_checks.h(ancilla_qreg)
-    #     # # qiskit_circ_with_checks_store.barrier()
-    #     # # qiskit_circ_with_checks_store.h(ancilla_qreg)
-    #     # # The no checks only uses the main compute circuit.
-    #     # qiskit_circ_no_checks.compose(self.circ_pieces[2], inplace=True)
-    #     # # print(qiskit_circ_no_checks)
-    #     # # Add the measurement for the qiskit circuit that we will print out.
-    #     # classical_register=ClassicalRegister(1, "c")
-    #     # qiskit_circ_with_checks_store.add_register(classical_register)
-    #     # qiskit_circ_with_checks_store.barrier()
-    #     # qiskit_circ_with_checks_store.measure(quantum_register[-1], classical_register[0])
-
-    #     # # We should transpile to a basis.
-    #     basis_gates=['u1', 'u2', 'u3', 'cx']
-    #     qiskit_circ_with_checks=transpile(qiskit_circ_with_checks, basis_gates=basis_gates, optimization_level=0)
-    #     qiskit_circ_no_checks=transpile(qiskit_circ_no_checks, basis_gates=basis_gates, optimization_level=0)
-    #     cirq_circ_with_checks =circuit_from_qasm(qiskit_circ_with_checks.qasm())
-    #     cirq_circ_measurements_with_checks=deepcopy(cirq_circ_with_checks)
-    #     # self.add_measurements(cirq_circ_measurements_with_checks)
-    #     # cirq_circ_no_checks=circuit_from_qasm(qiskit_circ_no_checks.qasm())
-    #     # cirq_circ_measurements_no_checks=deepcopy(cirq_circ_no_checks)
-    #     # self.add_measurements(cirq_circ_measurements_no_checks)
-
-    #     ancilla_qubit=cirq.NamedQubit(f"{qubits_label}_{number_of_qubits}")
-    #     # Creates a channel that applies the zero projector. We use this to get the measurement zero outcome of the
-    #     # density matrix. Since the resulting trial density matrix is unormalized we can get the percentages of outcomes that
-    #     # we keep. In the protocol, we keep the zero measurement outcome results for the ancilla.
-    #     projector0_channel=cirq.KrausChannel(
-    #         kraus_ops=(np.array([[1,0],[0,0]]),),
-    #         validate=False
-    #     )
-    #     cirq_circ_with_checks.append([projector0_channel.on(ancilla_qubit)]) 
-
-    #     return NoiselessCircuits(qiskit_circ_with_checks_store, cirq_circ_with_checks, cirq_circ_no_checks, qubits_label)
 
     def make_noiseless_circs(self, circ):
         '''Testing circuits: Creates circs no checks and with checks. The circs have the same random initial state.
@@ -300,14 +193,6 @@ class CircuitSimulatorMultilayer:
         self.sanity_check_fidelity=sanity_check_fidelity
 
     # @staticmethod
-    def simulate_all_tests_multilayer_parallel_clifford(self, pool, circ_pairs):
-        '''Uses cirq.simulate. Noiselss in that it does not add extra noise gates.
-        single_qubit_error_space: iterable containing the error numbers.'''
-        #In some cases pool.imap_unordered needs to be wrapped in list in order to return properly. 
-        #see: https://stackoverflow.com/questions/5481104/multiprocessing-pool-imap-broken
-        return list(pool.imap(self.simulate_test_multilayer_clifford, enumerate(circ_pairs), chunksize=1))
-
-    # @staticmethod
     def simulate_all_tests_multilayer_parallel(self, pool, circ_pairs):
         '''Uses cirq.simulate. Noiselss in that it does not add extra noise gates.
         single_qubit_error_space: iterable containing the error numbers.'''
@@ -325,18 +210,6 @@ class CircuitSimulatorMultilayer:
             # if circ_pair[0]==2:
             #     break
             results.append(self.simulate_test_multilayer(circ_pair))
-        return results
-
-    # @staticmethod
-    def simulate_all_tests_multilayer_clifford(self, circ_pairs):
-        '''Uses cirq.simulate. Non parallel tests. 
-        single_qubit_error_space: iterable containing the error numbers.'''
-        results=[]
-        for circ_pair in enumerate(circ_pairs):
-            # #test
-            # if circ_pair[0]==2:
-            #     break
-            results.append(self.simulate_test_multilayer_clifford(circ_pair))
         return results
 
     @staticmethod
@@ -374,56 +247,6 @@ class CircuitSimulatorMultilayer:
         noisy_cirq+=cirq.Circuit(moments)
         # noisy_cirq=circ.with_noise(cirq.depolarize(p=single_qubit_error))
         return noisy_cirq
-
-    @staticmethod
-    def get_sanity_check_fidelity(no_checks_circ_cirq, checks_circ_cirq, keep_qubits):
-        correct_post_state=CircuitSimulator.get_result_rho(no_checks_circ_cirq, no_checks_circ_cirq.num_qubits, keep_qubits)
-        noiseless_checks_post_state=CircuitSimulator.get_result_rho(checks_circ_cirq, no_checks_circ_cirq.num_qubits, keep_qubits)
-        return CircuitSimulator.get_fidelity(correct_post_state, noiseless_checks_post_state)
-
-
-    def simulate_test_multilayer_clifford(self, circ_pair):
-        '''Uses cirq.simulate. '''
-        error_idx=circ_pair[0]
-        single_qubit_error_space= self.single_qubit_error_space
-        single_qubit_error=single_qubit_error_space[error_idx]
-        no_checks_circ_cirq=circ_pair[1][0]
-        checks_circ_cirq=circ_pair[1][1]
-
-        # print(no_checks_circ_cirq)
-        # print(checks_circ_cirq)
-
-        # cirq_circ_with_checks=self.cirq_circ_with_checks
-        # cirq_circ_no_checks=self.cirq_circ_no_checks
-        rho_correct=self.rho_correct
-        number_of_total_qubits=self.number_of_total_qubits
-        number_of_compute_qubits=self.number_of_compute_qubits
-        sanity_check_fidelity=self.sanity_check_fidelity
-        # error_idx=error_info[0]
-        # single_qubit_error=error_info[1]
-
-        print("getting result rho...")
-        # noisy_cirq_circ_with_checks=self.add_noise_computation_only(cirq_circ_with_checks, single_qubit_error)
-        keep_qubits=list(range(number_of_compute_qubits))
-        noisy_rho_with_checks=CircuitSimulator.get_result_rho_clifford(checks_circ_cirq, number_of_total_qubits,keep_qubits )
-        print("taking trace...")
-        ancilla_zero_outcome_probability=np.real(np.trace(noisy_rho_with_checks))
-        fidelity_noisy_rho_with_check=CircuitSimulator.get_fidelity(noisy_rho_with_checks* 1/ancilla_zero_outcome_probability, rho_correct)
-        
-        # noisy_cirq_circ_no_checks=self.add_noise(cirq_circ_no_checks, single_qubit_error)
-        noisy_rho_no_checks=CircuitSimulator.get_result_rho_clifford(no_checks_circ_cirq, number_of_total_qubits, keep_qubits)
-        fidelity_noisy_rho_no_check=CircuitSimulator.get_fidelity(noisy_rho_no_checks, rho_correct)
-        print(f"single qubit error rate: {single_qubit_error}")
-        print(f"ancilla probability of 0 outcome: {ancilla_zero_outcome_probability}")
-        print(f"fidelity no check: {fidelity_noisy_rho_no_check}")
-        print(f"fidelity with check: {fidelity_noisy_rho_with_check}")
-        print()
-
-        return {"percent_results_before_postselect": 1, "percent_results_after_postselect": ancilla_zero_outcome_probability, "error_idx": error_idx, 
-            "one_qubit_err": single_qubit_error, "two_qubit_err": 10*single_qubit_error, 
-            "state_fidelity_no_checks_with_errors": fidelity_noisy_rho_no_check, 
-            "state_fidelity_with_checks_with_errors": fidelity_noisy_rho_with_check, 
-            "state_fidelity_with_checks_no_errors": sanity_check_fidelity}
 
     def simulate_test_multilayer(self, circ_pair):
         '''Uses cirq.simulate. '''
@@ -513,42 +336,6 @@ class CircuitSimulator:
             "state_fidelity_no_checks_with_errors": fidelity_noisy_rho_no_check, 
             "state_fidelity_with_checks_with_errors": fidelity_noisy_rho_with_check, 
             "state_fidelity_with_checks_no_errors": sanity_check_fidelity}
-
-    # @staticmethod
-    # def simulate_test_multilayer(circ_pair):
-    #     '''Uses cirq.simulate'''
-    #     cirq_circ_with_checks=self.cirq_circ_with_checks
-    #     cirq_circ_no_checks=self.cirq_circ_no_checks
-    #     rho_correct=self.rho_correct
-    #     number_of_qubits=self.number_of_qubits
-    #     keep_qubits=self.keep_qubits
-    #     sanity_check_fidelity=self.sanity_check_fidelity
-    #     error_idx=error_info[0]
-    #     single_qubit_error=error_info[1]
-
-    #     print("getting result rho...")
-    #     noisy_cirq_circ_with_checks=self.add_noise_computation_only(cirq_circ_with_checks, single_qubit_error)
-    #     noisy_rho_with_checks=self.get_result_rho(noisy_cirq_circ_with_checks, number_of_qubits+1, keep_qubits)
-    #     print("taking trace...")
-    #     ancilla_zero_outcome_probability=np.real(np.trace(noisy_rho_with_checks))
-    #     fidelity_noisy_rho_with_check=self.get_fidelity(noisy_rho_with_checks* 1/ancilla_zero_outcome_probability, rho_correct)
-        
-    #     self.add_noise
-    #     noisy_cirq_circ_no_checks=self.add_noise(cirq_circ_no_checks, single_qubit_error)
-    #     noisy_rho_no_checks=self.get_result_rho(noisy_cirq_circ_no_checks, number_of_qubits, keep_qubits)
-    #     fidelity_noisy_rho_no_check=self.get_fidelity(noisy_rho_no_checks, rho_correct)
-    #     print(f"single qubit error rate: {single_qubit_error}")
-    #     print(f"ancilla probability of 0 outcome: {ancilla_zero_outcome_probability}")
-    #     print(f"fidelity no check: {fidelity_noisy_rho_no_check}")
-    #     print(f"fidelity with check: {fidelity_noisy_rho_with_check}")
-    #     print()
-
-    #     return {"percent_results_before_postselect": 1, "percent_results_after_postselect": ancilla_zero_outcome_probability, "error_idx": error_idx, 
-    #         "one_qubit_err": single_qubit_error, "two_qubit_err": 10*single_qubit_error, 
-    #         "state_fidelity_no_checks_with_errors": fidelity_noisy_rho_no_check, 
-    #         "state_fidelity_with_checks_with_errors": fidelity_noisy_rho_with_check, 
-    #         "state_fidelity_with_checks_no_errors": sanity_check_fidelity}
-
     
     def add_noise(self, circ, single_qubit_error):
         '''Testing circuits: Uses Google Cirq. Adds noise to circ.'''
@@ -604,98 +391,6 @@ class CircuitSimulator:
         noisy_cirq+=cirq.Circuit(moments)
         # noisy_cirq=circ.with_noise(cirq.depolarize(p=single_qubit_error))
         return noisy_cirq
-
-    # def add_noise_computation_only(self, circ, single_qubit_error):
-    #     '''Testing circuits: Uses Google Cirq. Adds noise to computation only.
-    #     Assumes circ contains checks.'''
-    #     cirq_circ_with_checks=self.cirq_circ_with_checks
-    #     cirq_circ_no_checks=self.cirq_circ_no_checks
-    #     last_layer_of_computation=self.get_last_layer_of_computation()
-    #     first_layer_of_computation=last_layer_of_computation-len(cirq_circ_no_checks)-3
-    #     two_qubit_error=10*single_qubit_error
-    #     twoqubit_noise_model=cirq.DepolarizingChannel(p=two_qubit_error, n_qubits=2)
-    #     singlequbit_noise_model=cirq.DepolarizingChannel(p=single_qubit_error)
-    #     # all_qubits=circ.all_qubits()
-    #     moments=[]
-    #     noisy_cirq=cirq.Circuit()
-    #     # Iterate through the moments. For two qubit gates we add a two qubit depolarization at a two qubit error rate.
-    #     # print(all_qubits)
-    #     for idx, moment in enumerate(circ):
-    #         # Skip the initial state. Which consists of the first 3 moments.
-    #         if idx <3:
-    #             moments+=[moment]
-    #             # We're dealing with the check circuit. Add a depolarizing noise after the hadamard gate.
-    #             # W have to add the noise here because the hadamard goes into the first moment.
-    #             if len(circ.all_qubits())==self.number_of_qubits+1 and idx == 2:
-    #                 ancila=cirq.NamedQubit(f"{self.qubits_label}_{self.number_of_qubits}")
-    #                 error_op=singlequbit_noise_model.on_each(ancila)
-    #                 moments+=[cirq.ops.Moment(error_op)]
-    #         else:
-    #             error_ops=[]
-    #             # TODO: Should we do this? 
-    #             # For the moment find all the qubits with no operations and noise to them. 
-    #             # for qubit in all_qubits:
-    #             #     if qubit not in moment.qubits:
-    #             #         # print(qubit)
-    #             #         error_ops += singlequbit_noise_model.on_each(qubit)
-
-    #             # Go through the operations in the moment. For 2 qubit operations use the
-    #             # two qubit error. For everything else, i.e. single qubit gates, use single
-    #             # qubit error. 
-    #             for operation in moment.operations:
-    #                 # print(operations)
-    #                 # print(type(operation.gate))
-    #                 # print(type(moment.qubits))
-    #                 # print("all moment qubits: ", moment.qubits)
-    #                 if isinstance(operation.gate, cirq.ops.common_gates.CXPowGate) or isinstance(operation.gate, cirq.ops.SwapPowGate):
-    #                     # print("2 qubit ", operation)
-    #                     # print(twoqubit_noise_model.on_each(operation.qubits))
-    #                     error_ops += twoqubit_noise_model.on_each(operation.qubits)
-    #                     # error_ops += singlequbit_noise_model.on_each(operation.qubits)
-
-    #                 else:
-    #                     # print("1 qubit ", operation)
-    #                     # print(singlequbit_noise_model.on_each(operation.qubits))
-    #                     error_ops += singlequbit_noise_model.on_each(operation.qubits)
-    #             # print()
-    #             # print(error_ops)
-    #             moments+=[moment, cirq.ops.Moment(error_ops)]
-    #         # print(moments)
-    #     noisy_cirq+=cirq.Circuit(moments)
-    #     # noisy_cirq=circ.with_noise(cirq.depolarize(p=single_qubit_error))
-    #     return noisy_cirq
-
-    # def get_last_layer_of_computation(self):
-    #     '''Gets the ending layer of the computation.'''
-    #     cirq_circ_with_checks=self.cirq_circ_with_checks
-    #     for idx, moment in reversed(list(enumerate(cirq_circ_with_checks))):
-    #         print(moment)
-
-    @staticmethod
-    def get_result_rho_clifford(circ, numb_compute_qubits, numb_ancillas, one_qubit_err):
-        '''Testing circuits: Uses Google Cirq. 
-        number_of_qubits: total number of qubits in circ. 
-        keep_qubits: is a list. 
-        Returns resulting rho from simulation of circ.'''
-        simulator=Aer.get_backend('aer_simulator_stabilizer')
-        two_qubit_err=one_qubit_err
-        error_1 = noise.depolarizing_error(one_qubit_err, 1)
-        error_2 = noise.depolarizing_error(two_qubit_err, 2)
-        noise_model = noise.NoiseModel()
-        noise_model.add_all_qubit_quantum_error(error_1, ['x', 'y', 'z', 'h', 's', 'sdg'])
-        noise_model.add_all_qubit_quantum_error(error_2, ['cx'])
-        circ.measure_all()
-        result_no_checks=execute(circ, simulator, noise_model=noise_model, shots=50000, optimization_level=0)
-        rho_dist=dict(result_no_checks.result().get_counts())
-        # print(type(dict(rho_dist)))
-        print(sum(rho_dist.values()))
-        if numb_ancillas:
-            rho_dist=dict([(key, value) for key, value in rho_dist.items() if key[0:numb_ancillas:]== "0"*(numb_ancillas)])
-        rho_dist=dict([(key, value/sum(rho_dist.values())) for key, value in rho_dist.items()])
-        print(sum(rho_dist.values()))
-        # print(f"length of dist: {len(rho_dist)}")
-        # print(list(rho_dist.keys())[0])
-        return rho_dist
 
     @staticmethod
     def get_result_rho(circ, number_of_qubits, keep_qubits):
@@ -1482,10 +1177,268 @@ def remove_idenities(circ):
             if not isinstance(operation.gate, cirq.ops.identity.IdentityGate):
                 # print("2 qubit ", operation)
                 # print(twoqubit_noise_model.on_each(operation.qubits))
-                print(operation.gate)
+                # print(operation.gate)
                 ops.append(operation)
                 # error_ops += singlequbit_noise_model.on_each(operation.qubits)
         if ops:
             out_moments+=[cirq.ops.Moment(ops)]
         # print(moments)
     return cirq.Circuit(out_moments)
+
+def exec_simulations(number_of_compute_qubits, rz_count, cnot_count, start_circ_number, end_circ_number, layers, checks_parent_folder):
+    NUMBER_OF_LAYERS=list(range(1, layers+1, 1))
+    time0=time.time()
+    print("running...")
+    #Program parameters.
+    #Determines if we run parallel or not.
+    PARALLEL=True
+    # File stuff
+    MAIN_SUBDIR=f"qubits_{number_of_compute_qubits}_rz_{rz_count}"
+    CHECKS_SUBDIR=os.path.join(MAIN_SUBDIR, checks_parent_folder, "checks")
+    RESULTS_SUBDIR=os.path.join(MAIN_SUBDIR, checks_parent_folder, "results")
+    # Gets the file path of the script
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    CHECKS_PATH=os.path.join(CODE_DIR, CHECKS_SUBDIR)
+    RESULTS_PATH=os.path.join(CODE_DIR, RESULTS_SUBDIR)
+    #Error space
+    SINGLE_QUBIT_ERROR_SPACE=np.logspace(-5, -2, num=21) #goes from 10^-5 to 10^-2
+    # print(SINGLE_QUBIT_ERROR_SPACE)
+    # SINGLE_QUBIT_ERROR_SPACE=[0.9]
+    files_manipulator=FilesManipulator(CHECKS_PATH, number_of_compute_qubits, cnot_count)
+    # Gets the files that match the string. Files include the path.
+    # The returned files correspond accordingly, e.g., circ_file[0] and circ_properties_files[0] refer
+    # to the same circuit.
+    circ_files, circ_properties_files=files_manipulator.get_files(start_circ_number, end_circ_number)
+    if PARALLEL:
+        pool=Pool(psutil.cpu_count(logical=False))
+
+    # Filter of layers.
+    # NUMBER_OF_LAYERS=[1, 2, 3, 4]
+    circ_files=[file_name for file_name in circ_files if int(file_name.split("_")[-2]) in NUMBER_OF_LAYERS]
+    for file in circ_files:
+        print(file)
+
+    #Get the qasm and pickle info
+    # haar_subcircuit=circtester.CircuitMaker.make_rand_input_state_multilayer(NUMBER_OF_COMPUTE_QUBITS)
+    # subdir_haar_circ="results_backup2"
+    # qasm_with_haar="qubits_2_CNOTS_30_circuit_0_layers_1_result_0_.qasm"
+    # print(haar_subcircuit)
+    for file_idx, file_name in enumerate(circ_files):
+        #Stopwatch
+        time1=time.time()
+        #If the file exists we already did this so just skip. Later on we can remove this for other initial states.
+        if files_manipulator.result_exists(RESULTS_PATH, file_name):
+            continue
+
+        circ_pieces=CircuitMaker.split_qasmfile_by_barrier(os.path.join(CHECKS_PATH, file_name))
+        # print("original")
+        # for circ in circ_pieces:
+        #     print(circ)
+        #transpile to standard gates.
+        basis_gates=['u1', 'u2', 'u3', 'cx', 'id']
+        transpile_partial=partial(transpile, basis_gates=basis_gates, optimization_level=0)
+        circ_pieces=list(map(transpile_partial, circ_pieces))
+
+        # print("new")
+        # for circ in circ_pieces:
+        #     print(circ)
+        haar_circ_qiskit=circ_pieces[0]
+        NUMBER_OF_LAYERS=file_name.split("_")[-2]
+        # print(NUMBER_OF_LAYERS)
+        end_str_strip=f"_layers_{NUMBER_OF_LAYERS}_.qasm"
+        haar_subcircuit=get_initial_state_from_qasm_file(
+            os.path.join(CODE_DIR, MAIN_SUBDIR, "initial_states"), 
+            f"{file_name[:-len(end_str_strip)]}_inputstate_0_.qasm")
+        utilities.insert_identity_layer(haar_circ_qiskit)
+
+        haar_circ_qiskit.compose(haar_subcircuit, inplace=True)
+        # haar_circ_qiskit=circtester.get_initial_state_from_qasm_file(OUTPUT_PATH, "qubits_2_CNOTS_30_circuit_result_0_.qasm")
+        p1_circ_qiskit=circ_pieces[1]
+        main_circ_qiskit=circ_pieces[2]
+        p2_circ_qiskit=circ_pieces[3]
+        complete_qiskit_circ=deepcopy(haar_circ_qiskit).compose(QuantumCircuit.from_qasm_file(os.path.join(CHECKS_PATH, file_name)))
+        #transpile to standard gates.
+        haar_circ_qiskit=transpile(haar_circ_qiskit, basis_gates=basis_gates, optimization_level=0)
+        # print(complete_qiskit_circ)
+
+        haar_circ_cirq=circuit_from_qasm(haar_circ_qiskit.qasm())
+        p1_circ_cirq=circuit_from_qasm(p1_circ_qiskit.qasm())
+        main_circ_cirq=circuit_from_qasm(main_circ_qiskit.qasm())
+        p2_circ_cirq=circuit_from_qasm(p2_circ_qiskit.qasm())
+        # print(haar_circ_cirq)
+        # print(p1_circ_cirq)
+        # print(main_circ_cirq)
+        # print(p2_circ_cirq)
+
+        keep_qubits=list(range(number_of_compute_qubits))
+        no_checks_circ_cirq=haar_circ_cirq+main_circ_cirq
+        # print(no_checks_cirq)
+        # Don't delete
+        checks_circ_cirq=haar_circ_cirq+p1_circ_cirq+main_circ_cirq+p2_circ_cirq
+        # circ_tester=circtester.CircuitSimulator(noiseless_circs, circ.num_qubits, NUMBER_OF_COMPUTE_QUBITS, keep_qubits)
+        correct_post_state=CircuitSimulator.get_result_rho(no_checks_circ_cirq, haar_circ_qiskit.num_qubits, keep_qubits)
+        noiseless_checks_post_state=CircuitSimulator.get_result_rho(checks_circ_cirq, haar_circ_qiskit.num_qubits, keep_qubits)
+        sanity_check_fidelity=CircuitSimulator.get_fidelity(noiseless_checks_post_state, correct_post_state)
+        # print(correct_state)
+        assert sanity_check_fidelity>0.98, f"Sanity check fidelity {sanity_check_fidelity} failed for circuit {file_name}"
+        print(f"sanity check fidelity: {sanity_check_fidelity}")
+
+        # Add noise to the main and checks.
+        noisy_main_cirq_circs=[]
+        noisy_p2_cirq_circs=[]
+        noisy_p1_cirq_circs=[]
+        for error in SINGLE_QUBIT_ERROR_SPACE:
+            noisy_main_cirq_circs.append(CircuitSimulatorMultilayer.add_noise_multilayer(main_circ_cirq, error))
+            noisy_p2_cirq_circs.append(CircuitSimulatorMultilayer.add_noise_multilayer(p2_circ_cirq, error))
+            noisy_p1_cirq_circs.append(CircuitSimulatorMultilayer.add_noise_multilayer(p1_circ_cirq, error))
+
+        # Add projective0 measurements on ancillas.
+        total_number_of_qubits=p2_circ_qiskit.num_qubits
+        number_of_ancillas=total_number_of_qubits-number_of_compute_qubits
+        for circ_elem in noisy_p2_cirq_circs:
+            CircuitMaker.add_projectors(circ_elem, "b", list(range(number_of_ancillas)))
+
+        # Complete the circuits.
+        # checks_cirq_circs=list(map(lambda main: haar_circ_cirq+p1_circ_cirq+main+p2_circ_cirq, noisy_main_cirq_circs))
+        checks_cirq_circs=[haar_circ_cirq+elem[0]+elem[1]+elem[2] for elem in zip(noisy_p1_cirq_circs, noisy_main_cirq_circs, noisy_p2_cirq_circs)]
+        # checks_cirq_circs=[haar_circ_cirq+elem[0]+elem[2] for elem in zip(noisy_p1_cirq_circs, noisy_main_cirq_circs, noisy_p2_cirq_circs)] # not including u.
+        no_checks_cirq_circs=list(map(lambda main: haar_circ_cirq+main, noisy_main_cirq_circs))
+        multilayer_tester=CircuitSimulatorMultilayer(sanity_check_fidelity, correct_post_state, 
+            number_of_compute_qubits, total_number_of_qubits, SINGLE_QUBIT_ERROR_SPACE)
+
+        # print(checks_cirq_circs[0])
+        if PARALLEL:
+            #Standard simulation with all noisy gates.
+            results=multilayer_tester.simulate_all_tests_multilayer_parallel(pool, zip(no_checks_cirq_circs, checks_cirq_circs))
+            #Noisy gates except for checks.
+            # results=circ_tester.simulate_all_noiseless_checks_tests_parallel(pool, SINGLE_QUBIT_ERROR_SPACE)
+        else:
+            #Standard simulation with all noisy gates.
+            results=multilayer_tester.simulate_all_tests_multilayer(zip(no_checks_cirq_circs, checks_cirq_circs))
+            # results=multilayer_tester.simulate_all_tests_multilayer([[no_checks_cirq_circs[14], checks_cirq_circs[14]],])
+            # Noisy gates except for checks.
+            # results=circ_tester.simulate_all_noiseless_checks_tests(SINGLE_QUBIT_ERROR_SPACE)
+        FilesManipulator.store_fidelity_results_concise(complete_qiskit_circ, 
+            results, RESULTS_PATH, file_name[:-len("_.qasm")])
+
+
+        print(f"file execution time {time.time()-time1}")
+    if PARALLEL:
+        pool.close()
+        pool.join()
+    print(f"total execution time {time.time()-time0}")
+    print("Finished.")
+
+
+def exec_simulations_noiseless_checks(number_of_compute_qubits, rz_count, cnot_count, start_circ_number, end_circ_number, layers, checks_parent_folder):
+    '''Runs with noiseless checks. Used to demo Theorem 1.'''
+    time0=time.time()
+    print("running...")
+    NUMBER_OF_LAYERS=list(range(1, layers+1, 1))
+    #Program parameters.
+    #Determines if we run parallel or not.
+    PARALLEL=True
+    # File stuff
+    MAIN_SUBDIR=os.path.join(f"qubits_{number_of_compute_qubits}_rz_{rz_count}", "noiseless_checks_ex")
+    CHECKS_SUBDIR=os.path.join(MAIN_SUBDIR, checks_parent_folder, "checks")
+    RESULTS_SUBDIR=os.path.join(MAIN_SUBDIR, checks_parent_folder, "results")
+    # Gets the file path of the script
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    CHECKS_PATH=os.path.join(CODE_DIR, CHECKS_SUBDIR)
+    RESULTS_PATH=os.path.join(CODE_DIR, RESULTS_SUBDIR)
+    #Error space
+    # We test up to .1 single qubit error which is 1.0 2 qubit error. In this
+    # extreme case with noiseless checks we still get fidelity 1 according to
+    # theorem 1.
+    NUM_ERRORS=21
+    SINGLE_QUBIT_ERROR_SPACE=np.logspace(-5, -1, num=NUM_ERRORS)
+    files_manipulator=FilesManipulator(CHECKS_PATH, number_of_compute_qubits, cnot_count)
+    # Gets the files that match the string. Files include the path.
+    # The returned files correspond accordingly, e.g., circ_file[0] and circ_properties_files[0] refer
+    # to the same circuit.
+    circ_files, _=files_manipulator.get_files(start_circ_number, end_circ_number)
+    if PARALLEL:
+        pool=Pool(psutil.cpu_count(logical=False))
+
+    # Filter of layers.
+    circ_files=[file_name for file_name in circ_files if int(file_name.split("_")[-2]) in NUMBER_OF_LAYERS]
+    for file in circ_files:
+        print(file)
+
+    #Get the qasm and pickle info
+    for _, file_name in enumerate(circ_files):
+        #Stopwatch
+        time1=time.time()
+        #If the file exists we already did this so just skip. Later on we can remove this for other initial states.
+        if files_manipulator.result_exists(RESULTS_PATH, file_name):
+            continue
+
+        circ_pieces=CircuitMaker.split_qasmfile_by_barrier(os.path.join(CHECKS_PATH, file_name))
+        basis_gates=['u1', 'u2', 'u3', 'cx', 'id']
+        transpile_partial=partial(transpile, basis_gates=basis_gates, optimization_level=0)
+        circ_pieces=list(map(transpile_partial, circ_pieces))
+
+        haar_circ_qiskit=circ_pieces[0]
+        NUMBER_OF_LAYERS=file_name.split("_")[-2]
+        end_str_strip=f"_layers_{NUMBER_OF_LAYERS}_.qasm"
+        haar_subcircuit=get_initial_state_from_qasm_file(
+            os.path.join(CODE_DIR, MAIN_SUBDIR, "initial_states"), 
+            f"{file_name[:-len(end_str_strip)]}_inputstate_0_.qasm")
+        utilities.insert_identity_layer(haar_circ_qiskit)
+
+        haar_circ_qiskit.compose(haar_subcircuit, inplace=True)
+        p1_circ_qiskit=circ_pieces[1]
+        main_circ_qiskit=circ_pieces[2]
+        p2_circ_qiskit=circ_pieces[3]
+        complete_qiskit_circ=deepcopy(haar_circ_qiskit).compose(QuantumCircuit.from_qasm_file(os.path.join(CHECKS_PATH, file_name)))
+        #transpile to standard gates.
+        haar_circ_qiskit=transpile(haar_circ_qiskit, basis_gates=basis_gates, optimization_level=0)
+
+        haar_circ_cirq=circuit_from_qasm(haar_circ_qiskit.qasm())
+        p1_circ_cirq=circuit_from_qasm(p1_circ_qiskit.qasm())
+        main_circ_cirq=circuit_from_qasm(main_circ_qiskit.qasm())
+        p2_circ_cirq=circuit_from_qasm(p2_circ_qiskit.qasm())
+
+        keep_qubits=list(range(number_of_compute_qubits))
+        no_checks_circ_cirq=haar_circ_cirq+main_circ_cirq
+        # Noiseless sanity check
+        checks_circ_cirq=haar_circ_cirq+p1_circ_cirq+main_circ_cirq+p2_circ_cirq
+        correct_post_state=CircuitSimulator.get_result_rho(no_checks_circ_cirq, haar_circ_qiskit.num_qubits, keep_qubits)
+        noiseless_checks_post_state=CircuitSimulator.get_result_rho(checks_circ_cirq, haar_circ_qiskit.num_qubits, keep_qubits)
+        sanity_check_fidelity=CircuitSimulator.get_fidelity(noiseless_checks_post_state, correct_post_state)
+        assert sanity_check_fidelity>0.98, f"Sanity check fidelity {sanity_check_fidelity} failed for circuit {file_name}"
+        print(f"sanity check fidelity: {sanity_check_fidelity}")
+
+        # Add noise to the main and checks.
+        noisy_main_cirq_circs=[]
+
+        for error in SINGLE_QUBIT_ERROR_SPACE:
+            noisy_main_cirq_circs.append(CircuitSimulatorMultilayer.add_noise_multilayer(main_circ_cirq, error))
+
+        # Add projective0 measurements on ancillas.
+        total_number_of_qubits=p2_circ_qiskit.num_qubits
+        number_of_ancillas=total_number_of_qubits-number_of_compute_qubits
+        CircuitMaker.add_projectors(p2_circ_cirq, "b", list(range(number_of_ancillas)))
+
+        # Complete the circuits.
+        checks_cirq_circs=list(map(lambda main: haar_circ_cirq+p1_circ_cirq+main+p2_circ_cirq, noisy_main_cirq_circs))
+        no_checks_cirq_circs=list(map(lambda main: haar_circ_cirq+main, noisy_main_cirq_circs))
+        multilayer_tester=CircuitSimulatorMultilayer(sanity_check_fidelity, correct_post_state, 
+            number_of_compute_qubits, total_number_of_qubits, SINGLE_QUBIT_ERROR_SPACE)
+
+        if PARALLEL:
+            results=multilayer_tester.simulate_all_tests_multilayer_parallel(pool, zip(no_checks_cirq_circs, checks_cirq_circs))
+
+        else:
+            results=multilayer_tester.simulate_all_tests_multilayer(zip(no_checks_cirq_circs, checks_cirq_circs))
+
+        FilesManipulator.store_fidelity_results_concise(complete_qiskit_circ, 
+            results, RESULTS_PATH, file_name[:-len("_.qasm")])
+
+
+        print(f"file execution time {time.time()-time1}")
+    if PARALLEL:
+        pool.close()
+        pool.join()
+    print(f"total execution time {time.time()-time0}")
+    print("Finished.")

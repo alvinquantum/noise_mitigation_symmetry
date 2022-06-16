@@ -1,11 +1,14 @@
 import os
 import numpy as np
+import utilities
 from qiskit import QuantumCircuit
 from qiskit.circuit import QuantumRegister
 from qiskit.converters.dag_to_circuit import dag_to_circuit
 from qiskit.quantum_info import random_clifford, decompose_clifford
 from qiskit.converters import circuit_to_dag
 from copy import deepcopy
+import time
+from qiskit.opflow import X,Y,Z
 
 class CircuitProperties:
     '''Circuit properties holder.'''
@@ -27,18 +30,16 @@ def generate_a_random_clifford_circuit(num_qubits, num_cnots_required, seed=None
     assert num_cnots_required>0, f"{num_cnots_required} needs to be greater than 0."
     if seed is None:
         seed = np.random.randint(0, np.iinfo(np.int32).max)
-    rng = np.random.default_rng(seed)
+    # rng = np.random.default_rng(seed)
 
     qc=QuantumCircuit(QuantumRegister(num_qubits))
     cnot_count=0
     #Randomly generate cliffords until we have more than enough cnots
     #then truncate
     while cnot_count < num_cnots_required:
-        print("generating.")
         qc_temp=decompose_clifford(random_clifford(num_qubits))
         # qc_temp=random_clifford(num_qubits).to_instruction()
         cnot_count+=count_gate(qc_temp, "cx")
-        print("composing.")
         qc.compose(qc_temp, inplace=True)
     
     qc=remove_swap(qc)
@@ -90,7 +91,6 @@ def remove_swap(qc):
         for node in layer:
             # Remove the node as long as it's an operation.
             if node.name=="swap":
-                # print("removing swap.")
                 qc_dag.remove_op_node(node)
     new_circ=dag_to_circuit(qc_dag)
     assert cnot_count_init==dict(new_circ.count_ops())["cx"], "removing swap was done incorrectly."
@@ -259,10 +259,8 @@ def copy_node(new_qc, node):
 
 def write_circs_no_checks_to_qasm_file(base_path, circuits, number_of_qubits, cnot_count):
     '''Saves the circuits into qasm files in the specified subdirectory. Note that
-    that this is for saving circuits that have no checks. This constraint exists
-    because of the file names used.
+    that this is for saving circuits that have no checks.
     circuits: iterable'''
-    print("saving...")
     circ_number=0
     for circ in circuits:
         # Increment the circuit number until we find one that's not taken.
@@ -283,3 +281,164 @@ def filter_by_cnot_qubit(files, cnot_count, number_of_qubits):
             filtered_files.append(file)
     return filtered_files
     
+def gen_rand_circs(number_of_qubits, cnot_count, number_of_circuits, rz_count):
+    '''Main function to call to create random input circs.'''
+    time0=time.time()
+
+    print("running...")
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    MAIN_SUBDIR=f"qubits_{number_of_qubits}_rz_{rz_count}"
+    # CHECKS_SUBDIR="checks"
+    RAWS_SUBDIR="raws"
+    # CHECKS_PATH=os.path.join(CODE_DIR, MAIN_SUBDIR, CHECKS_SUBDIR)
+    RAWS_PATH=os.path.join(CODE_DIR, MAIN_SUBDIR, RAWS_SUBDIR)
+
+    # Generate random circuits
+    # file_number=0
+    for _ in range(number_of_circuits):
+        time1=time.time()
+        # circ=generate_a_random_circuit(number_of_qubits, cnot_count) 
+        if rz_count>0:
+            circ=generate_a_random_circuit(number_of_qubits, cnot_count, rz_count)             
+        else:
+            circ=generate_a_random_clifford_circuit(number_of_qubits, cnot_count)  
+        #Save raw circuit
+        write_circs_no_checks_to_qasm_file(RAWS_PATH, [circ], number_of_qubits, cnot_count)
+
+        # print(circ)
+        circ_operations=circ.count_ops()
+        print(circ_operations)
+        
+        print(f"file execution time {time.time()-time1}")
+    print(f"total execution time {time.time()-time0}")
+
+def gen_rand_input_state(number_of_qubits, cnot_count, rz_count):
+    '''Main function to call to create random input states (input states
+    are given by a random circuit).'''
+    time0=time.time()
+    print("running...")
+    #Program parameters
+    #Paths for outputs and inputs.
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    MAIN_SUBDIR=f"qubits_{number_of_qubits}_rz_{rz_count}"
+    CHECKS_SUBDIR=os.path.join(MAIN_SUBDIR, "min_weight_checks", "checks")
+    # RESULTS_SUBDIR=os.path.join(MAIN_SUBDIR, "min_weight_checks", "results")
+    INITIAL_STATES_SUBDIR=os.path.join(MAIN_SUBDIR, "initial_states")
+    RAWS_SUBDIR=os.path.join(MAIN_SUBDIR, "raws")
+    CHECKS_PATH=os.path.join(CODE_DIR, CHECKS_SUBDIR)
+    RAWS_PATH=os.path.join(CODE_DIR, RAWS_SUBDIR)
+    # RESULTS_PATH=os.path.join(CODE_DIR, RESULTS_SUBDIR)
+    INITIAL_STATES_PATH=os.path.join(CODE_DIR, INITIAL_STATES_SUBDIR)
+
+    #We iterate over all the raw qasm files. For each file, we generate an input state.
+    input_qasm_file_names=utilities.get_files_from_dir_by_extension(RAWS_PATH, ".qasm")
+    input_qasm_file_names=filter_by_cnot_qubit(input_qasm_file_names, cnot_count, number_of_qubits)
+    for input_qasm_file_name in input_qasm_file_names:
+        time1=time.time()
+
+        # We strip the ending of the file name and add the appropriate ending.
+        end_string="_raw_.qasm"
+        output_file_name=f"{input_qasm_file_name[0:-len(end_string)]}_inputstate_0_.qasm"
+        print(output_file_name)
+        # Skip the raw qasm if we already have an output.
+        if init_circ_exists(CHECKS_PATH, input_qasm_file_name):
+            continue
+        circ=make_rand_input_state_multilayer(number_of_qubits)
+        circ.qasm(filename= os.path.join(INITIAL_STATES_PATH, output_file_name))
+
+        print(f"file execution time {time.time()-time1}")
+    print(f"total execution time {time.time()-time0}")
+    print("done")
+
+def gen_rand_input_state_example(number_of_qubits, cnot_count, rz_count):
+    '''Main function to call to create random input states (input states
+    are given by a random circuit).'''
+    time0=time.time()
+    print("running...")
+    #Program parameters
+    #Paths for outputs and inputs.
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    MAIN_SUBDIR=os.path.join(f"qubits_{number_of_qubits}_rz_{rz_count}","noiseless_checks_ex")
+    CHECKS_SUBDIR=os.path.join(MAIN_SUBDIR, "min_weight_checks", "checks")
+    # RESULTS_SUBDIR=os.path.join(MAIN_SUBDIR, "min_weight_checks", "results")
+    INITIAL_STATES_SUBDIR=os.path.join(MAIN_SUBDIR, "initial_states")
+    RAWS_SUBDIR=os.path.join(MAIN_SUBDIR, "raws")
+    CHECKS_PATH=os.path.join(CODE_DIR, CHECKS_SUBDIR)
+    RAWS_PATH=os.path.join(CODE_DIR, RAWS_SUBDIR)
+    # RESULTS_PATH=os.path.join(CODE_DIR, RESULTS_SUBDIR)
+    INITIAL_STATES_PATH=os.path.join(CODE_DIR, INITIAL_STATES_SUBDIR)
+
+    #We iterate over all the raw qasm files. For each file, we generate an input state.
+    input_qasm_file_names=utilities.get_files_from_dir_by_extension(RAWS_PATH, ".qasm")
+    input_qasm_file_names=filter_by_cnot_qubit(input_qasm_file_names, cnot_count, number_of_qubits)
+    for input_qasm_file_name in input_qasm_file_names:
+        time1=time.time()
+
+        # We strip the ending of the file name and add the appropriate ending.
+        end_string="_raw_.qasm"
+        output_file_name=f"{input_qasm_file_name[0:-len(end_string)]}_inputstate_0_.qasm"
+        print(output_file_name)
+        # Skip the raw qasm if we already have an output.
+        if init_circ_exists(CHECKS_PATH, input_qasm_file_name):
+            continue
+        circ=make_rand_input_state_multilayer(number_of_qubits)
+        circ.qasm(filename= os.path.join(INITIAL_STATES_PATH, output_file_name))
+
+        print(f"file execution time {time.time()-time1}")
+    print(f"total execution time {time.time()-time0}")
+    print("done")
+
+def gen_rand_circs_example(number_of_qubits, cnot_count, number_of_circuits, rz_count):
+    '''Main function to call to create random input circs.'''
+    time0=time.time()
+
+    print("running...")
+    CODE_DIR=os.path.abspath(os.path.dirname(__file__))
+    MAIN_SUBDIR=os.path.join(f"qubits_{number_of_qubits}_rz_{rz_count}", "noiseless_checks_ex")
+    # CHECKS_SUBDIR="checks"
+    RAWS_SUBDIR="raws"
+    # CHECKS_PATH=os.path.join(CODE_DIR, MAIN_SUBDIR, CHECKS_SUBDIR)
+    RAWS_PATH=os.path.join(CODE_DIR, MAIN_SUBDIR, RAWS_SUBDIR)
+
+    # Generate random circuits
+    # file_number=0
+    for _ in range(number_of_circuits):
+        time1=time.time()
+        # circ=generate_a_random_circuit(number_of_qubits, cnot_count) 
+        if rz_count>0:
+            circ=generate_a_random_circuit(number_of_qubits, cnot_count, rz_count)             
+        else:
+            circ=generate_a_random_clifford_circuit(number_of_qubits, cnot_count)  
+        #Save raw circuit
+        write_circs_no_checks_to_qasm_file(RAWS_PATH, [circ], number_of_qubits, cnot_count)
+
+        # print(circ)
+        circ_operations=circ.count_ops()
+        print(circ_operations)
+        
+        print(f"file execution time {time.time()-time1}")
+    print(f"total execution time {time.time()-time0}")
+
+def make_rand_input_state_multilayer(number_of_compute_qubits):
+    '''Testing circuits: Create a random state. Need to send both circs at the same time so they have the same random initial state.'''
+    #Insert random state generator
+    # temp_circ=deepcopy(circ)
+    # total_number_of_qubits=circ.num_qubits
+    quantum_register=QuantumRegister(number_of_compute_qubits, "a")
+    # ancilla_register=AncillaRegister(total_number_of_qubits-number_of_compute_qubits)
+    # idenity_circ=QuantumCircuit(quantum_register, ancilla_register)
+    # for qubit_idx in range(total_number_of_qubits):
+        # idenity_circ.i(qubit_idx)
+    # print(idenity_circ)
+    circ=QuantumCircuit(quantum_register)
+    random_params = np.random.uniform(size=(number_of_compute_qubits, 3))
+    for i,qreg in enumerate(quantum_register):
+        for j, pauli in enumerate([X,Y,Z]):
+            rand_tuple=(random_params[i][j])
+            circ.compose((pauli * rand_tuple).exp_i().to_circuit(), [qreg], inplace=True)
+            # circ_no_checks.compose((pauli * rand_tuple).exp_i().to_circuit(), [qreg], inplace=True)
+    return circ
+
+def init_circ_exists(base_path, init_file_name):
+    '''Checks if an initial state circuit exists.'''
+    return os.path.isfile(os.path.join(base_path, init_file_name))
