@@ -9,11 +9,17 @@ Important files:
 - tested with qiskit 0.36.1 and cirq 0.14.1.
 
 To produce an error mitigated circuit use the function 
-checksfinder.get_error_mitig_circ(qasmstr, target_layers). qasmstr
-is the input qasm string and target_layers is the number of check layers desired. 
-Returns an error mitigated qasm string. Note that to implement the protocol you 
-still have to postselect on the ancilla measurements (Only keep the state when
-you measure all zeros on the ancillas. Discard otherwise.)
+checksfinder.get_error_mitig_circ(qasmstr, target_layers). qasmstr is the input 
+circuit (the input circuit can't have measurements or barriers and the qubits 
+must be on a single quantum register) and target_layers is the desired number of 
+Pauli check layers. Returns an error mitigated qasm str with the number of Pauli 
+check layers <= target_layers. Note that to implement the protocol you still have 
+to postselect on the ancilla measurements (Only keep the state when you 
+measure all zeros on the ancillas. Discard otherwise.)
+
+The number of input qubits (tested with up to 10) can't be too many since we generate 
+a list of all the possible +1Pauli checks to iterate through. This memory limitation 
+can easily be removed by using a generator instead of a list, but is not yet implemented. 
 
 To replicate the graphs in the paper extract the contents of data zip folder to 
 the base directory of the project. Then execute exec_gen_test.py.

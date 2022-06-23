@@ -1467,13 +1467,20 @@ def create_weight_one_check_circs_example(number_of_qubits, cnot_count, target_l
     
 ############################
 def get_error_mitig_circ(qasmstr, target_layers):
-    '''Main function to call to create circuits with checks. Follows a rigid folder structure. Lowe
-    weight checks.
-    qasmstr is the input circuit. target_layers is the desired number of Pauli check layers.
-    Returns an error mitigated qasm str with the number Pauli check layers <= target_layers.
-    The number of qubits (tested with up to 10) can't be too many since we generate a list of all 
-    the possible +1Pauli checks to iterate through. This memory limitation can easily be removed by using 
-    a generator instead of a list, but is not yet implemented.
+    '''Main function to call to create circuits with low weight checks.
+    qasmstr is the input circuit (the input circuit can't have measurements or barriers 
+    and the qubits must be on a single quantum register) and target_layers is the 
+    desired number of Pauli check layers. Returns an error mitigated qasm str 
+    with the number of Pauli check layers <= target_layers. Note that to implement 
+    the protocol you still have to postselect on the ancilla 
+    measurements (Only keep the state when you measure all zeros on the 
+    ancillas. Discard otherwise.)
+    
+    The number of input qubits (tested with up to 10) can't be too many since we generate 
+    a list of all the possible +1Pauli checks to iterate through. 
+    This memory limitation can easily be removed by using a generator instead of a list, 
+    but is not yet implemented. 
+    
     qasmstr: str
     target_layers: int
     returns: str
