@@ -13,7 +13,8 @@ checksfinder.get_error_mitig_circ(qasmstr, target_layers). qasmstr is the input
 circuit (the input circuit can't have measurements or barriers and the qubits 
 must be on a single quantum register) and target_layers is the desired number of 
 Pauli check layers. Returns an error mitigated qasm str with the number of Pauli 
-check layers <= target_layers. Note that to implement the protocol you still have 
+check layers <= target_layers or if no checks are found returns None.
+Note that to implement the protocol you still have 
 to postselect on the ancilla measurements (Only keep the state when you 
 measure all zeros on the ancillas. Discard otherwise.)
 

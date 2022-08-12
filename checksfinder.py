@@ -1483,7 +1483,7 @@ def get_error_mitig_circ(qasmstr, target_layers):
     
     qasmstr: str
     target_layers: int
-    returns: str
+    returns: str or None if nothing found
     '''
     time0=time.time()
     print("running...")
@@ -1564,7 +1564,7 @@ def get_error_mitig_circ(qasmstr, target_layers):
         pool.join() #Waits for processes to finish.
     print(f"total execution time {time.time()-time0}")
     print("done")
-    if circ_qasm:
+    if layers_count:
         return circ_qasm
     else:
         return None
