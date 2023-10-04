@@ -1,6 +1,15 @@
 # Quantum Error Mitigation by Pauli Check Sandwiching
 arXiv paper: [link](https://doi.org/10.48550/arXiv.2206.00215)
 
+Note: This repository contains a large LFS file consisting of the data. If you want to
+avoid downloading it run
+
+```
+set GIT_LFS_SKIP_SMUDGE=1  
+git clone SERVER-REPOSITORY
+```
+replace SERVER-REPOSITORY with the PCS repository link
+
 Important files:
 - circgenerator.py: module for generating random circuits.  
 - checksfinder.py: module for finding checks for a given circuit.  
