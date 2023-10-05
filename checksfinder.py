@@ -11,6 +11,7 @@ import os
 import time
 import math
 from qiskit.visualization import circuit_drawer
+from qiskit.dagcircuit import DAGOpNode
 
 
 class CheckOperator:
@@ -575,7 +576,8 @@ class ChecksFinder:
                 #     print("exiting.")
                 #     return
                 # elif node.type=="op":
-                if node.type=="op":
+                # if node.type=="op":
+                if isinstance(node, DAGOpNode):
                     current_qubits=self.get_current_qubits(node)
                     # print(f"current qubits: {current_qubits}")
                     current_ops=[temp_check_reversed.operations[qubit] for qubit in current_qubits]
@@ -661,7 +663,8 @@ class ChecksFinder:
                 #     print("exiting.")
                 #     return
                 # elif node.type=="op":
-                if node.type=="op":
+                # if node.type=="op":
+                if isinstance(node, DAGOpNode):
                     current_qubits=self.get_current_qubits(node)
                     # print(f"current qubits: {current_qubits}")
                     current_ops=[temp_check_reversed.operations[qubit] for qubit in current_qubits]
