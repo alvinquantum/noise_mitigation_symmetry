@@ -6,9 +6,8 @@ avoid downloading it run
 
 ```
 set GIT_LFS_SKIP_SMUDGE=1  
-git clone SERVER-REPOSITORY
+git clone https://github.com/alvinquantum/noise_mitigation_symmetry
 ```
-replace SERVER-REPOSITORY with the PCS repository link
 
 Important files:
 - circgenerator.py: module for generating random circuits.  
